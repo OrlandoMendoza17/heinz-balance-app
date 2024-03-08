@@ -1,0 +1,34 @@
+.ConfirmModal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  &__main-container {
+    @apply overflow-hidden rounded-lg bg-white shadow-md;
+    @apply text-center duration-300 hover:scale-105 hover:shadow-xl;
+
+    max-width: 400px;
+  }
+
+  .content {
+    @apply p-8 flex flex-col items-center;
+  }
+
+  .buttons-container {
+    @apply p-4 bg-gray-100 text-center grid gap-4;
+
+    &.two-buttons {
+      @apply grid-cols-2;
+    }
+
+    button {
+      @apply py-2 font-semibold text-white shadow-md rounded-md;
+    }
+  }
+}

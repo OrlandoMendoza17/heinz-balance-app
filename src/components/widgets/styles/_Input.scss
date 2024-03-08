@@ -1,0 +1,45 @@
+form.validated {
+
+  input,
+  select,
+  textarea {
+    &:required{
+      &:valid {
+        @apply border-green-500;
+        &:focus{
+          @apply shadow-green-300;
+          box-shadow: 0px 0px 0px 3px rgb(134 239 172);
+        }
+      }
+  
+      &:invalid {
+        @apply border-red-500;
+        &:focus{
+          box-shadow: 0px 0px 0px 3px rgb(252 165 165);
+        }
+      }
+    }
+  }
+}
+
+.Input {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-rows: auto 1fr;
+  gap: 7px;
+
+  input,
+  select,
+  textarea {
+    transition: .3s;
+    outline: none;
+    @apply text-sm;
+    @apply bg-white rounded-md border-2 border-gray-300;
+    @apply px-5 py-3 text-gray-600 placeholder-gray-400;
+    
+    &:focus {
+      @apply border-blue-500;
+      box-shadow: 0px 0px 0px 3px rgba(161, 190, 251, 1);
+    }
+  }
+}

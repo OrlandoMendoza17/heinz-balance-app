@@ -1,0 +1,31 @@
+.Romana {
+  @apply p-10;
+
+  display: flex;
+  justify-content: center;
+
+  table {
+    @apply rounded-3xl;
+    overflow: hidden;
+
+    td,
+    th {
+      padding: 1rem 1.5rem;
+    }
+
+    th {
+      @apply bg-secondary text-white;
+    }
+    
+    tbody {
+      tr {
+        @apply bg-slate-200;
+        cursor: pointer;
+        
+        &:hover{
+          @apply bg-slate-300;
+        }
+      }
+    }
+  }
+}

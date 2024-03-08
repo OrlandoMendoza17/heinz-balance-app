@@ -1,0 +1,13 @@
+@import "./libs/reset";
+
+@import "./pages/index";
+@import "./pages/romana";
+
+// Components - Widgets
+@import "../components/widgets/styles/Header";
+@import "../components/widgets/styles/Button";
+@import "../components/widgets/styles/Input";
+@import "../components/widgets/styles/Spinner";
+@import "../components/widgets/styles/Modal";
+@import "../components/widgets/styles/ConfirmModal";
+@import "../components/widgets/styles/NotificationModal";

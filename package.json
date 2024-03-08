@@ -1,0 +1,43 @@
+{
+  "name": "heinz-balance-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "node server.js",
+    "lint": "next lint"
+  },
+  "engines": {
+    "node": "18.12.1"
+  },
+  "dependencies": {
+    "@azure/identity": "4.0.0",
+    "@azure/msal-browser": "3.7.0",
+    "@azure/msal-react": "2.0.9",
+    "axios": "1.6.7",
+    "date-fns": "3.3.1",
+    "dotenv": "16.1.4",
+    "jsonwebtoken": "^9.0.2",
+    "next": "13.4.4",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-icons": "5.0.1",
+    "sequelize": "6.32.1",
+    "tedious": "16.1.0"
+  },
+  "devDependencies": {
+    "@azure/keyvault-secrets": "4.7.0",
+    "@types/node": "20.2.5",
+    "@types/react": "18.2.7",
+    "@types/react-dom": "18.2.4",
+    "@types/tedious": "4.0.9",
+    "autoprefixer": "10.0.1",
+    "eslint": "8",
+    "eslint-config-next": "14.1.0",
+    "postcss": "8",
+    "sass": "1.62.1",
+    "tailwindcss": "3.3.0",
+    "typescript": "5.0.4"
+  }
+}

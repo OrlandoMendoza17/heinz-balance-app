@@ -1,0 +1,36 @@
+.LoginForm{
+  @apply h-screen items-center p-20;
+  
+  display: grid;
+  
+  justify-content: center;
+  justify-items: center;
+  align-content: center;
+  
+  
+  form{
+    @apply p-5 grid gap-7 rounded-3xl;
+    // @apply border border-primary;
+    
+    min-width: 32rem;
+    
+    @screen xx_sm{
+      min-width: 36rem;
+    }
+    
+    h1{
+      @apply pt-8 text-slate-500;
+    }
+    
+    button{
+      @apply grid grid-cols-[auto_auto] gap-5 justify-center items-center;
+    }
+    
+    
+    
+    // input{
+    //   @apply bg-secondary;
+    // }
+    
+  }
+}

@@ -1,0 +1,5 @@
+.Button{
+  @apply px-4 py-4 text-base text-white;
+  @apply transition duration-200 rounded-md;
+  @apply disabled:bg-gray-500;
+}
