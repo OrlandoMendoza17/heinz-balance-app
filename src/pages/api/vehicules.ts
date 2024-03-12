@@ -35,6 +35,7 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
         const [data2] = await sequelize.query(queryString2) as [T_TRA[], unknown]
         
         if(data2.length){
+          
           const vehicule: Vehicule = {
             plate: data1[0].VEH_PLA,
             model: data1[0].VEH_MOD,

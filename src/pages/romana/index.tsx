@@ -1,6 +1,8 @@
+import TableVehicules from '@/components/pages/TableVehicules';
 import VehiclesExit from '@/components/pages/VehiclesExit';
 import Header from '@/components/widgets/Header'
 import Modal from '@/components/widgets/Modal';
+import getAboutToLeaveEntries from '@/services/aboutToLeave';
 import { getDestination, getOperation } from '@/services/plant';
 import { getTransports } from '@/utils';
 import { shortDate } from '@/utils/parseDate';
@@ -10,17 +12,46 @@ import React, { ChangeEventHandler, MouseEventHandler, useEffect, useState } fro
 const Romana = () => {
 
   const [showModal, setModal] = useState<boolean>(false)
-  const transports = getTransports()
-  // console.log(transports)
+  const [entrys, setTransports] = useState<Entry[]>([])
+  
+  const [selectedEntry, setSelectedTransport] = useState<Entry>({
+    entryNumber: "",
+    driver: {
+      name: "",
+      cedula: "",
+      code: "",
+    },
+    vehicule: {
+      plate: "",
+      model: "",
+      type: "",
+      capacity: 0,
+      company: "",
+    },
+    destination: "D01",
+    entryDate: "",
+    origin: "",
+    truckWeight: 0,
+    grossWeight: 0,
+    netWeight: 0,
+  })
+  
+  // console.log(entrys)
 
   // const handleChange: ChangeEventHandler<HTMLInputElement> = ({ target }) => {
   //   console.log(target.value)
   // }
 
-  const handleClick: MouseEventHandler<HTMLTableRowElement> = () => {
-    // alert("Hello! I'm the radio demon! 👹")
-    setModal(true)
-  }
+  useEffect(() => {
+    (async ()=>{
+      
+      const entrys = await getAboutToLeaveEntries()
+      setTransports(entrys)
+      
+    })() 
+    
+  }, [])
+  
 
   return (
     <>
@@ -30,28 +61,29 @@ const Romana = () => {
         <table className="Transport">
           <thead>
             <tr>
+              <th>N° de Entrada</th>
               <th>Nombre</th>
               <th>Cedula</th>
               <th>Placa</th>
+              <th>Procedencia</th>
               <th>Destino</th>
               <th>Fecha de Entrada</th>
             </tr>
           </thead>
           <tbody>
             {
-              transports.map(({ driver, truckPlate, destination, entryDate }, i) =>
-                <tr key={i} onClick={handleClick}>
-                  <td>{driver.name}</td>
-                  <td>{driver.cedula}</td>
-                  <td>{truckPlate}</td>
-                  <td>{destination}</td>
-                  <td>{shortDate(entryDate)}</td>
-                </tr>
+              entrys.map((entry, i) =>
+                <TableVehicules 
+                  key={i} 
+                  setModal={setModal} 
+                  setSelectedTransport={setSelectedTransport} 
+                  entry={entry}
+                />
               )
             }
           </tbody>
         </table>
-        <VehiclesExit {...{ showModal, setModal }} />
+        <VehiclesExit {...{ showModal, setModal, entry: selectedEntry }} />
       </main>
     </>
   )

@@ -12,11 +12,16 @@ type Vehicule = {
   company: T_TRA["TRA_COD"];
 }
 
-type Transport = {
+type Entry = {
+  entryNumber: T_ENT["ENT_NUM"],
   driver: Driver;
-  truckPlate: Vehicule["plate"];
+  vehicule: Vehicule,
   destination: T_DES["DES_COD"];
   entryDate: string;
+  origin: string,
+  truckWeight: number,
+  grossWeight: number,
+  netWeight: number,
 }
 
 type User = {

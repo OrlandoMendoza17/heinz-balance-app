@@ -11,6 +11,7 @@ import Spinner from "@/components/widgets/Spinner";
 import AuthService from "@/services/auth";
 import useNotification from "@/hooks/useNotification";
 import NotificationModal from "@/components/widgets/NotificationModal";
+import getDestinationEntryQuery from "@/utils/api/aboutToLeave";
 
 const inter = Inter({ subsets: ["latin"] });
 const auth = new AuthService()
@@ -35,6 +36,13 @@ const Home = () => {
       
     }
   }, [])
+  
+  
+  useEffect(() => {
+    const query = getDestinationEntryQuery("D05", "1")
+    console.log('query', query)
+  }, [])
+  
   
   const handleLoginMicrosoft: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
