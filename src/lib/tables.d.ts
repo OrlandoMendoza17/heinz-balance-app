@@ -8,14 +8,14 @@ type P_ENT = {
   USU_LOG: string;        // Usuario
   VEH_ID: string;         // Esto viene de los conductores
   CON_COD: string;        // Codigo de conductor
-  DES_COD: DES_COD;        // Código de destino dentro de planta
+  DES_COD: DES_COD;       // Código de destino dentro de planta
   OPE_COD: string;        // Código de operación dentro de planta
   ENT_PES_TAR: number;    // Peso de entrada de la TARA
   EMP_ID: null | string;  // Todos los valores vacios- Posible relacion con el empleado encargado de verificar la entrada y la salida
   ENT_OBS: string;        // Observaciones
   ENT_FLW: number;        // Valor para indicar peso dividido o no (Posible) ❓
   ENT_FEC_COL: string;    // Preguntarle a yamileth - Posible hora de llegada a la romana 
-  ENT_FLW_ACC: number;    // (Posible) carga, devolucion y descarga(2)  2- Valor de descarga ❓
+  ENT_FLW_ACC: number;    // Carga (1), Descarga (2), Devolución (3), Ticket de salida (4)
 }
 
 // H025_P_ENT_DI -> Entrada a Distribución
@@ -157,7 +157,6 @@ type T_EMP = {
 }
 
 // H025_T_F0101 -> Registro general de personas
-
 type T_F0101 = {
   ABAN8: number;  // ficha o codigo 
   ABTAXC: string; // only gods know  ❓ // Valores posibles J, V, 6, 7, E, G, P

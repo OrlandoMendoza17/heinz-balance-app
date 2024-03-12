@@ -37,6 +37,7 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
         if(data2.length){
           
           const vehicule: Vehicule = {
+            id: data1[0].VEH_ID,
             plate: data1[0].VEH_PLA,
             model: data1[0].VEH_MOD,
             type: data1[0].VEH_TIP,

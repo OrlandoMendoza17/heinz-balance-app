@@ -23,6 +23,15 @@ type Props = {
 type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
 type DestinationSelectValue = { DES_COD: DES_COD, OPE_COD: string }
 
+type TABLE_VALUES = {
+  D01: Omit<P_ENT_DI, "ENT_NUM">
+  D02: P_ENT_MP
+  D03: P_ENT_SG
+  D04: P_ENT_ALM
+  D05: P_ENT_MAT
+  D07: P_ENT_OS
+}
+
 const VehiculesEntrance = ({ showModal, setModal }: Props) => {
 
   const [alert, handleAlert] = useNotification()
@@ -94,9 +103,9 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
     const { destination } = newEntry; // Destiny code 
     const {DES_COD, OPE_COD}: DestinationSelectValue = JSON.parse(destination)
     
-    const table_values = {
+    const table_values: TABLE_VALUES = {
       "D01": {
-        ENT_NUM: "",           
+        // ENT_NUM: "",  // Si es auto incremental, no se manda
         USU_LOG: "",            
         ENT_DI_FEC: "",        
         ENT_DI_PRO: "",         
@@ -148,13 +157,13 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
       },
     }
 
-    const EntryValue = {
+    const EntryValue: P_ENT = {
       ENT_NUM:"",        
       ENT_FEC:"",       
       USU_LOG:"",        
       VEH_ID:"",         
       CON_COD:"",       
-      DES_COD: destination,        
+      DES_COD,        
       OPE_COD:"",       
       ENT_PES_TAR: 0,    
       EMP_ID: "",  
