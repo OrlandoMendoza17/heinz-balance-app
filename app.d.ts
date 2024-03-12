@@ -1,27 +1,30 @@
 type Driver =  {
-  name: T_CON["CON_NOM"];
-  cedula: T_CON["CON_CED"];
+  name: T_CON["CON_NOM"],
+  cedula: T_CON["CON_CED"],
   code: T_CON["CON_COD"],
 }
 
 type Vehicule = {
-  plate: T_VEH["VEH_PLA"];
-  model: T_VEH["VEH_MOD"];
-  type: T_VEH["VEH_TIP"];
-  capacity: T_VEH["VEH_CAP"];
-  company: T_TRA["TRA_COD"];
+  plate: T_VEH["VEH_PLA"],
+  model: T_VEH["VEH_MOD"],
+  type: T_VEH["VEH_TIP"],
+  capacity: T_VEH["VEH_CAP"],
+  company: T_TRA["TRA_COD"],
 }
 
 type Entry = {
   entryNumber: T_ENT["ENT_NUM"],
-  driver: Driver;
+  entryDate: string,
+  driver: Driver,
   vehicule: Vehicule,
-  destination: T_DES["DES_COD"];
-  entryDate: string;
+  destination: T_DES["DES_COD"],
+  operation: string,
+  invoice: string,
   origin: string,
   truckWeight: number,
   grossWeight: number,
   netWeight: number,
+  details: string,
 }
 
 type User = {

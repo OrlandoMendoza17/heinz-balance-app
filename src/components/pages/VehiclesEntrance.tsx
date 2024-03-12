@@ -23,23 +23,21 @@ type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLSelectElement | H
 const VehiclesEntrance = ({ showModal, setModal }: Props) => {
 
   const [alert, handleAlert] = useNotification()
-  
+
   const [operations, setOperations] = useState<SelectOptions[]>([])
   const [destinations, setDestinations] = useState<SelectOptions[]>([])
 
   const [driver, setDriver] = useState<Driver>()
   const [vehicule, setVehicule] = useState<Vehicule>()
 
-  const [entry, setEntry] = useState({
-    origin: "",
-    invoice: "",
-    truckWeight: 0,
-    destination: "",
+  const [newEntry, setNewEntry] = useState<Omit<Entry, "entryNumber" | "entryDate" | "vehicule" | "driver" | "grossWeight" | "netWeight">>({
+    destination: "D01",
     operation: "",
+    invoice: "",
+    origin: "",
+    truckWeight: 0,
     details: "",
   })
-
-  const { origin, invoice, truckWeight } = entry
 
   useEffect(() => {
     (async () => {
@@ -74,7 +72,7 @@ const VehiclesEntrance = ({ showModal, setModal }: Props) => {
       }
     })()
   }, [])
-  
+
   const searchVehicule = async (vehiculePlate: string) => {
 
     setVehicule(undefined)
@@ -82,7 +80,7 @@ const VehiclesEntrance = ({ showModal, setModal }: Props) => {
     setVehicule(vehicule)
 
   }
-  
+
   const searchDriver = async (driverPersonalID: string) => {
 
     setDriver(undefined)
@@ -93,14 +91,21 @@ const VehiclesEntrance = ({ showModal, setModal }: Props) => {
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
+
+    const { destination } = newEntry
+    
+    // Código
+
   }
 
   const handleChange: ChangeHandler = async ({ target }) => {
-    setEntry({
-      ...entry,
+    setNewEntry({
+      ...newEntry,
       [target.id]: target.value,
     })
   }
+
+  const { origin, invoice, truckWeight, details } = newEntry
 
   return (
     <>
@@ -111,37 +116,55 @@ const VehiclesEntrance = ({ showModal, setModal }: Props) => {
           className='grid grid-cols-2 gap-x-5 gap-y-8'
         >
 
-          <VehiculeEntranceSearch
-            id="vehiculePlate"
-            title="Placa del Vehículo"
-            placeholder="A7371V"
-            searchInfo={searchVehicule}
+          <>
+            <VehiculeEntranceSearch
+              id="vehiculePlate"
+              title="Placa del Vehículo"
+              placeholder="A7371V"
+              searchInfo={searchVehicule}
+            />
+
+            <VehiculeEntranceSearch
+              id="driverPersonalID"
+              title="Cédula del Chofer"
+              placeholder="27313279"
+              searchInfo={searchDriver}
+            />
+
+            {
+              (driver || vehicule) &&
+              <div className="col-span-2 grid grid-cols-2 gap-x-5 text-secondary">
+                {
+                  vehicule &&
+                  <span className="col-start-1 row-start-1">
+                    {vehicule.plate} - {vehicule.model} - {vehicule.company}
+                  </span>
+                }
+                {
+                  driver &&
+                  <span className="col-start-2 row-start-1">
+                    {driver.cedula} - {driver.name}
+                  </span>
+                }
+              </div>
+            }
+          </>
+
+          <Select
+            id="destination"
+            title="Destino"
+            defaultOption="Destino"
+            options={destinations}
+            onChange={handleChange}
           />
 
-          <VehiculeEntranceSearch
-            id="driverPersonalID"
-            title="Cédula del Chofer"
-            placeholder="27313279"
-            searchInfo={searchDriver}
+          <Select
+            id="operation"
+            title="Operación"
+            defaultOption="Operación"
+            options={operations}
+            onChange={handleChange}
           />
-
-          {
-            (driver || vehicule) &&
-            <div className="col-span-2 grid grid-cols-2 gap-x-5 text-secondary">
-              {
-                vehicule &&
-                <span className="col-start-1 row-start-1">
-                  {vehicule.plate} - {vehicule.model} - {vehicule.company}
-                </span>
-              }
-              {
-                driver &&
-                <span className="col-start-2 row-start-1">
-                  {driver.cedula} - {driver.name}
-                </span>
-              }
-            </div>
-          }
 
           <Input
             id="origin"
@@ -158,22 +181,6 @@ const VehiclesEntrance = ({ showModal, setModal }: Props) => {
             className="w-full"
             title="Factura"
             placeholder=""
-            onChange={handleChange}
-          />
-
-          <Select
-            id="destination"
-            title="Destino"
-            defaultOption="Destino"
-            options={destinations}
-            onChange={handleChange}
-          />
-
-          <Select
-            id="operation"
-            title="Operación"
-            defaultOption="Operación"
-            options={operations}
             onChange={handleChange}
           />
 
@@ -194,7 +201,7 @@ const VehiclesEntrance = ({ showModal, setModal }: Props) => {
 
           <Textarea
             id="details"
-            value={""}
+            value={details}
             title="Observaciones en entrada"
             className="col-span-2"
             onChange={handleChange}
