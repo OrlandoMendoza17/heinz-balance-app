@@ -1,5 +1,5 @@
 import TableVehicules from '@/components/pages/TableVehicules';
-import VehiclesExit from '@/components/pages/VehiclesExit';
+import VehiclesExit from '@/components/pages/VehiculesExit';
 import Header from '@/components/widgets/Header'
 import Modal from '@/components/widgets/Modal';
 import getAboutToLeaveEntries from '@/services/aboutToLeave';
@@ -21,6 +21,7 @@ const Romana = () => {
       code: "",
     },
     vehicule: {
+      id: "",
       plate: "",
       model: "",
       type: "",
