@@ -6,12 +6,14 @@ import Form from '../widgets/Form'
 import Textarea from '../widgets/Textarea'
 import Select, { SelectOptions } from '../widgets/Select'
 import VehiculeEntranceSearch from './VehiculeEntranceSearch'
-import { getDestination, getOperation } from '@/services/plant'
+import { getDestination } from '@/services/destination'
 import { getDriver, getVehicule } from '@/services/transportInfo'
 import { AxiosError } from 'axios'
 import getErrorMessage from '@/utils/services/errorMessages'
 import NotificationModal from '../widgets/NotificationModal'
 import useNotification from '@/hooks/useNotification'
+import { INVOICE_BY_CODE } from '@/lib/enums'
+import { de } from 'date-fns/locale'
 
 type Props = {
   showModal: boolean,
@@ -20,18 +22,18 @@ type Props = {
 
 type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
 
-const VehiclesEntrance = ({ showModal, setModal }: Props) => {
+const VehiculesEntrance = ({ showModal, setModal }: Props) => {
 
   const [alert, handleAlert] = useNotification()
+  const [enableInvoice, setEnableInvoice] = useState<Boolean>(false)
 
-  const [operations, setOperations] = useState<SelectOptions[]>([])
   const [destinations, setDestinations] = useState<SelectOptions[]>([])
 
   const [driver, setDriver] = useState<Driver>()
   const [vehicule, setVehicule] = useState<Vehicule>()
 
-  const [newEntry, setNewEntry] = useState<Omit<Entry, "entryNumber" | "entryDate" | "vehicule" | "driver" | "grossWeight" | "netWeight">>({
-    destination: "D01",
+  const [newEntry, setNewEntry] = useState<NewEntryDto>({
+    destination: "",
     operation: "",
     invoice: "",
     origin: "",
@@ -44,28 +46,21 @@ const VehiclesEntrance = ({ showModal, setModal }: Props) => {
       try {
 
         // const data = await getDestination()
+
         const destinations = await getDestination()
-        console.log("Destinations: ", destinations)
+        console.log("Operations: ", destinations)
 
-        const operations = await getOperation()
-        console.log("Operations: ", operations)
-
-        const destinationOptions: SelectOptions[] = destinations.map(({ DES_COD, DES_DES }) => {
+        const operationOptions: SelectOptions[] = destinations.map(({ DES_DES, OPE_COD, DES_COD }) => {
           return {
             name: DES_DES,
-            value: DES_COD,
+            value: JSON.stringify({
+              DES_COD,
+              OPE_COD,
+            }),
           }
         })
 
-        const operationOptions: SelectOptions[] = operations.map(({ OPE_COD, OPE_DES }) => {
-          return {
-            name: OPE_DES,
-            value: OPE_COD,
-          }
-        })
-
-        setDestinations(destinationOptions)
-        setOperations(operationOptions)
+        setDestinations(operationOptions)
 
       } catch (error) {
         console.log(error)
@@ -94,81 +89,37 @@ const VehiclesEntrance = ({ showModal, setModal }: Props) => {
 
     const { destination } = newEntry; // Destiny code 
 
-    const table_values = {
-      "D01": {
-        ENT_NUM: "",           
-        USU_LOG: "",            
-        ENT_DI_FEC: "",        
-        ENT_DI_PRO: "",         
-        ENT_DI_GUI: "",         
-        ENT_DI_PLA: "",         
-        ENT_DI_NDE: "",         
-        ENT_DI_PAL: "", 
-        ENT_DI_PNC: 0,       
-        ENT_DI_CPA: 0,         
-        ENT_DI_PPA: 0,         
-        ENT_DI_DES: "",         
-        ENT_DI_PAD: 0,         
-        ENT_DI_DPA: "",
-        ENT_DI_STA: 1,        
-        ENT_DI_OBS: "",  
-        ENT_DI_AUT: "",   
-        ENT_DI_REV: true
-      },
-      "D02": {
-        ENT_NUM: "",           
-        ENT_MP_PRO: "",         
-        ENT_MP_FAC: "",  
-        ENT_MP_NOT: null,           
-        ENT_MP_PAL: null 
-      },
-      "D03": {
-        ENT_NUM:"",
-        ENT_SG_PRO: "",
-        ENT_SG_FAC: "",
-        ENT_SG_NOT: null,
-        ENT_SG_AUT: null,
-        ENT_SG_NDE: null
-      },
-      "D04": {
-        ENT_NUM: "",
-        ENT_ALM_PRO: "",
-        ENT_ALM_FAC: "",
-      },
-      "D05": {
-        ENT_PRO: "",
-        OPE_COD: "",  
-        ENT_NUM: "",
-        MAT_COD: ""
-      },
-      "D07": {
-        ENT_NUM: "",           
-        ENT_OS_PRO: "",        
-        ENT_OS_AUT: ""
-      },
-    }
+    switch(destination){
+      
+      case 'D01': {
 
-    const EntryValue = {
-      ENT_NUM:"",        
-      ENT_FEC:"",       
-      USU_LOG:"",        
-      VEH_ID:"",         
-      CON_COD:"",       
-      DES_COD: destination,        
-      OPE_COD:"",       
-      ENT_PES_TAR: 0,    
-      EMP_ID: "",  
-      ENT_OBS:"",
-      ENT_FLW: 0,      
-      ENT_FEC_COL:"",    
-      ENT_FLW_ACC: 0    
-    }
+      }break;
+      case 'D02':{
 
-    const value =  table_values[destination]
-    return [EntryValue, value];
+      }break;
+      case 'D03':{
+
+      }break;
+      case 'D04':{
+
+      }break;
+      case 'D05':{
+
+      }break
+      case 'D07':{
+
+      }break;
+    }
   }
 
   const handleChange: ChangeHandler = async ({ target }) => {
+    type DESTINATION_VALUES = { DES_COD: DES_COD, OPE_COD: string }
+
+    if (target.name === "destination") {
+      const { DES_COD }: DESTINATION_VALUES = JSON.parse(target.value)
+      setEnableInvoice(Boolean(INVOICE_BY_CODE[DES_COD]))
+    }
+
     setNewEntry({
       ...newEntry,
       [target.id]: target.value,
@@ -220,22 +171,6 @@ const VehiclesEntrance = ({ showModal, setModal }: Props) => {
             }
           </>
 
-          <Select
-            id="destination"
-            title="Destino"
-            defaultOption="Destino"
-            options={destinations}
-            onChange={handleChange}
-          />
-
-          <Select
-            id="operation"
-            title="Operación"
-            defaultOption="Operación"
-            options={operations}
-            onChange={handleChange}
-          />
-
           <Input
             id="origin"
             value={origin}
@@ -245,12 +180,11 @@ const VehiclesEntrance = ({ showModal, setModal }: Props) => {
             onChange={handleChange}
           />
 
-          <Input
-            id="invoice"
-            value={invoice}
-            className="w-full"
-            title="Factura"
-            placeholder=""
+          <Select
+            name="destination"
+            title="Destino"
+            defaultOption="Destino"
+            options={destinations}
             onChange={handleChange}
           />
 
@@ -269,6 +203,18 @@ const VehiclesEntrance = ({ showModal, setModal }: Props) => {
             </Button>
           </div>
 
+          {
+            enableInvoice &&
+            <Input
+              id="invoice"
+              value={invoice}
+              className="w-full"
+              title="Factura"
+              placeholder=""
+              onChange={handleChange}
+            />
+          }
+
           <Textarea
             id="details"
             value={details}
@@ -286,4 +232,4 @@ const VehiclesEntrance = ({ showModal, setModal }: Props) => {
   )
 }
 
-export default VehiclesEntrance
+export default VehiculesEntrance

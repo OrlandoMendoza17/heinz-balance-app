@@ -5,7 +5,7 @@ import { LiaListAlt } from "react-icons/lia";
 import Modal from './Modal';
 import { IconType } from 'react-icons';
 import Input from './Input';
-import VehiclesEntrance from '../pages/VehiclesEntrance';
+import VehiculesEntrance from '../pages/VehiculesEntrance';
 import useAuth from '@/hooks/useAuth';
 
 type NavbarListItem = {
@@ -65,7 +65,7 @@ const Header = () => {
         </nav>
       </header>
       
-      <VehiclesEntrance {...{ showModal, setModal }}/>
+      <VehiculesEntrance {...{ showModal, setModal }}/>
       
     </>
   )

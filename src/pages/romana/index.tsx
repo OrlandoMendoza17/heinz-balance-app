@@ -3,9 +3,7 @@ import VehiclesExit from '@/components/pages/VehiclesExit';
 import Header from '@/components/widgets/Header'
 import Modal from '@/components/widgets/Modal';
 import getAboutToLeaveEntries from '@/services/aboutToLeave';
-import { getDestination, getOperation } from '@/services/plant';
 import { getTransports } from '@/utils';
-import { shortDate } from '@/utils/parseDate';
 import React, { ChangeEventHandler, MouseEventHandler, useEffect, useState } from 'react'
 
 
@@ -16,6 +14,7 @@ const Romana = () => {
   
   const [selectedEntry, setSelectedTransport] = useState<Entry>({
     entryNumber: "",
+    entryDate: "",
     driver: {
       name: "",
       cedula: "",
@@ -29,11 +28,13 @@ const Romana = () => {
       company: "",
     },
     destination: "D01",
-    entryDate: "",
+    operation: "",
     origin: "",
     truckWeight: 0,
     grossWeight: 0,
     netWeight: 0,
+    details: "",
+    invoice: "",
   })
   
   // console.log(entrys)

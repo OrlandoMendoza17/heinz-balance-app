@@ -27,6 +27,10 @@ type Entry = {
   details: string,
 }
 
+type NewEntryDto = Omit<Entry, "entryNumber" | "entryDate" | "vehicule" | "driver" | "grossWeight" | "netWeight" | "destination"> & {
+  destination: string;
+}
+
 type User = {
   nombre: string,
   email: string,

@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import Select, { SelectOptions } from '../widgets/Select'
-import { getDestination, getOperation } from '@/services/plant'
+import { getDestination, getOperation } from '@/services/destination'
 import Modal from '../widgets/Modal'
 import Button from '../widgets/Button'
 import Input from '../widgets/Input'
