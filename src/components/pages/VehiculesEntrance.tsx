@@ -21,6 +21,7 @@ type Props = {
 }
 
 type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+type DestinationSelectValue = { DES_COD: DES_COD, OPE_COD: string }
 
 const VehiculesEntrance = ({ showModal, setModal }: Props) => {
 
@@ -51,12 +52,15 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
         console.log("Operations: ", destinations)
 
         const operationOptions: SelectOptions[] = destinations.map(({ DES_DES, OPE_COD, DES_COD }) => {
+          
+          const value: DestinationSelectValue = {
+            DES_COD,
+            OPE_COD,
+          }
+          
           return {
             name: DES_DES,
-            value: JSON.stringify({
-              DES_COD,
-              OPE_COD,
-            }),
+            value: JSON.stringify(value),
           }
         })
 
@@ -87,8 +91,80 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
 
-    // Código
+    const { destination } = newEntry; // Destiny code 
+    const {DES_COD, OPE_COD}: DestinationSelectValue = JSON.parse(destination)
+    
+    const table_values = {
+      "D01": {
+        ENT_NUM: "",           
+        USU_LOG: "",            
+        ENT_DI_FEC: "",        
+        ENT_DI_PRO: "",         
+        ENT_DI_GUI: "",         
+        ENT_DI_PLA: "",         
+        ENT_DI_NDE: "",         
+        ENT_DI_PAL: "", 
+        ENT_DI_PNC: 0,       
+        ENT_DI_CPA: 0,         
+        ENT_DI_PPA: 0,         
+        ENT_DI_DES: "",         
+        ENT_DI_PAD: 0,         
+        ENT_DI_DPA: "",
+        ENT_DI_STA: 1,        
+        ENT_DI_OBS: "",  
+        ENT_DI_AUT: "",   
+        ENT_DI_REV: true
+      },
+      "D02": {
+        ENT_NUM: "",           
+        ENT_MP_PRO: "",         
+        ENT_MP_FAC: "",  
+        ENT_MP_NOT: null,           
+        ENT_MP_PAL: null 
+      },
+      "D03": {
+        ENT_NUM:"",
+        ENT_SG_PRO: "",
+        ENT_SG_FAC: "",
+        ENT_SG_NOT: null,
+        ENT_SG_AUT: null,
+        ENT_SG_NDE: null
+      },
+      "D04": {
+        ENT_NUM: "",
+        ENT_ALM_PRO: "",
+        ENT_ALM_FAC: "",
+      },
+      "D05": {
+        ENT_PRO: "",
+        OPE_COD: "",  
+        ENT_NUM: "",
+        MAT_COD: ""
+      },
+      "D07": {
+        ENT_NUM: "",           
+        ENT_OS_PRO: "",        
+        ENT_OS_AUT: ""
+      },
+    }
 
+    const EntryValue = {
+      ENT_NUM:"",        
+      ENT_FEC:"",       
+      USU_LOG:"",        
+      VEH_ID:"",         
+      CON_COD:"",       
+      DES_COD: destination,        
+      OPE_COD:"",       
+      ENT_PES_TAR: 0,    
+      EMP_ID: "",  
+      ENT_OBS:"",
+      ENT_FLW: 0,      
+      ENT_FEC_COL:"",    
+      ENT_FLW_ACC: 0    
+    }
+    
+    const value =  table_values[DES_COD]
   }
 
   const handleChange: ChangeHandler = async ({ target }) => {
