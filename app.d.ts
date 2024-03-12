@@ -5,6 +5,7 @@ type Driver =  {
 }
 
 type Vehicule = {
+  id: T_VEH["VEH_ID"],
   plate: T_VEH["VEH_PLA"],
   model: T_VEH["VEH_MOD"],
   type: T_VEH["VEH_TIP"],
@@ -19,7 +20,7 @@ type Entry = {
   vehicule: Vehicule,
   destination: T_DES["DES_COD"],
   operation: string,
-  invoice: string,
+  invoice?: string,
   origin: string,
   truckWeight: number,
   grossWeight: number,

@@ -61,23 +61,16 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
 
     const entries: Entry[] = []
     
-    for (const { ENT_NUM, CON_COD, VEH_ID, DES_COD, ENT_FEC, ENT_PES_TAR } of data) {
-      
+    for (const { ENT_NUM, CON_COD, VEH_ID, DES_COD, OPE_COD, ENT_FEC, ENT_PES_TAR } of data) {
       
       const vehicule = vehicules.find((vehicule) => vehicule.VEH_ID === VEH_ID)
       const driver = drivers.find((driver) => driver.CON_COD === CON_COD)
       
-      console.log('ENT_NUM', ENT_NUM)
-      console.log('DES_COD', DES_COD)
-      
       const destinationQuery = getDestinationEntryQuery(DES_COD, ENT_NUM)
-      console.log('destinationQuery', destinationQuery)
       
       const [data] = await sequelize.query(destinationQuery) as [any[], unknown]
-      console.log('data', data)
       
       const entry = data.find((entry) => entry.ENT_NUM === ENT_NUM)
-      console.log('entry', entry)
       
       entries.push({
         entryNumber: ENT_NUM,
@@ -87,6 +80,7 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
           code: driver?.CON_COD || "",
         },
         vehicule: {
+          id: VEH_ID,
           plate: vehicule?.VEH_PLA || "",
           model: vehicule?.VEH_MOD || "",
           type: vehicule?.VEH_TIP || "",
@@ -99,40 +93,11 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
         truckWeight: ENT_PES_TAR,
         grossWeight: (entry.ENT_DI_PNC === null) ? 0 : entry.ENT_DI_PNC,
         netWeight: (entry.ENT_DI_PNC === null) ? 0 : entry.ENT_DI_PNC,
+        operation: OPE_COD,
+        details: "",
       }) 
     }
-    
-    // const entries = await data.map(async ({ ENT_NUM, CON_COD, VEH_ID, DES_COD, ENT_FEC, ENT_PES_TAR })=>{
-      
-    //   const vehicule = vehicules.find((vehicule) => vehicule.VEH_ID === VEH_ID)
-    //   const driver = drivers.find((driver) => driver.CON_COD === CON_COD)
-      
-    //   const destinationQuery = getDestinationEntryQuery(DES_COD, ENT_NUM)
-    //   const data = await sequelize.query(destinationQuery) as [unknown[], unknown]
-      
-    //   return {
-    //     entryNumber: ENT_NUM,
-    //     driver: {
-    //       name: driver?.CON_NOM || "",
-    //       cedula: driver?.CON_CED || "",
-    //       code: driver?.CON_COD || "",
-    //     },
-    //     vehicule: {
-    //       plate: vehicule?.VEH_PLA || "",
-    //       model: vehicule?.VEH_MOD || "",
-    //       type: vehicule?.VEH_TIP || "",
-    //       capacity: vehicule?.VEH_CAP || 0,
-    //       company: vehicule?.TRA_COD || "",
-    //     },
-    //     destination: DES_COD,
-    //     entryDate: ENT_FEC,
-    //     origin: "",
-    //     truckWeight: ENT_PES_TAR,
-    //     grossWeight: 0,
-    //     netWeight: 0,
-    //   }
-    // })
-
+  
     response.json(entries)
 
   } catch (error) {

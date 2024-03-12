@@ -1,6 +1,6 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import Select, { SelectOptions } from '../widgets/Select'
-import { getDestination, getOperation } from '@/services/destination'
+import { getDestination } from '@/services/destination'
 import Modal from '../widgets/Modal'
 import Button from '../widgets/Button'
 import Input from '../widgets/Input'
@@ -16,9 +16,6 @@ type Props = {
 
 const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
 
-  const [operations, setOperations] = useState<SelectOptions[]>([])
-  const [destinations, setDestinations] = useState<SelectOptions[]>([])
-
   const [selectedTransport, setSelectedTransport] = useState<Entry>({
     entryNumber: "",
     driver: {
@@ -27,6 +24,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
       code: "",
     },
     vehicule: {
+      id: "",
       plate: "",
       model: "",
       type: "",
@@ -34,47 +32,15 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
       company: "",
     },
     destination: "D01",
+    operation: "",
     entryDate: "",
     origin: "",
     truckWeight: 0,
     grossWeight: 0,
     netWeight: 0,
+    details: "",
   })
-  
-  useEffect(() => {
-    (async () => {
-      try {
 
-        // const data = await getDestination()
-        const destinations = await getDestination()
-        console.log("Destinations: ", destinations)
-
-        const operations = await getOperation()
-        console.log("Operations: ", operations)
-
-        const destinationOptions: SelectOptions[] = destinations.map(({ DES_COD, DES_DES }) => {
-          return {
-            name: DES_DES,
-            value: DES_COD,
-          }
-        })
-
-        const operationOptions: SelectOptions[] = operations.map(({ OPE_COD, OPE_DES }) => {
-          return {
-            name: OPE_DES,
-            value: OPE_COD,
-          }
-        })
-
-        setDestinations(destinationOptions)
-        setOperations(operationOptions)
-
-      } catch (error) {
-        console.log(error)
-      }
-    })()
-  }, [])
-  
   const { entryNumber, vehicule, driver, entryDate, destination } = entry
 
   return (

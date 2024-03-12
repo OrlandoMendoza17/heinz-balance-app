@@ -40,7 +40,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
     truckWeight: 0,
     details: "",
   })
-
+  
   useEffect(() => {
     (async () => {
       try {
@@ -87,8 +87,6 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
 
-    const { destination } = newEntry
-
     // Código
 
   }
@@ -96,13 +94,20 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
   const handleChange: ChangeHandler = async ({ target }) => {
     type DESTINATION_VALUES = { DES_COD: DES_COD, OPE_COD: string }
 
+    let invoice = newEntry.invoice
+    
     if (target.name === "destination") {
       const { DES_COD }: DESTINATION_VALUES = JSON.parse(target.value)
-      setEnableInvoice(Boolean(INVOICE_BY_CODE[DES_COD]))
+      
+      const REQUIRES_INVOICE = Boolean(INVOICE_BY_CODE[DES_COD])
+      setEnableInvoice(REQUIRES_INVOICE)
+      
+      invoice = REQUIRES_INVOICE ? newEntry.invoice : undefined
     }
 
     setNewEntry({
       ...newEntry,
+      invoice,
       [target.id]: target.value,
     })
   }
@@ -205,6 +210,14 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             placeholder="📝 ..."
             required={false}
           />
+          
+          <div>
+            <input type="radio" />
+            <input type="radio" />
+            <input type="radio" />
+          </div>
+          
+          <Button type="submit" className="bg-secondary col-span-2">Procesar</Button>
 
         </Form>
       </Modal>
