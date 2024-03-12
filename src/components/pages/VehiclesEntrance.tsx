@@ -92,9 +92,36 @@ const VehiclesEntrance = ({ showModal, setModal }: Props) => {
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
 
-    const { destination } = newEntry
+    const { destination } = newEntry; // Destiny code 
+
     
-    // Código
+
+    switch(destination){
+      
+      case 'D01': {
+
+      }break;
+      case 'D02':{
+
+      }break;
+      case 'D03':{
+
+      }break;
+      case 'D04':{
+
+      }break;
+      case 'D05':{
+
+      }break
+      case 'D07':{
+
+      }break;
+
+
+    }
+
+
+
 
   }
 
