@@ -20,7 +20,7 @@ type Entry = {
   vehicule: Vehicule,
   destination: T_DES["DES_COD"],
   operation: string,
-  invoice?: string,
+  invoice: string | null,
   origin: string,
   truckWeight: number,
   grossWeight: number,

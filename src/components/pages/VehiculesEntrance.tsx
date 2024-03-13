@@ -6,14 +6,12 @@ import Form from '../widgets/Form'
 import Textarea from '../widgets/Textarea'
 import Select, { SelectOptions } from '../widgets/Select'
 import VehiculeEntranceSearch from './VehiculeEntranceSearch'
-import { getDestination } from '@/services/destination'
-import { getDriver, getVehicule } from '@/services/transportInfo'
-import { AxiosError } from 'axios'
-import getErrorMessage from '@/utils/services/errorMessages'
 import NotificationModal from '../widgets/NotificationModal'
 import useNotification from '@/hooks/useNotification'
+import { getDestination } from '@/services/destination'
+import { getDriver, getVehicule } from '@/services/transportInfo'
 import { INVOICE_BY_CODE } from '@/lib/enums'
-import { de } from 'date-fns/locale'
+import { createNewEntry } from '@/services/entries'
 
 type Props = {
   showModal: boolean,
@@ -25,11 +23,11 @@ type DestinationSelectValue = { DES_COD: DES_COD, OPE_COD: string }
 
 type TABLE_VALUES = {
   D01: Omit<P_ENT_DI, "ENT_NUM">
-  D02: P_ENT_MP
-  D03: P_ENT_SG
-  D04: P_ENT_ALM
-  D05: P_ENT_MAT
-  D07: P_ENT_OS
+  D02: Omit<P_ENT_MP, "ENT_NUM">,
+  D03: Omit<P_ENT_SG, "ENT_NUM">,
+  D04: Omit<P_ENT_ALM, "ENT_NUM">,
+  D05: Omit<P_ENT_MAT, "ENT_NUM">,
+  D07: Omit<P_ENT_OS, "ENT_NUM">,
 }
 
 const VehiculesEntrance = ({ showModal, setModal }: Props) => {
@@ -50,7 +48,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
     truckWeight: 0,
     details: "",
   })
-  
+
   useEffect(() => {
     (async () => {
       try {
@@ -61,12 +59,12 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
         console.log("Operations: ", destinations)
 
         const operationOptions: SelectOptions[] = destinations.map(({ DES_DES, OPE_COD, DES_COD }) => {
-          
+
           const value: DestinationSelectValue = {
             DES_COD,
             OPE_COD,
           }
-          
+
           return {
             name: DES_DES,
             value: JSON.stringify(value),
@@ -99,95 +97,117 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
-
-    const { destination } = newEntry; // Destiny code 
-    const {DES_COD, OPE_COD}: DestinationSelectValue = JSON.parse(destination)
-    
-    const table_values: TABLE_VALUES = {
-      "D01": {
-        // ENT_NUM: "",  // Si es auto incremental, no se manda
-        USU_LOG: "",            
-        ENT_DI_FEC: "",        
-        ENT_DI_PRO: "",         
-        ENT_DI_GUI: "",         
-        ENT_DI_PLA: "",         
-        ENT_DI_NDE: "",         
-        ENT_DI_PAL: "", 
-        ENT_DI_PNC: 0,       
-        ENT_DI_CPA: 0,         
-        ENT_DI_PPA: 0,         
-        ENT_DI_DES: "",         
-        ENT_DI_PAD: 0,         
-        ENT_DI_DPA: "",
-        ENT_DI_STA: 1,        
-        ENT_DI_OBS: "",  
-        ENT_DI_AUT: "",   
-        ENT_DI_REV: true
-      },
-      "D02": {
-        ENT_NUM: "",           
-        ENT_MP_PRO: "",         
-        ENT_MP_FAC: "",  
-        ENT_MP_NOT: null,           
-        ENT_MP_PAL: null 
-      },
-      "D03": {
-        ENT_NUM:"",
-        ENT_SG_PRO: "",
-        ENT_SG_FAC: "",
-        ENT_SG_NOT: null,
-        ENT_SG_AUT: null,
-        ENT_SG_NDE: null
-      },
-      "D04": {
-        ENT_NUM: "",
-        ENT_ALM_PRO: "",
-        ENT_ALM_FAC: "",
-      },
-      "D05": {
-        ENT_PRO: "",
-        OPE_COD: "",  
-        ENT_NUM: "",
-        MAT_COD: ""
-      },
-      "D07": {
-        ENT_NUM: "",           
-        ENT_OS_PRO: "",        
-        ENT_OS_AUT: ""
-      },
+    try {
+      
+      const { destination, truckWeight, details, origin, invoice } = newEntry; // Destiny code 
+      const { DES_COD, OPE_COD }: DestinationSelectValue = JSON.parse(destination)
+      
+      if (vehicule && driver) {
+  
+        const entry: Omit<P_ENT, "ENT_NUM"> = {
+          // ENT_NUM: "",
+          ENT_FEC: "",
+          USU_LOG: "",
+          VEH_ID: vehicule.id,
+          CON_COD: driver.cedula,
+          DES_COD,
+          OPE_COD,
+          ENT_PES_TAR: truckWeight,
+          EMP_ID: null,
+          ENT_OBS: details,
+          ENT_FLW: 0,
+          ENT_FEC_COL: "",
+          ENT_FLW_ACC: 0,
+        }
+  
+        const table_values: TABLE_VALUES = {
+          "D01": {
+            // ENT_NUM: "",  // Si es auto incremental, no se manda
+            USU_LOG: "",
+            ENT_DI_FEC: "",
+            ENT_DI_PRO: origin,
+            ENT_DI_GUI: null,
+            ENT_DI_PLA: null,
+            ENT_DI_NDE: null,
+            ENT_DI_PAL: null,
+            ENT_DI_PNC: null,
+            ENT_DI_CPA: 0,
+            ENT_DI_PPA: 0,
+            ENT_DI_DES: DES_COD,
+            ENT_DI_PAD: 0,
+            ENT_DI_DPA: "",
+            ENT_DI_STA: 1,
+            ENT_DI_OBS: null,
+            ENT_DI_AUT: null,
+            ENT_DI_REV: true
+          },
+          "D02": { // ✅
+            // ENT_NUM: "",
+            ENT_MP_PRO: origin,
+            ENT_MP_FAC: invoice,
+            ENT_MP_NOT: null,
+            ENT_MP_PAL: null
+          },
+          "D03": { // ✅
+            // ENT_NUM: "",
+            ENT_SG_PRO: origin,
+            ENT_SG_FAC: invoice,
+            ENT_SG_NOT: null,
+            ENT_SG_AUT: null,
+            ENT_SG_NDE: null
+          },
+          "D04": { // ✅
+            // ENT_NUM: "",
+            ENT_ALM_PRO: origin,
+            ENT_ALM_FAC: invoice,
+          },
+          "D05": { // ✅
+            // ENT_NUM: "",
+            ENT_PRO: origin,
+            OPE_COD,
+            MAT_COD: null
+          },
+          "D07": { // ✅
+            // ENT_NUM: "",
+            ENT_OS_PRO: origin,
+            ENT_OS_AUT: null
+          },
+        }
+  
+        const entryByDestination = table_values[DES_COD]
+  
+        await createNewEntry({ entry, entryByDestination })
+        
+        handleAlert.open(({
+          type: "success",
+          title: "Entrada de Vehículo",
+          message: `Se ha procesado la entrada del vehículo exitosamente"`,
+        }))
+        
+      }
+    } catch (error) {
+      console.log(error)
+      handleAlert.open(({
+        type: "danger",
+        title: "Error ❌",
+        message: "Ha habido un error procesando la entrada del vehículo, intentelo de nuevo",
+      }))
     }
 
-    const EntryValue: P_ENT = {
-      ENT_NUM:"",        
-      ENT_FEC:"",       
-      USU_LOG:"",        
-      VEH_ID:"",         
-      CON_COD:"",       
-      DES_COD,        
-      OPE_COD:"",       
-      ENT_PES_TAR: 0,    
-      EMP_ID: "",  
-      ENT_OBS:"",
-      ENT_FLW: 0,      
-      ENT_FEC_COL:"",    
-      ENT_FLW_ACC: 0    
-    }
-    
-    const value =  table_values[DES_COD]
   }
 
   const handleChange: ChangeHandler = async ({ target }) => {
     type DESTINATION_VALUES = { DES_COD: DES_COD, OPE_COD: string }
 
     let invoice = newEntry.invoice
-    
+
     if (target.name === "destination") {
       const { DES_COD }: DESTINATION_VALUES = JSON.parse(target.value)
-      
+
       const REQUIRES_INVOICE = Boolean(INVOICE_BY_CODE[DES_COD])
       setEnableInvoice(REQUIRES_INVOICE)
-      
-      invoice = REQUIRES_INVOICE ? newEntry.invoice : undefined
+
+      invoice = REQUIRES_INVOICE ? newEntry.invoice : null
     }
 
     setNewEntry({
@@ -278,7 +298,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             enableInvoice &&
             <Input
               id="invoice"
-              value={invoice}
+              value={invoice || ""}
               className="w-full"
               title="Factura"
               placeholder=""
@@ -295,13 +315,13 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             placeholder="📝 ..."
             required={false}
           />
-          
+
           <div>
             <input type="radio" />
             <input type="radio" />
             <input type="radio" />
           </div>
-          
+
           <Button type="submit" className="bg-secondary col-span-2">Procesar</Button>
 
         </Form>

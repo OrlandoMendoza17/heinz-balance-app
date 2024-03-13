@@ -24,16 +24,16 @@ type P_ENT_DI = {
   USU_LOG: string;            // Usuario
   ENT_DI_FEC: string;         // Fecha de entrada a distribución
   ENT_DI_PRO: string;         // Procedencia
-  ENT_DI_GUI: string;         // Plan de carga | NULL
-  ENT_DI_PLA: string;         // Plan de carga | NULL
-  ENT_DI_NDE: string;         // Plan de carga | NULL
-  ENT_DI_PAL: null | string;  // Plan de carga con paletas (si colocan cantidad de paletas deja de ser null) | NULL
-  ENT_DI_PNC: number | null;         // Peso neto calculado
+  ENT_DI_GUI: string | null;  // Plan de carga | NULL
+  ENT_DI_PLA: string | null;  // Plan de carga | NULL
+  ENT_DI_NDE: string | null;  // Plan de carga | NULL
+  ENT_DI_PAL: string | null;  // Plan de carga con paletas (si colocan cantidad de paletas deja de ser null) | NULL
+  ENT_DI_PNC: number | null;  // Peso neto calculado
   ENT_DI_CPA: number;         // Cantidad de Paletas
   ENT_DI_PPA: number;         // Peso de la paleta (30 | 0)
   ENT_DI_DES: string;         // Destino
   ENT_DI_PAD: number;         // Siempre es 0 -- Peso adicional corregido 
-  ENT_DI_DPA: null | String;  // Descripciones -> preguntar a yamileth de donde salen ❓
+  ENT_DI_DPA: string | null;  // Descripciones -> preguntar a yamileth de donde salen ❓
   /*
   Fecha 2014 -MR por falta de Inventario
               Ket. Ind. Mc Donal
@@ -49,8 +49,8 @@ type P_ENT_DI = {
   Fecha 2020 -SIN CARGA
   */
   ENT_DI_STA: number;        // status de vehiculo 
-  ENT_DI_AUT: null | string; // Esta relacionado a ENT_DI_PAL-> aunque no en todos los casos son iguales  
-  ENT_DI_OBS: null | string; // Observaciones
+  ENT_DI_AUT: string | null; // Esta relacionado a ENT_DI_PAL-> aunque no en todos los casos son iguales  
+  ENT_DI_OBS: string | null; // Observaciones
   ENT_DI_REV: boolean;       // Aparentemente siempre es 0, volver a revisar-> siempre es 0
 }
 
@@ -58,7 +58,7 @@ type P_ENT_DI = {
 type P_ENT_ALM = {
   ENT_NUM: string;     // Numero de Entrada
   ENT_ALM_PRO: string; // Procedencia
-  ENT_ALM_FAC: string; // Preguntar en balanza ❓ -Datos muy aleatorios es un input (numeros descripciones)
+  ENT_ALM_FAC: string | null; // Preguntar en balanza ❓ -Datos muy aleatorios es un input (numeros descripciones)
 }
 
 // H025_P_ENT_DIF -> Diferencia de Peso
@@ -80,14 +80,14 @@ type P_ENT_MAT = {
   ENT_NUM: string; // Numero de entrada
   ENT_PRO: string; // Lugar de procedencia 
   OPE_COD: string; // Codigo de la operacion materiales 
-  MAT_COD: string; // Codigo de material
+  MAT_COD: string | null; // Codigo de material
 }
 
 // H025_P_ENT_MP -> Entrada a Materia Prima
 type P_ENT_MP = {
   ENT_NUM: string;            // Numero de entrada
   ENT_MP_PRO: string;         // lugar de procedencia 
-  ENT_MP_FAC: null | String;  // Facturas Externas 
+  ENT_MP_FAC: string | null;  // Facturas Externas 
   ENT_MP_NOT: null;           // Posible espacio para notas -> Completamente en desuso ❌
   ENT_MP_PAL: null;           // -> Completamente en desuso ❌
 }
@@ -96,7 +96,7 @@ type P_ENT_MP = {
 type P_ENT_OS = {
   ENT_NUM: string;            // Numero de entrada
   ENT_OS_PRO: string;         // Lugar de procedencia
-  ENT_OS_AUT: null | string;  // Observaciones - input del usuario a veces con incoherencias 
+  ENT_OS_AUT: null | string;  // Autorización - input del usuario(null cuando se da la entrada, el valor se pone o no en la salida)
 }
 
 // H025_P_ENT_SG -> Entrada a Servicios Generales
