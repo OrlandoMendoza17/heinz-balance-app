@@ -3,19 +3,19 @@ type PROCEDENCE = "ENT_DI_PRO" | "ENT_MP_PRO" | "ENT_SG_PRO" | "ENT_ALM_PRO" | "
 
 // H025_P_ENT -> Entrada
 type P_ENT = {
-  ENT_NUM: string;        // Numero de Entrada
-  ENT_FEC: string;        // Fecha de Entrada
-  USU_LOG: string;        // Usuario
-  VEH_ID: string;         // Esto viene de los conductores
-  CON_COD: string;        // Codigo de conductor
-  DES_COD: DES_COD;       // Código de destino dentro de planta
-  OPE_COD: string;        // Código de operación dentro de planta
-  ENT_PES_TAR: number;    // Peso de entrada de la TARA
-  EMP_ID: null | string;  // Todos los valores vacios- Posible relacion con el empleado encargado de verificar la entrada y la salida
-  ENT_OBS: string;        // Observaciones
-  ENT_FLW: number;        // Valor para indicar peso dividido o no (Posible) ❓
-  ENT_FEC_COL: string;    // Preguntarle a yamileth - Posible hora de llegada a la romana 
-  ENT_FLW_ACC: number;    // Carga (1), Descarga (2), Devolución (3), Ticket de salida (4)
+  ENT_NUM: string;            // Numero de Entrada
+  ENT_FEC: string;            // Fecha de Entrada
+  USU_LOG: string;            // Usuario
+  VEH_ID: string;             // Esto viene de los conductores
+  CON_COD: string;            // Codigo de conductor
+  DES_COD: DES_COD;           // Código de destino dentro de planta
+  OPE_COD: string;            // Código de operación dentro de planta
+  ENT_PES_TAR: number;        // Peso de entrada de la TARA
+  EMP_ID: null;               // Todos los valores vacios- Posible relacion con el empleado encargado de verificar la entrada y la salida
+  ENT_OBS: string | null;     // Observaciones
+  ENT_FLW: number;            // Valor para indicar peso dividido o no (Posible) ❓
+  ENT_FEC_COL: string | null; // Preguntarle a yamileth - Posible hora de llegada a la romana 
+  ENT_FLW_ACC: number;        // Carga (1), Descarga (2), Devolución (3), Ticket de salida (4)
 }
 
 // H025_P_ENT_DI -> Entrada a Distribución
@@ -30,10 +30,10 @@ type P_ENT_DI = {
   ENT_DI_PAL: string | null;  // Plan de carga con paletas (si colocan cantidad de paletas deja de ser null) | NULL
   ENT_DI_PNC: number | null;  // Peso neto calculado
   ENT_DI_CPA: number;         // Cantidad de Paletas
-  ENT_DI_PPA: number;         // Peso de la paleta (30 | 0)
-  ENT_DI_DES: string;         // Destino
+  ENT_DI_PPA: number | null;  // Peso de la paleta (30 | 0)
+  ENT_DI_DES: string | null;  // Destino
   ENT_DI_PAD: number;         // Siempre es 0 -- Peso adicional corregido 
-  ENT_DI_DPA: string | null;  // Descripciones -> preguntar a yamileth de donde salen ❓
+  ENT_DI_DPA: string | null;  // Descripciones -> Se pone en distribución preguntar a yamileth de donde salen ❓
   /*
   Fecha 2014 -MR por falta de Inventario
               Ket. Ind. Mc Donal
@@ -48,10 +48,10 @@ type P_ENT_DI = {
               lleva cesta navideña y productos venta de empleados
   Fecha 2020 -SIN CARGA
   */
-  ENT_DI_STA: number;        // status de vehiculo 
-  ENT_DI_AUT: string | null; // Esta relacionado a ENT_DI_PAL-> aunque no en todos los casos son iguales  
-  ENT_DI_OBS: string | null; // Observaciones
-  ENT_DI_REV: boolean;       // Aparentemente siempre es 0, volver a revisar-> siempre es 0
+  ENT_DI_STA: 1 | null;  // status de vehiculo 
+  ENT_DI_AUT: string | null;  // Esta relacionado a ENT_DI_PAL-> aunque no en todos los casos son iguales  
+  ENT_DI_OBS: string | null;  // Observaciones
+  ENT_DI_REV: number;         // Aparentemente siempre es 0, volver a revisar-> siempre es 0
 }
 
 // H025_P_ENT_DI -> Entrada a Almacén no esta en el diagrama de flujo posible desuso 

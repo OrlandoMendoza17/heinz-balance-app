@@ -38,6 +38,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
     truckWeight: 0,
     grossWeight: 0,
     netWeight: 0,
+    invoice: null,
     details: "",
   })
 

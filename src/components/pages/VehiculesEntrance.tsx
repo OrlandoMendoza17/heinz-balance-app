@@ -1,4 +1,4 @@
-import React, { ChangeEventHandler, Dispatch, FormEventHandler, SetStateAction, useEffect, useState } from 'react'
+import React, { ChangeEventHandler, Dispatch, FormEventHandler, SetStateAction, useEffect, useRef, useState } from 'react'
 import Input from '../widgets/Input'
 import Modal from '../widgets/Modal'
 import Button from '../widgets/Button'
@@ -11,7 +11,7 @@ import useNotification from '@/hooks/useNotification'
 import { getDestination } from '@/services/destination'
 import { getDriver, getVehicule } from '@/services/transportInfo'
 import { INVOICE_BY_CODE } from '@/lib/enums'
-import { createNewEntry } from '@/services/entries'
+import { createNewEntry, getNextEntryNumber } from '@/services/entries'
 
 type Props = {
   showModal: boolean,
@@ -20,14 +20,15 @@ type Props = {
 
 type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
 type DestinationSelectValue = { DES_COD: DES_COD, OPE_COD: string }
+export type NewEntry = Omit<P_ENT, "ENT_NUM">
 
 type TABLE_VALUES = {
-  D01: Omit<P_ENT_DI, "ENT_NUM">
-  D02: Omit<P_ENT_MP, "ENT_NUM">,
-  D03: Omit<P_ENT_SG, "ENT_NUM">,
-  D04: Omit<P_ENT_ALM, "ENT_NUM">,
-  D05: Omit<P_ENT_MAT, "ENT_NUM">,
-  D07: Omit<P_ENT_OS, "ENT_NUM">,
+  D01: P_ENT_DI,
+  D02: P_ENT_MP,
+  D03: P_ENT_SG,
+  D04: P_ENT_ALM,
+  D05: P_ENT_MAT,
+  D07: P_ENT_OS,
 }
 
 const VehiculesEntrance = ({ showModal, setModal }: Props) => {
@@ -97,17 +98,24 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
+    const { currentTarget } = event
     try {
-      
+
+      const form = new FormData(currentTarget)
+
+      const action = parseInt(form.get("action") as string)
+
       const { destination, truckWeight, details, origin, invoice } = newEntry; // Destiny code 
       const { DES_COD, OPE_COD }: DestinationSelectValue = JSON.parse(destination)
-      
+
       if (vehicule && driver) {
-  
-        const entry: Omit<P_ENT, "ENT_NUM"> = {
-          // ENT_NUM: "",
-          ENT_FEC: "",
-          USU_LOG: "",
+
+        const { nextEntryNumber: ENT_NUM } = await getNextEntryNumber()
+
+        const entry: NewEntry = {
+          // ENT_NUM: "", // Esto es auto incremental
+          ENT_FEC: new Date().toISOString(),
+          USU_LOG: "USR9509C",
           VEH_ID: vehicule.id,
           CON_COD: driver.cedula,
           DES_COD,
@@ -115,75 +123,79 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
           ENT_PES_TAR: truckWeight,
           EMP_ID: null,
           ENT_OBS: details,
-          ENT_FLW: 0,
-          ENT_FEC_COL: "",
-          ENT_FLW_ACC: 0,
+          ENT_FLW: 2,
+          ENT_FEC_COL: null,
+          ENT_FLW_ACC: action,
         }
-  
+
         const table_values: TABLE_VALUES = {
           "D01": {
-            // ENT_NUM: "",  // Si es auto incremental, no se manda
-            USU_LOG: "",
-            ENT_DI_FEC: "",
+            ENT_NUM,
+            USU_LOG: "USR9509C",
+            ENT_DI_FEC: new Date().toISOString(),
             ENT_DI_PRO: origin,
-            ENT_DI_GUI: null,
-            ENT_DI_PLA: null,
-            ENT_DI_NDE: null,
-            ENT_DI_PAL: null,
-            ENT_DI_PNC: null,
-            ENT_DI_CPA: 0,
-            ENT_DI_PPA: 0,
-            ENT_DI_DES: DES_COD,
-            ENT_DI_PAD: 0,
-            ENT_DI_DPA: "",
-            ENT_DI_STA: 1,
-            ENT_DI_OBS: null,
+            ENT_DI_GUI: null,    // (Distribución) - Plan de carga
+            ENT_DI_PNC: null,    // (Distribución) - Peso Neto Calculado
+            ENT_DI_CPA: 0,       // (Distribución) - Cantidad de Paletas | Se manda en 0 en la romana
+            ENT_DI_PPA: null,    // (Distribución) - Peso de las paletas
+            ENT_DI_PLA: null,    // (Distribución) - Plan de carga
+            ENT_DI_DES: null,    // (Distribución) - Destino
+            ENT_DI_PAD: 0,       // (Distribución) - Peso adicional corregido | Se manda en 0 en la romana
+            ENT_DI_DPA: null,    // (Distribución) - Algún tipo de descripción ❓
+            ENT_DI_STA: null,    // (Distribución) - Status (1 | null)
             ENT_DI_AUT: null,
-            ENT_DI_REV: true
+            ENT_DI_NDE: null,    // (Distribución) - Plan de carga
+            ENT_DI_PAL: null,    // (Distribución) - Plan de carga con paletas (si colocan cantidad de paletas deja de ser null) | NULL
+            ENT_DI_OBS: null,    // (Distribución) - Observaciones
+            ENT_DI_REV: 0,       // 1 | 0 (Aparentemente siempre es 0)
           },
           "D02": { // ✅
-            // ENT_NUM: "",
+            ENT_NUM,
             ENT_MP_PRO: origin,
-            ENT_MP_FAC: invoice,
-            ENT_MP_NOT: null,
-            ENT_MP_PAL: null
+            ENT_MP_FAC: (invoice) ? invoice : null,
+            ENT_MP_NOT: null,     // SIEMPRE NULL
+            ENT_MP_PAL: null      // SIEMPRE NULL
           },
           "D03": { // ✅
-            // ENT_NUM: "",
+            ENT_NUM,
             ENT_SG_PRO: origin,
-            ENT_SG_FAC: invoice,
+            ENT_SG_FAC: (invoice) ? invoice : null,
             ENT_SG_NOT: null,
             ENT_SG_AUT: null,
             ENT_SG_NDE: null
           },
           "D04": { // ✅
-            // ENT_NUM: "",
+            ENT_NUM,
             ENT_ALM_PRO: origin,
-            ENT_ALM_FAC: invoice,
+            ENT_ALM_FAC: (invoice) ? invoice : null,
           },
           "D05": { // ✅
-            // ENT_NUM: "",
+            ENT_NUM,
             ENT_PRO: origin,
             OPE_COD,
-            MAT_COD: null
+            MAT_COD: null    // Este codigo se pone en la salida pero aquí se manda en null
           },
           "D07": { // ✅
-            // ENT_NUM: "",
+            ENT_NUM,
             ENT_OS_PRO: origin,
             ENT_OS_AUT: null
           },
         }
-  
+
         const entryByDestination = table_values[DES_COD]
-  
-        await createNewEntry({ entry, entryByDestination })
-        
+
+        console.log('entry', entry)
+        console.log('entryByDestination', entryByDestination)
+
+        const data = await createNewEntry({ entry, entryByDestination })
+        console.log('data', data)
+
         handleAlert.open(({
           type: "success",
           title: "Entrada de Vehículo",
           message: `Se ha procesado la entrada del vehículo exitosamente"`,
         }))
-        
+
       }
     } catch (error) {
       console.log(error)
@@ -306,6 +318,23 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             />
           }
 
+          <div className="pt-12 flex items-center gap-5">
+            <label htmlFor="carga">
+              <input id="carga" name="action" type="radio" className="mr-2" value="1" />
+              <span>Carga</span>
+            </label>
+
+            <label htmlFor="descarga">
+              <input id="descarga" name="action" type="radio" className="mr-2" value="2" />
+              <span>Descarga</span>
+            </label>
+
+            <label htmlFor="devolucion">
+              <input id="devolucion" name="action" type="radio" className="mr-2" value="3" />
+              <span>Devolución</span>
+            </label>
+          </div>
+
           <Textarea
             id="details"
             value={details}
@@ -315,12 +344,6 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             placeholder="📝 ..."
             required={false}
           />
-
-          <div>
-            <input type="radio" />
-            <input type="radio" />
-            <input type="radio" />
-          </div>
 
           <Button type="submit" className="bg-secondary col-span-2">Procesar</Button>
 

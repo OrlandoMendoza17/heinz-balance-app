@@ -94,6 +94,7 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
         grossWeight: (entry.ENT_DI_PNC === null) ? 0 : entry.ENT_DI_PNC,
         netWeight: (entry.ENT_DI_PNC === null) ? 0 : entry.ENT_DI_PNC,
         operation: OPE_COD,
+        invoice: null,
         details: "",
       }) 
     }
