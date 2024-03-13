@@ -4,7 +4,9 @@ import { NextApiRequest, NextApiResponse } from "next";
 const entriesHandler = async (request: NextApiRequest, response: NextApiResponse) => {
   try {
     
-    const queryString = ``
+    const queryString = `
+      update HT025_P
+    `
     
     const sequelize = await getSequelize()
     await sequelize.query(queryString)
