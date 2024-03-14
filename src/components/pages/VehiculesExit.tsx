@@ -5,11 +5,12 @@ import Modal from '../widgets/Modal'
 import Button from '../widgets/Button'
 import Input from '../widgets/Input'
 import Textarea from '../widgets/Textarea'
-import { shortDate } from '@/utils/parseDate'
+import { getCuteFullDate, getDateTime, shortDate } from '@/utils/parseDate'
 import { DESTINATION_BY_CODE } from '@/lib/enums'
 import useNotification from '@/hooks/useNotification'
 import NotificationModal from '../widgets/NotificationModal'
 import { createNewExit } from '@/services/entries'
+import { format } from 'date-fns'
 
 type Props = {
   showModal: boolean,
@@ -20,7 +21,7 @@ type Props = {
 export type NewExit = P_SAL
 
 type TABLE_VALUES = {
-  D01: P_ENT_DI,
+  D01: undefined,
   D02: undefined,
   D03: undefined,
   D04: undefined,
@@ -33,8 +34,11 @@ type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
 const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
 
   const [alert, handleAlert] = useNotification()
-
-
+  const [OS_AUTHORIZATION, setOS_AUTHORIZATION] = useState({
+    enabled: false,
+    content: "",
+  })  
+  
   const [selectedEntry, setSelectedEntry] = useState<Entry>({
     entryNumber: "",
     driver: {
@@ -69,41 +73,24 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
     event.preventDefault()
     try {
 
-      const { entryNumber: ENT_NUM, invoice, destination, operation } = selectedEntry
+      const { entryNumber: ENT_NUM, invoice, truckWeight, details, destination, operation, ac } = selectedEntry
 
+      // Si es Descarga o es Devoluación
+      
       const leavingEntry: NewExit = {
         ENT_NUM: '95505',
         USU_LOG: 'USR9509C',
-        SAL_FEC: '2024-03-14T10:17:02.270Z',
-        ENT_PES_TAR: 9110,
-        ENT_PES_NET: 4070,
-        SAL_PES_BRU: 5040,
+        SAL_FEC: getDateTime(),
+        ENT_PES_TAR: truckWeight,
+        ENT_PES_NET: Math.abs(grossWeight - truckWeight), 
+        SAL_PES_BRU: grossWeight,
         DEN_COD: null,
         SAL_DEN_LIT: null,
-        SAL_OBS: null,
+        SAL_OBS: (details === "") ? details : null,
       }
 
       const table_values: TABLE_VALUES = {
-        "D01": {
-          ENT_NUM,
-          USU_LOG: "USR9509C",
-          ENT_DI_FEC: new Date().toISOString(),
-          ENT_DI_PRO: origin,
-          ENT_DI_GUI: null,    // (Distribución) - Plan de carga
-          ENT_DI_PNC: null,    // (Distribución) - Peso Neto Calculado
-          ENT_DI_CPA: 0,       // (Distribución) - Cantidad de Paletas | Se manda en 0 en la romana
-          ENT_DI_PPA: null,    // (Distribución) - Peso de las paletas
-          ENT_DI_PLA: null,    // (Distribución) - Plan de carga
-          ENT_DI_DES: null,    // (Distribución) - Destino de carga
-          ENT_DI_PAD: 0,       // (Distribución) - Peso adicional corregido | Se manda en 0 en la romana
-          ENT_DI_DPA: null,    // (Distribución) - Algún tipo de descripción ❓
-          ENT_DI_STA: null,    // (Distribución) - Status (1 | null)
-          ENT_DI_AUT: null,
-          ENT_DI_NDE: null,    // (Distribución) - Plan de carga
-          ENT_DI_PAL: null,    // (Distribución) - Plan de carga con paletas (si colocan cantidad de paletas deja de ser null) | NULL
-          ENT_DI_OBS: null,    // (Distribución) - Observaciones
-          ENT_DI_REV: 0,       // 1 | 0 (Aparentemente siempre es 0)
-        },
+        "D01": undefined,
         "D02": undefined,
         "D03": undefined,
         "D04": undefined,
@@ -116,7 +103,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
         "D07": { // ✅
           ENT_NUM,
           ENT_OS_PRO: origin,
-          ENT_OS_AUT: null
+          ENT_OS_AUT: OS_AUTHORIZATION.enabled ? OS_AUTHORIZATION.content : null
         },
       }
 
@@ -143,7 +130,6 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
     }
   }
 
-
   const handleChange: ChangeHandler = async ({ target }) => {
     type DESTINATION_VALUES = { DES_COD: DES_COD, OPE_COD: string }
 
@@ -153,6 +139,9 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
     })
   }
 
+  console.log("HOY", getDateTime())
+  console.log("Otra Fecha", getDateTime("2024-11-02 00:19"))
+  
   const { entryNumber, vehicule, driver, entryDate, destination, origin, truckWeight, grossWeight, netWeight } = selectedEntry
 
   return (
@@ -164,12 +153,11 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
           <ul className="grid grid-cols-2 gap-5">
             <li>Código de entrada: <br />{entryNumber}</li>
             <li>Cédula del Chofer: <br />{driver.cedula}</li>
-            <li>Fecha de Entrada: <br />{shortDate(entryDate)}</li>
-            <li>Fecha de Salida: <br />{shortDate(entryDate)}</li>
+            <li>Fecha de Entrada: <br />{getCuteFullDate(entryDate)}</li>
+            <li>Fecha de Salida: <br />{getCuteFullDate(getDateTime())}</li>
             <li>Placa del Vehículo: <br />{vehicule.plate}</li>
             <li>Procedencia: <br />{origin}</li>
             <li>Destino: <br />{DESTINATION_BY_CODE[destination]}</li>
-            {/* <li>Operación: <br />{DESTINATION_BY_CODE[destination]}</li> */}
             <li>Peso Tara: <br />{truckWeight}</li>
             <li className="grid grid-cols-[1fr_auto] items-end mt-5">
               <Input
@@ -197,7 +185,15 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
               />
             </li>
           </ul>
-
+          
+          <div>
+            <label htmlFor="">
+              <input type="checkbox" name="" id="" />
+              <span>Aut</span>
+            </label>
+            
+          </div>
+          
           <Textarea
             id="details"
             value={""}

@@ -15,6 +15,15 @@ export const shortDate = (date: string | number) => {
   // into this: '2020-10-14'
 }
 
+export const getCuteFullDate = (date: string) =>{
+  return format(new Date(date), "dd/MM/yyyy hh:mm:ss aaaa")
+}
+
+export const getDateTime = (dateString?: string) =>{
+  const DATE = dateString ? new Date(dateString) : new Date()
+  return format(new Date(DATE), "yyyy-MM-dd HH:mm:ss.SSS")
+}
+
 export const formatDateString = (date = TODAY): string =>{
   return format(date, "yyyy-MM-dd")
 }

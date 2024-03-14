@@ -13,6 +13,7 @@ import { getDriver, getVehicule } from '@/services/transportInfo'
 import { INVOICE_BY_CODE } from '@/lib/enums'
 import { createNewEntry, createNewExit, getNextEntryNumber } from '@/services/entries'
 import { format } from 'date-fns'
+import { getDateTime } from '@/utils/parseDate'
 
 type Props = {
   showModal: boolean,
@@ -31,8 +32,6 @@ type TABLE_VALUES = {
   D05: P_ENT_MAT,
   D07: P_ENT_OS,
 }
-
-
 
 const VehiculesEntrance = ({ showModal, setModal }: Props) => {
 
@@ -117,7 +116,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
 
         const entry: NewEntry = {
           // ENT_NUM: "", // Esto es auto incremental
-          ENT_FEC: new Date().toISOString(),
+          ENT_FEC: getDateTime(),
           USU_LOG: "USR9509C",
           VEH_ID: vehicule.id,
           CON_COD: driver.cedula,

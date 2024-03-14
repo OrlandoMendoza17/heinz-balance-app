@@ -111,13 +111,13 @@ type P_ENT_SG = {
 
 // H025_P_SAL -> Salida de planta
 type P_SAL = {
-  ENT_NUM: string;     // Numero de entrada
-  USU_LOG: string;     // Usuario que registra la salida 
-  SAL_FEC: string;     // Fecha de salida 
-  ENT_PES_TAR: number; // Peso de entrada en la tara
-  ENT_PES_NET: number; // Peso neto  (peso bruto - peso de la tara)
-  SAL_PES_BRU: number; // Peso bruto en la salida
-  DEN_COD: null;       // Codigo de densidad 
+  ENT_NUM: string;            // Numero de entrada
+  USU_LOG: string;            // Usuario que registra la salida 
+  SAL_FEC: string;            // Fecha de salida 
+  ENT_PES_TAR: number;        // Peso de entrada en la tara
+  ENT_PES_NET: number;        // Peso neto  (peso bruto - peso de la tara)
+  SAL_PES_BRU: number;        // Peso bruto en la salida
+  DEN_COD: null;              // Codigo de densidad 
   SAL_DEN_LIT: number | null; // Relacionado a los liquidos , vinagre  o alcohol 
   SAL_OBS: string | null;     // Observaciones - nota de texto
 }

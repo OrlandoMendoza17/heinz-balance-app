@@ -25,6 +25,15 @@ export enum DESTINATION_BY_CODE {
   "D07" = "OTROS SERVICIOS",
 }
 
+export enum OPERATION_BY_DESTINATION {
+  "D01" = "OO9",
+  "D02" = "OO1",
+  "D03" = "OO2",
+  "D04" = "OO4",
+  "D05" = "OO5",
+  "D07" = "O10",
+}
+
 // Esto en realidad tendría que un booleano pero los enum no dejar poner tipo Boolean
 export enum INVOICE_BY_CODE {
   "D01" = 0,
