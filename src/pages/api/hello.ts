@@ -10,23 +10,7 @@ const testHandler = async (request: NextApiRequest, response: NextApiResponse,) 
   try {
     
     const queryString = `
-      SELECT 
-        H025_P_ENT.ENT_NUM,
-        H025_P_ENT.ENT_FEC,
-        H025_P_ENT.USU_LOG,
-        H025_P_ENT.VEH_ID,
-        H025_P_ENT.CON_COD,
-        H025_P_ENT.DES_COD,
-        H025_P_ENT.OPE_COD,
-        H025_P_ENT.ENT_PES_TAR,
-        H025_P_ENT.EMP_ID,
-        H025_P_ENT.ENT_OBS,
-        H025_P_ENT.ENT_FLW,
-        H025_P_ENT.ENT_FEC_COL,
-        H025_P_ENT.ENT_FLW_ACC
-      FROM [HDTA025].[dbo].H025_P_ENT
-      LEFT JOIN [HDTA025].[dbo].H025_P_SAL ON H025_P_ENT.ENT_NUM = H025_P_SAL.ENT_NUM
-      WHERE H025_P_SAL.ENT_NUM IS NULL
+      SELECT TOP 1 * FROM H025_P_SAL
       ORDER BY ENT_NUM DESC
     `
     

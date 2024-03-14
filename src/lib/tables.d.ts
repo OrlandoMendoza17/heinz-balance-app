@@ -118,8 +118,8 @@ type P_SAL = {
   ENT_PES_NET: number; // Peso neto  (peso bruto - peso de la tara)
   SAL_PES_BRU: number; // Peso bruto en la salida
   DEN_COD: null;       // Codigo de densidad 
-  SAL_DEN_LIT: Number; // Relacionado a los liquidos , vinagre  o alcohol 
-  SAL_OBS: string;     // Observaciones - nota de texto
+  SAL_DEN_LIT: number | null; // Relacionado a los liquidos , vinagre  o alcohol 
+  SAL_OBS: string | null;     // Observaciones - nota de texto
 }
 
 // H025_T_CON -> Conductores

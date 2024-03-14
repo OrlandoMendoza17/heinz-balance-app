@@ -16,24 +16,24 @@ export const getSQLValue = (value: string | number | null) => {
   )
 }
 
-const entriesHandler = async (request: NextApiRequest, response: NextApiResponse) => {
+const newExitHandler = async (request: NextApiRequest, response: NextApiResponse) => {
   try {
 
     const { entry, entryByDestination }: BodyProps = request.body
 
-    const getQueryString1 = () => {
+    const getExitString = () => {
       const keys = `(${Object.keys(entry).map(key => `[${key}]`).join(", ")})`
       const values = `(${Object.values(entry).map(value => getSQLValue(value)).join(", ")})`
 
       const queryString = `
-        INSERT H025_P_ENT\n${keys} 
+        INSERT H025_P_SAL\n${keys} 
         VALUES ${values}
       `
       
       return queryString;
     }
 
-    const getQueryString2 = () => {
+    const getUpdateQueryString = () => {
       const keys = `(${Object.keys(entryByDestination).map(key => `[${key}]`).join(", ")})`
       const values = `(${Object.values(entryByDestination).map(value => getSQLValue(value)).join(", ")})`
 
@@ -45,8 +45,8 @@ const entriesHandler = async (request: NextApiRequest, response: NextApiResponse
       return queryString;
     }
 
-    const queryString1 = getQueryString1()
-    const queryString2 = getQueryString2()
+    const queryString1 = getExitString()
+    const queryString2 = getUpdateQueryString()
 
     console.log('queryString1', queryString1)
     console.log('queryString2', queryString2)
@@ -72,4 +72,4 @@ const entriesHandler = async (request: NextApiRequest, response: NextApiResponse
   }
 }
 
-export default entriesHandler;
+export default newExitHandler;

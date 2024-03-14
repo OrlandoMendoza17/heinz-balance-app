@@ -11,7 +11,8 @@ import useNotification from '@/hooks/useNotification'
 import { getDestination } from '@/services/destination'
 import { getDriver, getVehicule } from '@/services/transportInfo'
 import { INVOICE_BY_CODE } from '@/lib/enums'
-import { createNewEntry, getNextEntryNumber } from '@/services/entries'
+import { createNewEntry, createNewExit, getNextEntryNumber } from '@/services/entries'
+import { format } from 'date-fns'
 
 type Props = {
   showModal: boolean,
@@ -30,6 +31,8 @@ type TABLE_VALUES = {
   D05: P_ENT_MAT,
   D07: P_ENT_OS,
 }
+
+
 
 const VehiculesEntrance = ({ showModal, setModal }: Props) => {
 
@@ -139,7 +142,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             ENT_DI_CPA: 0,       // (Distribución) - Cantidad de Paletas | Se manda en 0 en la romana
             ENT_DI_PPA: null,    // (Distribución) - Peso de las paletas
             ENT_DI_PLA: null,    // (Distribución) - Plan de carga
-            ENT_DI_DES: null,    // (Distribución) - Destino
+            ENT_DI_DES: null,    // (Distribución) - Destino de carga
             ENT_DI_PAD: 0,       // (Distribución) - Peso adicional corregido | Se manda en 0 en la romana
             ENT_DI_DPA: null,    // (Distribución) - Algún tipo de descripción ❓
             ENT_DI_STA: null,    // (Distribución) - Status (1 | null)
@@ -173,12 +176,12 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             ENT_NUM,
             ENT_PRO: origin,
             OPE_COD,
-            MAT_COD: null    // Este codigo se pone en la salida pero aquí se manda en null
+            MAT_COD: null       // Este codigo se pone en la salida pero aquí se manda en null
           },
           "D07": { // ✅
             ENT_NUM,
             ENT_OS_PRO: origin,
-            ENT_OS_AUT: null
+            ENT_OS_AUT: null    // Se coloca en la salida en el caso de existir
           },
         }
 
