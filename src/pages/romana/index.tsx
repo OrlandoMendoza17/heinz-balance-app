@@ -55,14 +55,7 @@ const Romana = () => {
     
   }, [])
   
-  const today = format(new Date(), "yyyy-LL-dd")
-  
-  const queryString = `
-    SELECT * FROM [HDTA025].[dbo].H025_P_SAL
-    WHERE CONVERT(DATE, SAL_FEC) = '${today}'
-    ORDER BY ENT_NUM DESC;
-  `
-  
+
   console.log()
 
   return (
