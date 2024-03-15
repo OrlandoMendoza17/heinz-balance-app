@@ -6,6 +6,7 @@ type newEntryParams = {
   entry: NewEntry,
   entryByDestination: object,
 }
+
 type newExitParams = {
   leavingEntry: NewExit,
   updateEntryByDestination: object | undefined,
@@ -24,4 +25,9 @@ export const createNewExit = async (body: newExitParams) => {
 export const getNextEntryNumber = async () => {
   const { data } = await axios.get<{ nextEntryNumber: string }>("/api/entries/nextEntry")
   return data
+}
+
+export const getTodaysExits = async () => {
+  const { data } = await axios.get<P_SAL[]>("/api/entries/todaysExits")
+  return data;
 }

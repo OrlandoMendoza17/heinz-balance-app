@@ -67,13 +67,16 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
 
   useEffect(() => {
     setSelectedEntry(entry)
+    if(entry.destination === "D07"){
+      setOS_AUTHORIZATION({...OS_AUTHORIZATION, enabled: true})
+    }
   }, [entry])
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
     try {
 
-      const { entryNumber: ENT_NUM, invoice, truckWeight, details, destination, operation, ac } = selectedEntry
+      const { entryNumber: ENT_NUM, invoice, truckWeight, details, destination, operation } = selectedEntry
 
       // Si es Descarga o es Devoluación
       
@@ -98,7 +101,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
           ENT_NUM,
           ENT_PRO: origin,
           OPE_COD: operation,
-          MAT_COD: null    // Este codigo se pone en la salida pero aquí se manda en null
+          MAT_COD: null       // Este codigo se pone en la salida pero aquí se manda en null
         },
         "D07": { // ✅
           ENT_NUM,
