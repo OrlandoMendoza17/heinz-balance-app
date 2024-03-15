@@ -13,7 +13,7 @@ type P_ENT = {
   ENT_PES_TAR: number;        // Peso de entrada de la TARA
   EMP_ID: null;               // Todos los valores vacios- Posible relacion con el empleado encargado de verificar la entrada y la salida
   ENT_OBS: string | null;     // Observaciones
-  ENT_FLW: number;            // Valor para indicar peso dividido o no (Posible) ❓
+  ENT_FLW: 1 | 2;             // 1 = No está listo para salir (SOLO DISTRIBUCIÓN) | 2 = Por salir
   ENT_FEC_COL: string | null; // Preguntarle a yamileth - Posible hora de llegada a la romana 
   ENT_FLW_ACC: number;        // Carga (1), Descarga (2), Devolución (3), Ticket de salida (4)
 }
@@ -51,7 +51,7 @@ type P_ENT_DI = {
   ENT_DI_STA: 1 | null;  // status de vehiculo 
   ENT_DI_AUT: string | null;  // Esta relacionado a ENT_DI_PAL-> aunque no en todos los casos son iguales  
   ENT_DI_OBS: string | null;  // Observaciones
-  ENT_DI_REV: number;         // Aparentemente siempre es 0, volver a revisar-> siempre es 0
+  ENT_DI_REV: boolean;         // Aparentemente siempre es 0, volver a revisar-> siempre es 0
 }
 
 // H025_P_ENT_DI -> Entrada a Almacén no esta en el diagrama de flujo posible desuso 

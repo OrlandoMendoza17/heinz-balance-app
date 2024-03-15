@@ -146,7 +146,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
   console.log("Otra Fecha", getDateTime("2024-11-02 00:19"))
   
   const { entryNumber, vehicule, driver, entryDate, destination, origin, truckWeight, grossWeight, netWeight } = selectedEntry
-
+  
   return (
     <>
       <Modal className="py-10 !items-baseline overflow-auto !grid-cols-[minmax(auto,_750px)]" {...{ showModal, setModal }}>

@@ -149,7 +149,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             ENT_DI_NDE: null,    // (Distribución) - Plan de carga
             ENT_DI_PAL: null,    // (Distribución) - Plan de carga con paletas (si colocan cantidad de paletas deja de ser null) | NULL
             ENT_DI_OBS: null,    // (Distribución) - Observaciones
-            ENT_DI_REV: 0,       // 1 | 0 (Aparentemente siempre es 0)
+            ENT_DI_REV: false,   // 1 | 0 (Aparentemente siempre es 0)
           },
           "D02": { // ✅
             ENT_NUM,
