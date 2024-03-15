@@ -16,7 +16,6 @@ export const shortDate = (date: string | number) => {
 }
 
 export const getCuteFullDate = (date: string) => {
-  debugger
   console.log('date', date)
   return date ? format(new Date(date), "dd/MM/yyyy hh:mm:ss aaaa") : ""
 }

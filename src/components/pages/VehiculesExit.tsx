@@ -63,6 +63,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
     netWeight: 0,
     invoice: null,
     details: "",
+    aboutToLeave: false,
   })
 
   useEffect(() => {
@@ -125,6 +126,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
       }))
 
     } catch (error) {
+      console.log(error)
       handleAlert.open(({
         type: "danger",
         title: "Error ❌",

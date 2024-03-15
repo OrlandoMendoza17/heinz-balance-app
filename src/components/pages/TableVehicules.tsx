@@ -1,6 +1,6 @@
 import React, { MouseEventHandler, SetStateAction } from 'react'
 import { DESTINATION_BY_CODE } from '@/lib/enums'
-import { shortDate } from '@/utils/parseDate'
+import { getCuteFullDate, shortDate } from '@/utils/parseDate'
 
 type Props = {
   setModal: (value: SetStateAction<boolean>) => void,
@@ -26,7 +26,7 @@ const TableVehicules = ({setModal, setSelectedTransport, entry}: Props) => {
       <td>{vehicule.plate}</td>
       <td>{origin}</td>
       <td>{DESTINATION_BY_CODE[destination]}</td>
-      <td>{shortDate(entryDate)}</td>
+      <td>{getCuteFullDate(entryDate)}</td>
     </tr>
   )
 }

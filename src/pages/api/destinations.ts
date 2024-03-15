@@ -1,4 +1,5 @@
-import getSequelize from "@/lib/mssql"
+// import getSequelize from "@/lib/mssql"
+import sequelize from "@/lib/mssql"
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next"
 
 type BodyProps = {
@@ -22,7 +23,7 @@ const plantHandler = async (request: NextApiRequest, response: NextApiResponse) 
         ORDER BY DES_COD ASC;
       `
       
-      const sequelize = await getSequelize()
+      // const sequelize = await getSequelize()
 
       const [data] = await sequelize.query(queryString) as [DESTINATIONS[], unknown]
       response.json(data)

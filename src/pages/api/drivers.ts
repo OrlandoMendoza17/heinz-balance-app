@@ -1,4 +1,5 @@
-import getSequelize from "@/lib/mssql";
+// import getSequelize from "@/lib/mssql";
+import sequelize from "@/lib/mssql";
 import { NextApiRequest, NextApiResponse } from "next";
 
 type BodyProps = {
@@ -18,7 +19,7 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
         WHERE CON_CED = '${driverPersonalID}'
       `
 
-      const sequelize = await getSequelize()
+      // const sequelize = await getSequelize()
       const [data] = await sequelize.query(queryString) as [T_CON[], unknown]
 
       const driver: Driver = {

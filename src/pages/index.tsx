@@ -37,12 +37,10 @@ const Home = () => {
     }
   }, [])
   
-  
   useEffect(() => {
     const query = getDestinationEntryQuery("D05", "1")
     console.log('query', query)
   }, [])
-  
   
   const handleLoginMicrosoft: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()

@@ -1,5 +1,6 @@
 import { ORIGIN_BY_DESTINATION } from "@/lib/enums";
-import getSequelize from "@/lib/mssql";
+// import getSequelize from "@/lib/mssql";
+import sequelize from "@/lib/mssql";
 import getDestinationEntryQuery from "@/utils/api/aboutToLeave";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -28,7 +29,7 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
       ORDER BY ENT_NUM DESC;
     `
 
-    const sequelize = await getSequelize()
+    // const sequelize = await getSequelize()
 
     const [data] = await sequelize.query(queryString1) as [P_ENT[], unknown]
 

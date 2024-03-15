@@ -1,4 +1,5 @@
-import getSequelize from "@/lib/mssql";
+// import getSequelize from "@/lib/mssql";
+import sequelize from "@/lib/mssql";
 import { NextApiRequest, NextApiResponse } from "next";
 
 type ModelTypes = {
@@ -8,7 +9,7 @@ type ModelTypes = {
 
 const modelsHandler = async (request: NextApiRequest, response: NextApiResponse) => {
   try {
-    const sequelize = await getSequelize()
+    // const sequelize = await getSequelize()
 
     const queryString = `SELECT * FROM [HDTA025].[dbo].[H025_VW_VEH_MOD_COMBO]`
     const [data] = await sequelize.query(queryString) as [ModelTypes[], unknown]

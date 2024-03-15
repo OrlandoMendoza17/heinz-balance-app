@@ -13,47 +13,64 @@ const dbPort = process.env.DB_PORT as string
 
 const MINUTE = 60 * 1000;
 
-const getSequelize = async () => {
+// const getSequelize = async () => {
 
-  type DB_CREDENTIALS = {
-    DB_HOST: string,
-    DB_INSTANCE: string,
-    DB_NAME: string,
-    DB_USER: string,
-    DB_PASSWORD: string,
-  }
+//   type DB_CREDENTIALS = {
+//     DB_HOST: string,
+//     DB_INSTANCE: string,
+//     DB_NAME: string,
+//     DB_USER: string,
+//     DB_PASSWORD: string,
+//   }
 
-  const credentials = await getSecrets()
+//   const credentials = await getSecrets()
 
-  console.log("credential", credentials)
+//   console.log("credential", credentials)
 
-  const { DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_INSTANCE }: DB_CREDENTIALS = JSON.parse(credentials as string)
+//   const { DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_INSTANCE }: DB_CREDENTIALS = JSON.parse(credentials as string)
 
-  console.log("dbUser: ", DB_HOST)
-  console.log("dbHost: ", DB_NAME)
-  console.log("dbName: ", DB_USER)
-  console.log("dbPassword: ", DB_PASSWORD)
-  console.log("dbInstance: ", DB_INSTANCE)
+//   console.log("dbUser: ", DB_HOST)
+//   console.log("dbHost: ", DB_NAME)
+//   console.log("dbName: ", DB_USER)
+//   console.log("dbPassword: ", DB_PASSWORD)
+//   console.log("dbInstance: ", DB_INSTANCE)
 
-  // const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
-  //   host: dbHost,
-  const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-    host: DB_HOST,
-    port: 1433,
-    dialect: "mssql",
-    dialectModule: tedious,
-    dialectOptions: {
-      options: {
-        instanceName: "Heinz",
-        trustServerCertificate: true, // change to true for local dev / self-signed certs,
-        encrypt: false,
-        connectTimeout: MINUTE / 2,
-        requestTimeout: 5 * MINUTE,
-      }
+//   const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
+//     host: dbHost,
+//   // const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
+//   //   host: DB_HOST,
+//     port: 1433,
+//     dialect: "mssql",
+//     dialectModule: tedious,
+//     dialectOptions: {
+//       options: {
+//         instanceName: dbInstance,
+//         // instanceName: DB_INSTANCE,
+//         trustServerCertificate: true, // change to true for local dev / self-signed certs,
+//         encrypt: false,
+//         connectTimeout: 2 * MINUTE,
+//         requestTimeout: 5 * MINUTE,
+//       }
+//     }
+//   })
+
+//   return sequelize;
+// }
+
+const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
+  host: dbHost,
+  port: 1433,
+  dialect: "mssql",
+  dialectModule: tedious,
+  dialectOptions: {
+    options: {
+      instanceName: dbInstance,
+      trustServerCertificate: true, // change to true for local dev / self-signed certs,
+      encrypt: false,
+      connectTimeout: 2 * MINUTE,
+      requestTimeout: 5 * MINUTE,
     }
-  })
+  }
+})
 
-  return sequelize;
-}
-
-export default getSequelize;
+export default sequelize;

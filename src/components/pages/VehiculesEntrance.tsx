@@ -14,6 +14,7 @@ import { INVOICE_BY_CODE } from '@/lib/enums'
 import { createNewEntry, createNewExit, getNextEntryNumber } from '@/services/entries'
 import { format } from 'date-fns'
 import { getDateTime } from '@/utils/parseDate'
+import { DESTINATIONS } from '@/pages/api/destinations'
 
 type Props = {
   showModal: boolean,
@@ -50,17 +51,46 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
     origin: "",
     truckWeight: 0,
     details: "",
+    aboutToLeave: false,
   })
 
   useEffect(() => {
     (async () => {
       try {
 
-        // const data = await getDestination()
-
-        const destinations = await getDestination()
-        console.log("Operations: ", destinations)
-
+        const destinations: DESTINATIONS[] = [
+          {
+            DES_COD: 'D01',
+            OPE_COD: 'OO9',
+            DES_DES: 'DISTRIBUCIÓN',
+          },
+          {
+            DES_COD: 'D02',
+            OPE_COD: 'OO1',
+            DES_DES: 'MATERIA PRIMA',
+          },
+          {
+            DES_COD: 'D03',
+            OPE_COD: 'OO2',
+            DES_DES: 'SERVICIOS GENERALES',
+          },
+          {
+            DES_COD: 'D04',
+            OPE_COD: 'OO4',
+            DES_DES: 'ALMACEN',
+          },
+          {
+            DES_COD: 'D05',
+            OPE_COD: 'OO5',
+            DES_DES: 'MATERIALES',
+          },
+          {
+            DES_COD: 'D07',
+            OPE_COD: 'O10',
+            DES_DES: 'OTROS SERVICIOS',
+          },
+        ]
+        
         const operationOptions: SelectOptions[] = destinations.map(({ DES_DES, OPE_COD, DES_COD }) => {
 
           const value: DestinationSelectValue = {

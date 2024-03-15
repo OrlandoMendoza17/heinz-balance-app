@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken'
 import { NextApiRequest, NextApiResponse } from 'next'
 
-
 const authorizationHandler = (request: NextApiRequest, response: NextApiResponse, callback: (payload: jwt.JwtPayload) => void) => {
   
   const token = (request.headers.authorization || "").split("Bearer ").at(1)

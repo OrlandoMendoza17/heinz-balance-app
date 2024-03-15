@@ -23,8 +23,8 @@ type Entry = {
   invoice: string | null,
   origin: string,
   truckWeight: number,
-  grossWeight: number | null,
-  netWeight: number | null,
+  grossWeight: number,
+  netWeight: number,
   details: string,
   aboutToLeave: boolean,
 }

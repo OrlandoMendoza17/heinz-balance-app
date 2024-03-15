@@ -2,6 +2,8 @@ import TableVehicules from '@/components/pages/TableVehicules';
 import VehiclesExit from '@/components/pages/VehiculesExit';
 import Header from '@/components/widgets/Header'
 import Modal from '@/components/widgets/Modal';
+import NotificationModal from '@/components/widgets/NotificationModal';
+import useNotification from '@/hooks/useNotification';
 import { getEntriesInPlant } from '@/services/entries';
 import { getTransports } from '@/utils';
 import { format } from 'date-fns';
@@ -12,6 +14,8 @@ const Romana = () => {
 
   const [showModal, setModal] = useState<boolean>(false)
   const [entrys, setTransports] = useState<Entry[]>([])
+  
+  const [alert, handleAlert] = useNotification()
   
   const [selectedEntry, setSelectedTransport] = useState<Entry>({
     entryNumber: "",
@@ -40,24 +44,25 @@ const Romana = () => {
     aboutToLeave: false,
   })
   
-  // console.log(entrys)
-
-  // const handleChange: ChangeEventHandler<HTMLInputElement> = ({ target }) => {
-  //   console.log(target.value)
-  // }
-
   useEffect(() => {
     (async ()=>{
-      
-      const entries = await getEntriesInPlant()
-      setTransports(entries.filter(({ aboutToLeave }) => aboutToLeave))
-      
+      try {
+        
+        const entries = await getEntriesInPlant()
+        setTransports(entries)
+        // setTransports(entries.filter(({ aboutToLeave }) => aboutToLeave))
+        
+      } catch (error) {
+        console.log(error)   
+        handleAlert.open(({
+          type: "danger",
+          title: "Error ❌",
+          message: "Ha habido un error trayendose los entradas de vehículos, intentelo de nuevo",
+        }))     
+      }
     })() 
   }, [])
   
-
-  console.log()
-
   return (
     <>
       <Header />
@@ -89,6 +94,7 @@ const Romana = () => {
           </tbody>
         </table>
         <VehiclesExit {...{ showModal, setModal, entry: selectedEntry }} />
+        <NotificationModal alertProps={[alert, handleAlert]} />
       </main>
     </>
   )

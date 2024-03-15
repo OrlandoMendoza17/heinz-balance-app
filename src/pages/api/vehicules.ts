@@ -1,4 +1,5 @@
-import getSequelize from "@/lib/mssql";
+// import getSequelize from "@/lib/mssql";
+import sequelize from "@/lib/mssql";
 import { VEHICULE_COMPANY_NOT_FOUND, VEHICULE_NOT_FOUND } from "@/utils/services/errorMessages";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -21,7 +22,7 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
         WHERE VEH_PLA = '${vehiculePlate}'
       `
       
-      const sequelize = await getSequelize()
+      // const sequelize = await getSequelize()
       
       const [data1] = await sequelize.query(queryString1) as [T_VEH[], unknown]
       

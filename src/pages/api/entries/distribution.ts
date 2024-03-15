@@ -1,5 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import getSequelize from "@/lib/mssql";
+// import getSequelize from "@/lib/mssql";
+import sequelize from "@/lib/mssql";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { format } from 'date-fns';
 
@@ -22,7 +23,7 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
 
         const { entriesType, formatted }: BodyProps = request.body
 
-        const sequelize = await getSequelize()
+        // const sequelize = await getSequelize()
 
         const queryString = `
             SELECT 
@@ -106,7 +107,7 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
             const [vehicules] = await sequelize.query(vehiculesQuery) as [T_VEH[], unknown]
             const [drivers] = await sequelize.query(driversQuery) as [T_CON[], unknown]
     
-            const formattedEntries: Entry[] = distEntries.map(({ ENT_NUM, ENT_DI_FEC, ENT_DI_PRO, }) => {
+            const formattedEntries: Entry[] = distEntries.map(({ ENT_NUM, ENT_DI_FEC, ENT_DI_PRO, ENT_DI_PNC }) => {
     
                 const { VEH_ID, CON_COD, DES_COD, OPE_COD, ENT_PES_TAR, ENT_FLW } = data1.find((item) => item.ENT_NUM === ENT_NUM) as P_ENT
     
@@ -133,8 +134,8 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
                     operation: OPE_COD,
                     origin: ENT_DI_PRO,
                     truckWeight: ENT_PES_TAR,
-                    grossWeight: null,
-                    netWeight: null,
+                    grossWeight: 0,
+                    netWeight: (ENT_DI_PNC === null) ? 0 : ENT_DI_PNC,
                     details: "",
                     invoice: "",
                     aboutToLeave: Boolean(ENT_FLW === 2),

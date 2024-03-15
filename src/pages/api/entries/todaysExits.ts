@@ -1,5 +1,6 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import getSequelize from "@/lib/mssql";
+// import getSequelize from "@/lib/mssql";
+import sequelize from "@/lib/mssql";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { format } from 'date-fns';
 
@@ -14,7 +15,7 @@ const todaysExitsHandler = async (request: NextApiRequest, response: NextApiResp
       ORDER BY ENT_NUM DESC;
     `
 
-    const sequelize = await getSequelize()
+    // const sequelize = await getSequelize()
     const [data] = await sequelize.query(queryString) as [P_SAL[], unknown]
 
     response.status(200).json(data);
