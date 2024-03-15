@@ -1,6 +1,6 @@
+import React, { MouseEventHandler, SetStateAction } from 'react'
 import { DESTINATION_BY_CODE } from '@/lib/enums'
 import { shortDate } from '@/utils/parseDate'
-import React, { MouseEventHandler, SetStateAction } from 'react'
 
 type Props = {
   setModal: (value: SetStateAction<boolean>) => void,
@@ -32,16 +32,3 @@ const TableVehicules = ({setModal, setSelectedTransport, entry}: Props) => {
 }
 
 export default TableVehicules
-
-
-
-
-
-
-
-
-
-
-
-
-

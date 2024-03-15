@@ -61,7 +61,7 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
 
     const entries: Entry[] = []
     
-    for (const { ENT_NUM, CON_COD, VEH_ID, DES_COD, OPE_COD, ENT_FEC, ENT_PES_TAR } of data) {
+    for (const { ENT_NUM, CON_COD, VEH_ID, DES_COD, OPE_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW } of data) {
       
       const vehicule = vehicules.find((vehicule) => vehicule.VEH_ID === VEH_ID)
       const driver = drivers.find((driver) => driver.CON_COD === CON_COD)
@@ -96,6 +96,7 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
         operation: OPE_COD,
         invoice: null,
         details: "",
+        aboutToLeave: Boolean(ENT_FLW === 2),
       }) 
     }
   

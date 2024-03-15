@@ -23,9 +23,10 @@ type Entry = {
   invoice: string | null,
   origin: string,
   truckWeight: number,
-  grossWeight: number,
-  netWeight: number,
+  grossWeight: number | null,
+  netWeight: number | null,
   details: string,
+  aboutToLeave: boolean,
 }
 
 type NewEntryDto = Omit<Entry, "entryNumber" | "entryDate" | "vehicule" | "driver" | "grossWeight" | "netWeight" | "destination"> & {

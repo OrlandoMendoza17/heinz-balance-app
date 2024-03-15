@@ -2,7 +2,7 @@ import TableVehicules from '@/components/pages/TableVehicules';
 import VehiclesExit from '@/components/pages/VehiculesExit';
 import Header from '@/components/widgets/Header'
 import Modal from '@/components/widgets/Modal';
-import getAboutToLeaveEntries from '@/services/aboutToLeave';
+import { getEntriesInPlant } from '@/services/entries';
 import { getTransports } from '@/utils';
 import { format } from 'date-fns';
 import React, { ChangeEventHandler, MouseEventHandler, useEffect, useState } from 'react'
@@ -37,6 +37,7 @@ const Romana = () => {
     netWeight: 0,
     details: "",
     invoice: "",
+    aboutToLeave: false,
   })
   
   // console.log(entrys)
@@ -48,11 +49,10 @@ const Romana = () => {
   useEffect(() => {
     (async ()=>{
       
-      const entrys = await getAboutToLeaveEntries()
-      setTransports(entrys)
+      const entries = await getEntriesInPlant()
+      setTransports(entries.filter(({ aboutToLeave }) => aboutToLeave))
       
     })() 
-    
   }, [])
   
 
