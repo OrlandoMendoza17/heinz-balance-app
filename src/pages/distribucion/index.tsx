@@ -1,13 +1,6 @@
-import TableEntrys from '@/components/pages/TableEntrys';
-import TableVehicules from '@/components/pages/TableVehicules';
-import VehiclesExit from '@/components/pages/VehiculesExit';
-
-import Modal from '@/components/widgets/Modal';
-import { getFormattedDistEntries } from '@/services/entries';
-import { getTransports } from '@/utils';
-import { format } from 'date-fns';
 import React, { ChangeEventHandler, MouseEventHandler, useEffect, useState } from 'react'
-
+import TableEntrys from '@/components/pages/distribucion/TableEntrys';
+import { getFormattedDistEntries } from '@/services/entries';
 
 const DisEntrys = () => {
 
@@ -51,7 +44,8 @@ const DisEntrys = () => {
     (async ()=>{
       
       const entries = await getFormattedDistEntries('entry')
-      setEntrys(entries.filter(({ aboutToLeave }) => aboutToLeave))
+      console.log('entries', entries)
+      // setEntrys(entries.filter(({ aboutToLeave }) => aboutToLeave))
       
     })() 
   }, [])
