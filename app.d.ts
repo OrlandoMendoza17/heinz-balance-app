@@ -29,6 +29,30 @@ type Entry = {
   aboutToLeave: boolean,
 }
 
+type DistributionEntry = {
+  entryNumber: P_ENT_DI["ENT_NUM"],
+  entryDate: P_ENT_DI["ENT_DI_FEC"],
+  driver: Driver,
+  vehicule: Vehicule,
+  origin: P_ENT_DI["ENT_DI_PRO"],
+  truckWeight: P_ENT["ENT_PES_TAR"],
+  entryDetails: P_ENT["ENT_OBS"],
+  calculatedNetWeight: P_ENT_DI["ENT_DI_PNC"],
+  aboutToLeave: boolean,
+  chargeDestination: P_ENT_DI["ENT_DI_DES"],
+  vehiculeStatus: P_ENT_DI["ENT_DI_STA"],
+  distDetails: P_ENT_DI["ENT_DI_OBS"],
+  palletsQuatity: P_ENT_DI["ENT_DI_CPA"],
+  palletChargePlan: P_ENT_DI["ENT_DI_PAL"],
+  guideNumber: P_ENT_DI["ENT_DI_GUI"],
+  chargePlan: P_ENT_DI["ENT_DI_PLA"],
+  dispatchNote: P_ENT_DI["ENT_DI_NDE"],
+  palletWeight: P_ENT_DI["ENT_DI_PPA"],
+  aditionalWeight: P_ENT_DI["ENT_DI_PAD"],
+  aditionalWeightDescription: P_ENT_DI["ENT_DI_DPA"],
+  exitAuthorization: P_ENT_DI["ENT_DI_AUT"],
+}
+
 type NewEntryDto = Omit<Entry, "entryNumber" | "entryDate" | "vehicule" | "driver" | "grossWeight" | "netWeight" | "destination"> & {
   destination: string;
 }

@@ -45,6 +45,6 @@ export const getDistEntries = async (entriesType: EntriesType) => {
 }
 
 export const getFormattedDistEntries = async (entriesType: EntriesType) => {
-  const { data } = await axios.post<Entry[]>("/api/entries/distribution", { entriesType, formatted: true })
+  const { data } = await axios.post<DistributionEntry[]>("/api/entries/distribution", { entriesType, formatted: true })
   return data;
 }

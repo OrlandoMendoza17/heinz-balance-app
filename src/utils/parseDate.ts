@@ -1,4 +1,4 @@
-import { format } from "date-fns"
+import { addHours, format } from "date-fns"
 import { es } from "date-fns/locale"
 
 export const TODAY = new Date()
@@ -17,7 +17,8 @@ export const shortDate = (date: string | number) => {
 
 export const getCuteFullDate = (date: string) => {
   console.log('date', date)
-  return date ? format(new Date(date), "dd/MM/yyyy hh:mm:ss aaaa") : ""
+  // return date ? new Date(date).toLocaleString("es-VE") : ""
+  return date ? format(addHours(new Date(date), 4), "dd/MM/yyyy, hh:mm:ss aaaa") : ""
 }
 
 export const getDateTime = (dateString?: string) => {

@@ -1,0 +1,36 @@
+const distributionEntry: DistributionEntry = {
+  entryNumber: "",
+  entryDate: "",
+  driver: {
+    name: "",
+    cedula: "",
+    code: "",
+  },
+  vehicule: {
+    id: "",
+    plate: "",
+    model: "",
+    type: "",
+    capacity: 0,
+    company: "",
+  },
+  origin: "",
+  truckWeight: 0,
+  entryDetails: "",
+  calculatedNetWeight: 0,
+  aboutToLeave: false,
+  chargeDestination: "",
+  vehiculeStatus: null,
+  distDetails: "",
+  palletsQuatity: 0,
+  palletChargePlan: "",
+  guideNumber: "",
+  chargePlan: "",
+  dispatchNote: "",
+  palletWeight: 0,
+  aditionalWeight: 0,
+  aditionalWeightDescription: "",
+  exitAuthorization: "",
+}
+
+export default distributionEntry;

@@ -1,0 +1,6 @@
+.DistributionAside{
+  @apply p-10 bg-slate-200 h-screen;
+  a{
+    @apply hover:text-blue-600 font-medium;
+  }
+}

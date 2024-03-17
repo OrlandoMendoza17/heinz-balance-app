@@ -156,7 +156,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
         <div className='grid gap-x-5 gap-y-8'>
 
           <ul className="grid grid-cols-2 gap-5">
-            <li>Código de entrada: <br />{entryNumber}</li>
+            <li>Número de Entrada: <br />{entryNumber}</li>
             <li>Cédula del Chofer: <br />{driver.cedula}</li>
             <li>Fecha de Entrada: <br />{getCuteFullDate(entryDate)}</li>
             <li>Fecha de Salida: <br />{getCuteFullDate(getDateTime())}</li>

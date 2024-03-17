@@ -34,20 +34,6 @@ type P_ENT_DI = {
   ENT_DI_DES: string | null;  // Destino
   ENT_DI_PAD: number;         // Siempre es 0 -- Peso adicional corregido 
   ENT_DI_DPA: string | null;  // Descripciones -> Se pone en distribución preguntar a yamileth de donde salen ❓
-  /*
-  Fecha 2014 -MR por falta de Inventario
-              Ket. Ind. Mc Donal
-              Ket. Ind. Mc Donal
-              vemp
-              vemp
-              mr 184kg menos
-              PRECINTOS # 2255
-              vemp.79488
-              Lleva 119.68 kilos del VEMP
-              lleva 02 cajas dechicha polly y 01 caja decrema de arroz
-              lleva cesta navideña y productos venta de empleados
-  Fecha 2020 -SIN CARGA
-  */
   ENT_DI_STA: 1 | null;  // status de vehiculo 
   ENT_DI_AUT: string | null;  // Esta relacionado a ENT_DI_PAL-> aunque no en todos los casos son iguales  
   ENT_DI_OBS: string | null;  // Observaciones
