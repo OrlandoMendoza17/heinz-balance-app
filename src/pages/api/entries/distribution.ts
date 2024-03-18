@@ -3,6 +3,7 @@
 import sequelize from "@/lib/mssql";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { format } from 'date-fns';
+import { distEntriesExamples, entriesExamples } from "@/utils/examples";
 
 type BodyProps = {
     entriesType: "entry" | "initial" | "dispatch" | "aboutToLeave" | "all";
@@ -48,12 +49,18 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
         `
 
         const [data1] = await sequelize.query(queryString) as [P_ENT[], unknown]
+        // const data1: P_ENT[] = entriesExamples
 
         if (data1.length) {
+            
             const distributionIDS = data1.map(({ ENT_NUM }) => ENT_NUM)
+            // const distributionIDS = ['95557', '95555', '95552', '95551']
 
             const entryDistIDS = data1.filter(({ ENT_FLW }) => ENT_FLW === 1).map(({ ENT_NUM }) => ENT_NUM)
             const aboutToLeaveDistIDS = data1.filter(({ ENT_FLW }) => ENT_FLW === 2).map(({ ENT_NUM }) => ENT_NUM)
+
+            // const entryDistIDS = ['95557', '95555', '95552', '95551']
+            // const aboutToLeaveDistIDS: string[] = []
 
             const queryString2 = `
                 SELECT * FROM H025_P_ENT_DI
@@ -62,6 +69,9 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
             `
 
             const [entries] = await sequelize.query(queryString2) as [P_ENT_DI[], unknown]
+            // const entries = distEntriesExamples
+            
+            console.log('entries', entries)
 
             const distribution = {
                 entry: (
@@ -75,7 +85,7 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
                 ,
                 dispatch: (
                     entries.filter((distEntry) => {
-                        const {ENT_NUM} =  distEntry
+                        const { ENT_NUM } = distEntry
                         return !isDistInitialEntry(distEntry) && !aboutToLeaveDistIDS.includes(ENT_NUM)
                     })
                 )
@@ -122,7 +132,7 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
 
             const formattedEntries: DistributionEntry[] = distEntries.map((distEntry) => {
 
-                const { ENT_NUM, ENT_DI_FEC, ENT_DI_PRO, ENT_DI_PNC, ENT_DI_DES, ENT_DI_STA, ENT_DI_OBS, ENT_DI_CPA } = distEntry
+                const { ENT_NUM, ENT_DI_PRO, ENT_DI_PNC, ENT_DI_DES, ENT_DI_STA, ENT_DI_OBS, ENT_DI_CPA } = distEntry
                 const { ENT_DI_PAL, ENT_DI_GUI, ENT_DI_PLA, ENT_DI_NDE, ENT_DI_PPA, ENT_DI_PAD, ENT_DI_DPA, ENT_DI_AUT } = distEntry
 
                 const { VEH_ID, CON_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW, ENT_OBS } = data1.find((item) => item.ENT_NUM === ENT_NUM) as P_ENT

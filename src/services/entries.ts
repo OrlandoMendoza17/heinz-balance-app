@@ -12,7 +12,7 @@ type newExitParams = {
   updateEntryByDestination: object | undefined,
 }
 
-type EntriesType = "entry" | "initial" | "dispatch" | "aboutToLeave" | "all"
+export type EntriesType = "entry" | "initial" | "dispatch" | "aboutToLeave" | "all"
 
 export const getEntriesInPlant = async () => {
   const { data } = await axios.get<Entry[]>("/api/entries/inPlant")

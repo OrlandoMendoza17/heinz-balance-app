@@ -1,6 +1,6 @@
 import React, { ChangeEventHandler, MouseEventHandler, useEffect, useState } from 'react'
 import TRDistEntries from '@/components/pages/distribucion/TRDistEntries';
-import { getFormattedDistEntries } from '@/services/entries';
+import { EntriesType, getFormattedDistEntries } from '@/services/entries';
 import useNotification from '@/hooks/useNotification';
 import NotificationModal from '@/components/widgets/NotificationModal';
 import DistributionAside from '@/components/widgets/DistributionAside';
@@ -8,31 +8,32 @@ import NoEntries from '@/components/widgets/NoEntries';
 import Spinner from '@/components/widgets/Spinner';
 import TableDistribution from '@/components/pages/distribucion/TableDistribution';
 import distributionEntry from '@/utils/defaultValues/distributionEntry';
+import DistributionDetails from '@/components/pages/distribucion/DistributionDetails';
+
+const ENTRIES_TYPE: EntriesType = "initial"
 
 const Vehiculos = () => {
-  
+
   const [showModal, setModal] = useState<boolean>(false)
   const [entries, setEntries] = useState<DistributionEntry[]>([])
+
+  const [editEntries, setEditEntries] = useState(false)
 
   const [alert, handleAlert] = useNotification()
 
   const [loading, setLoading] = useState<boolean>(false)
-  
-  const [selectedEntry, setSelectedEntry] = useState<DistributionEntry>(distributionEntry)
 
-  // const handleChange: ChangeEventHandler<HTMLInputElement> = ({ target }) => {
-  //   console.log(target.value)
-  // }
+  const [selectedEntry, setSelectedEntry] = useState<DistributionEntry>(distributionEntry)
 
   useEffect(() => {
     (async () => {
       try {
+        
         setLoading(true)
 
-        const entries = await getFormattedDistEntries('initial')
+        const entries = await getFormattedDistEntries(ENTRIES_TYPE)
         setEntries(entries)
-        console.log('entries', entries)
-        // setEntrys(entries.filter(({ aboutToLeave }) => aboutToLeave))
+        
         setLoading(false)
 
       } catch (error) {
@@ -61,7 +62,7 @@ const Vehiculos = () => {
           loading ?
             <Spinner size="normal" />
             :
-            <TableDistribution>
+            <TableDistribution ENTRIES_TYPE={ENTRIES_TYPE}>
               {
                 entries.map((entry, i) =>
                   <TRDistEntries
@@ -69,12 +70,15 @@ const Vehiculos = () => {
                     setModal={setModal}
                     setSelectedEntry={setSelectedEntry}
                     entry={entry}
+                    ENTRIES_TYPE={ENTRIES_TYPE}
+                    setEditEntries={setEditEntries}
                   />
                 )
               }
             </TableDistribution>
         }
       </main>
+      <DistributionDetails {...{ showModal, setModal, entry: selectedEntry, ENTRIES_TYPE, editEntries }} />
       <NotificationModal alertProps={[alert, handleAlert]} />
     </div>
   )

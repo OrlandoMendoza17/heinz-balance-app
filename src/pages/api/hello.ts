@@ -11,7 +11,10 @@ const testHandler = async (request: NextApiRequest, response: NextApiResponse,) 
   try {
     
     const queryString = `
-      SELECT TOP 1 * FROM H025_P_SAL
+      SELECT * FROM H025_P_ENT
+      WHERE ENT_NUM IN (
+        ${['95557', '95555', '95552', '95551']}
+      )
       ORDER BY ENT_NUM DESC
     `
     

@@ -31,7 +31,7 @@ type Entry = {
 
 type DistributionEntry = {
   entryNumber: P_ENT_DI["ENT_NUM"],
-  entryDate: P_ENT_DI["ENT_DI_FEC"],
+  entryDate: P_ENT["ENT_FEC"],
   driver: Driver,
   vehicule: Vehicule,
   origin: P_ENT_DI["ENT_DI_PRO"],
