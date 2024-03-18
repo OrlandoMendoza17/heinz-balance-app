@@ -71,8 +71,6 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
             const [entries] = await sequelize.query(queryString2) as [P_ENT_DI[], unknown]
             // const entries = distEntriesExamples
             
-            console.log('entries', entries)
-
             const distribution = {
                 entry: (
                     entries.filter(({ ENT_NUM }) => entryDistIDS.includes(ENT_NUM))
