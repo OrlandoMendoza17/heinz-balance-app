@@ -1,4 +1,3 @@
-// import { Inter } from "next/font/google";
 import { ChangeEventHandler, FormEventHandler, useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { getCookie, setCookie } from "@/utils/cookies";
@@ -13,7 +12,6 @@ import useNotification from "@/hooks/useNotification";
 import NotificationModal from "@/components/widgets/NotificationModal";
 import getDestinationEntryQuery from "@/utils/api/aboutToLeave";
 
-// const inter = Inter({ subsets: ["latin"] });
 const auth = new AuthService()
 
 const Home = () => {
@@ -95,7 +93,9 @@ const Home = () => {
 
   return (
     <main className={`LoginForm`}>
+      
       <img className="justify-self-center" width={150} src="https://i.imgur.com/yoGBPON.png" alt="" />
+      
       <UnauthenticatedTemplate>
         <Form onSubmit={handleLoginMicrosoft}>
           <h1>Ingresar al sistema de balanza:</h1>
