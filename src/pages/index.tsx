@@ -17,31 +17,31 @@ import getDestinationEntryQuery from "@/utils/api/aboutToLeave";
 const auth = new AuthService()
 
 const Home = () => {
-  
+
   const { instance } = useMsal()
   const router = useRouter()
-  
+
   const [email, setEmail] = useState<string>("")
   const [loading, setLoading] = useState<boolean>(false)
-  
+
   const [status, handleStatus] = useNotification()
-  
+
   useEffect(() => {
     const credentials = getCookie<AuthCredentials>("login")
-    if(!credentials){
-      
+    if (!credentials) {
+
       sessionStorage.clear()
       localStorage.clear()
       document.cookie = ""
-      
+
     }
   }, [])
-  
+
   useEffect(() => {
     const query = getDestinationEntryQuery("D05", "1")
     console.log('query', query)
   }, [])
-  
+
   const handleLoginMicrosoft: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
     setLoading(true)
@@ -87,21 +87,19 @@ const Home = () => {
       }))
     }
   }
-  
-  const handleChange: ChangeEventHandler<HTMLInputElement> = ({currentTarget}) =>{
-    const {value} = currentTarget
+
+  const handleChange: ChangeEventHandler<HTMLInputElement> = ({ currentTarget }) => {
+    const { value } = currentTarget
     setEmail(value.trim())
   }
-  
+
   return (
-    <main
-      className={`LoginForm`}
-    >
+    <main className={`LoginForm`}>
       <img className="justify-self-center" width={150} src="https://i.imgur.com/yoGBPON.png" alt="" />
       <UnauthenticatedTemplate>
         <Form onSubmit={handleLoginMicrosoft}>
           <h1>Ingresar al sistema de balanza:</h1>
-          
+
           <Input
             id="email"
             value={email}
@@ -109,15 +107,15 @@ const Home = () => {
             placeholder="Correo Electrónico"
             onChange={handleChange}
           />
-          
+
           <Button type="submit" title="boton rojo" color="secondary" loading={loading}>
-            Iniciar Sesión <TbLogin2 size={20}/>
+            Iniciar Sesión <TbLogin2 size={20} />
           </Button>
-          
+
           <NotificationModal alertProps={[status, handleStatus]} />
         </Form>
       </UnauthenticatedTemplate>
-      
+
       <AuthenticatedTemplate>
         {/* <h4 className="text-center">Iniciando Sesión...</h4> */}
         <div className="p-10">
@@ -125,7 +123,7 @@ const Home = () => {
         </div>
         <button onClick={() => instance.logout()}>Sign out</button>
       </AuthenticatedTemplate>
-      
+
     </main>
   );
 }
