@@ -1,11 +1,12 @@
 import Button from '@/components/widgets/Button'
 import Form from '@/components/widgets/Form'
 import Modal from '@/components/widgets/Modal'
+import { HandleNotification } from '@/hooks/useNotification'
 import { getChargePlan } from '@/services/chargePlan'
 import { EntriesType, getEntry, updateDistEntry, updateEntry } from '@/services/entries'
 import distributionEntry from '@/utils/defaultValues/distributionEntry'
 import { getCuteFullDate, getDateTime } from '@/utils/parseDate'
-import React, { ChangeEventHandler, Dispatch, SetStateAction, useEffect, useState } from 'react'
+import React, { ChangeEventHandler, Dispatch, FormEventHandler, SetStateAction, useEffect, useState } from 'react'
 
 type Props = {
   showModal: boolean,
@@ -13,12 +14,23 @@ type Props = {
   entry: DistributionEntry,
   ENTRIES_TYPE: EntriesType,
   editEntries?: boolean,
+  handleAlert: HandleNotification,
 }
 
-const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEntries = false }: Props) => {
+const DEPARTMENT_AREAS = {
+  entry: "",
+  initial: "Despacho",
+  dispatch: "Vehículos por salir",
+  aboutToLeave: "",
+  all: "",
+}
+
+const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEntries = false, handleAlert }: Props) => {
 
   const [selectedEntry, setSelectedEntry] = useState<DistributionEntry>(distributionEntry)
-
+  
+  const [loading, setLoading] = useState<boolean>(false)
+  
   useEffect(() => {
     setSelectedEntry(entry)
   }, [entry])
@@ -27,8 +39,11 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
   const BOTH_ENABLED_EDIT = ((ENTRIES_TYPE === "initial" || ENTRIES_TYPE === "dispatch") && editEntries)
   const DESPATCH_ENABLED_EDIT = (ENTRIES_TYPE === "dispatch" && editEntries)
 
-  const handleSubmit = async () => {
+  const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
+    event.preventDefault()
     try {
+      setLoading(true)
+      
       const { entryNumber, origin, guideNumber, calculatedNetWeight, palletsQuatity, palletWeight } = selectedEntry
       const { chargePlan, chargeDestination, aditionalWeight, aditionalWeightDescription, vehiculeStatus } = selectedEntry
       const { exitAuthorization, dispatchNote, palletChargePlan, distDetails } = selectedEntry
@@ -62,7 +77,8 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
         const chargePlanInfo = await getChargePlan(chargePlan as string)
 
         const chargePlanNumber = chargePlanInfo.number.toString()
-
+        
+        // La asignación de estos 3 valores hace que la aplicación los detecte como que están en despacho
         distEntry.ENT_DI_GUI = chargePlanNumber;
         distEntry.ENT_DI_PLA = chargePlanNumber;
         distEntry.ENT_DI_NDE = chargePlanNumber;
@@ -77,16 +93,31 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
 
         const udpatedEntry: UpdateP_ENT = {
           ...rest,
-          ENT_FLW: 2, // Lo manda a "por salir"
+          ENT_FLW: 2, // La asignación de este valor indica que lo manda a "por salir"
         }
 
         await updateEntry(entryNumber, udpatedEntry)
       }
 
       await updateDistEntry(distEntry)
+      
+      handleAlert.open(({
+        type: "success",
+        title: "Actualización de entrada",
+        message: `Se ha guardados los datos de la entrada exitosamente y se ha mandado a "${DEPARTMENT_AREAS[ENTRIES_TYPE]}"`,
+      }))
+      
+      setLoading(false)
+      setModal(false)
+      
     } catch (error) {
-      alert("Ha habido un error")
+      setLoading(false)
       console.log(error)
+      handleAlert.open(({
+        type: "danger",
+        title: "Error ❌",
+        message: "Ha habido un error guardando los datos, por favor intentelo de nuevo",
+      }))
     }
   }
 
@@ -103,7 +134,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
     <>
       <Modal className="py-10 !items-baseline overflow-auto !grid-cols-[minmax(auto,_950px)]" {...{ showModal, setModal }}>
         <h1 className="font-semibold pb-10">Detalle</h1>
-        <Form className='grid gap-x-5 gap-y-8'>
+        <Form onSubmit={handleSubmit} className='grid gap-x-5 gap-y-8'>
 
           Datos Básicos
 
@@ -252,7 +283,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
           </ul>
           {
             editEntries &&
-            <Button className="bg-secondary" type="submit">
+            <Button className="bg-secondary" type="submit" loading={loading}>
               Guardar
             </Button>
           }

@@ -18,7 +18,7 @@ const Despacho = () => {
   const [entries, setEntries] = useState<DistributionEntry[]>([])
 
   const [editEntries, setEditEntries] = useState(false)
-  
+
   const [alert, handleAlert] = useNotification()
 
   const [loading, setLoading] = useState<boolean>(false)
@@ -35,15 +35,10 @@ const Despacho = () => {
         setEntries(entries)
 
         setLoading(false)
-
+        
       } catch (error) {
         setLoading(false)
         console.log(error)
-        handleAlert.open(({
-          type: "danger",
-          title: "Error ❌",
-          message: "Ha habido un error trayendose las entradas de vehículos, intentelo de nuevo",
-        }))
       }
     })()
   }, [])
@@ -79,7 +74,14 @@ const Despacho = () => {
             </TableDistribution>
         }
       </main>
-      <DistributionDetails {...{ showModal, setModal, entry: selectedEntry, ENTRIES_TYPE, editEntries }} />
+      <DistributionDetails {...{
+        showModal,
+        setModal,
+        entry: selectedEntry,
+        ENTRIES_TYPE,
+        editEntries,
+        handleAlert,
+      }} />
       <NotificationModal alertProps={[alert, handleAlert]} />
     </div>
   )

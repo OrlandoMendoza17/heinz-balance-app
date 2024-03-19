@@ -79,7 +79,14 @@ const PorSalir = () => {
             </TableDistribution>
         }
       </main>
-      <DistributionDetails {...{ showModal, setModal, entry: selectedEntry, ENTRIES_TYPE }} />
+      <DistributionDetails {...{
+        showModal,
+        setModal,
+        entry: selectedEntry,
+        ENTRIES_TYPE,
+        editEntries,
+        handleAlert,
+      }} />
       <NotificationModal alertProps={[alert, handleAlert]} />
     </div>
   )

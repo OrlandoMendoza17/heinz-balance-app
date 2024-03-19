@@ -1,6 +1,6 @@
-import getSecrets from "@/services/azure-key-vault"
-import { Sequelize } from "sequelize"
 import tedious from "tedious"
+import { Sequelize } from "sequelize"
+import getSecrets from "@/services/azure-key-vault"
 
 const ENVIRONMENT = process.env.NODE_ENV as string
 
@@ -67,7 +67,7 @@ const sequelize = new Sequelize(dbName, dbUser, dbPassword, {
       instanceName: dbInstance,
       trustServerCertificate: true, // change to true for local dev / self-signed certs,
       encrypt: false,
-      connectTimeout: 2 * MINUTE,
+      connectTimeout: .5 * MINUTE,
       requestTimeout: 5 * MINUTE,
     }
   }
