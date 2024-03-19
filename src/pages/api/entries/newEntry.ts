@@ -9,11 +9,14 @@ type BodyProps = {
   entryByDestination: object,
 }
 
-export const getSQLValue = (value: string | number | null) => {
+export const getSQLValue = (value: string | number | boolean | null) => {
   return (
-    (typeof value === "string") ?
-      `'${value}'` :
-      (value === null) ? JSON.stringify(value) : value
+    (typeof value === "string") ? `'${value}'` : (
+      (value === null) ? JSON.stringify(value) : (
+        (typeof value === "boolean") ? (value ? 1 : 0) :
+          value
+      )
+    )
   )
 }
 
@@ -30,7 +33,7 @@ const newEntryHandler = async (request: NextApiRequest, response: NextApiRespons
         INSERT H025_P_ENT\n${keys} 
         VALUES ${values}
       `
-      
+
       return queryString;
     }
 

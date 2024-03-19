@@ -14,7 +14,7 @@ type Vehicule = {
 }
 
 type Entry = {
-  entryNumber: T_ENT["ENT_NUM"],
+  entryNumber: P_ENT["ENT_NUM"],
   entryDate: string,
   driver: Driver,
   vehicule: Vehicule,
@@ -55,6 +55,14 @@ type DistributionEntry = {
 
 type NewEntryDto = Omit<Entry, "entryNumber" | "entryDate" | "vehicule" | "driver" | "grossWeight" | "netWeight" | "destination"> & {
   destination: string;
+}
+
+type UpdateP_ENT = Omit<P_ENT, "ENT_NUM">
+
+type ChargePlanInfo = {
+  number: F4961["LLLDNM"],
+  weight: F4961["LLSCWT"],
+  destination: F4960["TMCTY1"],
 }
 
 type User = {

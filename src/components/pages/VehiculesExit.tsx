@@ -9,7 +9,7 @@ import { getCuteFullDate, getDateTime, shortDate } from '@/utils/parseDate'
 import { DESTINATION_BY_CODE } from '@/lib/enums'
 import useNotification from '@/hooks/useNotification'
 import NotificationModal from '../widgets/NotificationModal'
-import { createNewExit } from '@/services/entries'
+import { createNewExit } from '@/services/exits'
 import { format } from 'date-fns'
 
 type Props = {

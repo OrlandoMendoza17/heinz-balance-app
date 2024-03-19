@@ -34,10 +34,10 @@ type P_ENT_DI = {
   ENT_DI_DES: string | null;  // Destino
   ENT_DI_PAD: number;         // Siempre es 0 -- Peso adicional corregido 
   ENT_DI_DPA: string | null;  // Descripciones -> Se pone en distribución preguntar a yamileth de donde salen ❓
-  ENT_DI_STA: 1 | null;  // status de vehiculo 
+  ENT_DI_STA: 1 | null;       // status de vehiculo 
   ENT_DI_AUT: string | null;  // Esta relacionado a ENT_DI_PAL-> aunque no en todos los casos son iguales  
   ENT_DI_OBS: string | null;  // Observaciones
-  ENT_DI_REV: boolean;         // Aparentemente siempre es 0, volver a revisar-> siempre es 0
+  ENT_DI_REV: boolean;        // Aparentemente siempre es 0, volver a revisar-> siempre es 0
 }
 
 // H025_P_ENT_DI -> Entrada a Almacén no esta en el diagrama de flujo posible desuso 
@@ -245,4 +245,16 @@ type S_USU = {
   USU_STA: boolean | null; // Siempre es uno -> status de usuario activo
   ROL_COD: null | string;  // Llave foranea del codigo del rol 
   USU_MAI: null | string;  // Correo del usuario 
+}
+
+// Plan de carga y su peso asignado
+type F4961 = {
+  LLLDNM: number, // Plan de carga
+  LLSCWT: number, // Peso
+}
+
+// Plan de carga y su destino asignado
+type F4960 = {
+  TMLDNM: number, // Plan de carga
+  TMCTY1: string, // Destino
 }

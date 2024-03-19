@@ -72,25 +72,26 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
             // const entries = distEntriesExamples
             
             const distribution = {
-                entry: (
+                entry: 
                     entries.filter(({ ENT_NUM }) => entryDistIDS.includes(ENT_NUM))
-                ),
-                initial: (
+                ,
+                initial: 
                     entries.filter((distEntry) => {
                         return isDistInitialEntry(distEntry)
                     })
-                )
                 ,
-                dispatch: (
+                dispatch: 
                     entries.filter((distEntry) => {
                         const { ENT_NUM } = distEntry
-                        return !isDistInitialEntry(distEntry) && !aboutToLeaveDistIDS.includes(ENT_NUM)
+                        return (
+                            !isDistInitialEntry(distEntry) &&      // Valida que no es una entrada que acaba de entrar a distribución
+                            !aboutToLeaveDistIDS.includes(ENT_NUM) // Valida que no es una entrada que está por salir de distribución
+                        )
                     })
-                )
                 ,
-                aboutToLeave: (
+                aboutToLeave: 
                     entries.filter(({ ENT_NUM }) => aboutToLeaveDistIDS.includes(ENT_NUM))
-                ),
+                ,
                 all: entries,
             }
 

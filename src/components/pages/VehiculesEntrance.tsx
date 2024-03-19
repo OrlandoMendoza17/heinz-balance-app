@@ -11,7 +11,7 @@ import useNotification from '@/hooks/useNotification'
 import { getDestination } from '@/services/destination'
 import { getDriver, getVehicule } from '@/services/transportInfo'
 import { INVOICE_BY_CODE } from '@/lib/enums'
-import { createNewEntry, createNewExit, getNextEntryNumber } from '@/services/entries'
+import { createNewEntry, getNextEntryNumber } from '@/services/entries'
 import { format } from 'date-fns'
 import { getDateTime } from '@/utils/parseDate'
 import { DESTINATIONS } from '@/pages/api/destinations'
@@ -164,7 +164,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
           "D01": {
             ENT_NUM,
             USU_LOG: "USR9509C",
-            ENT_DI_FEC: new Date().toISOString(),
+            ENT_DI_FEC: getDateTime(),
             ENT_DI_PRO: origin,
             ENT_DI_GUI: null,    // (Distribución) - Plan de carga
             ENT_DI_PNC: null,    // (Distribución) - Peso Neto Calculado

@@ -1,10 +1,11 @@
 import Button from '@/components/widgets/Button'
 import Form from '@/components/widgets/Form'
 import Modal from '@/components/widgets/Modal'
-import { EntriesType } from '@/services/entries'
+import { getChargePlan } from '@/services/chargePlan'
+import { EntriesType, getEntry, updateDistEntry, updateEntry } from '@/services/entries'
 import distributionEntry from '@/utils/defaultValues/distributionEntry'
-import { getCuteFullDate } from '@/utils/parseDate'
-import React, { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import { getCuteFullDate, getDateTime } from '@/utils/parseDate'
+import React, { ChangeEventHandler, Dispatch, SetStateAction, useEffect, useState } from 'react'
 
 type Props = {
   showModal: boolean,
@@ -16,47 +17,87 @@ type Props = {
 
 const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEntries = false }: Props) => {
 
-  "initial"
-  "dispatch"
-
   const [selectedEntry, setSelectedEntry] = useState<DistributionEntry>(distributionEntry)
 
   useEffect(() => {
     setSelectedEntry(entry)
   }, [entry])
 
-  const handleSubmit = () => {
 
-    const { entryNumber, origin, guideNumber, calculatedNetWeight, palletsQuatity, palletWeight } = selectedEntry
-    const { chargePlan, chargeDestination, aditionalWeight, aditionalWeightDescription, vehiculeStatus } = selectedEntry
-    const { exitAuthorization, dispatchNote, palletChargePlan, distDetails } = selectedEntry
+  const BOTH_ENABLED_EDIT = ((ENTRIES_TYPE === "initial" || ENTRIES_TYPE === "dispatch") && editEntries)
+  const DESPATCH_ENABLED_EDIT = (ENTRIES_TYPE === "dispatch" && editEntries)
 
-    const distEntry: P_ENT_DI = {
-      ENT_NUM: entryNumber,
-      USU_LOG: "yherrera",
-      ENT_DI_FEC: new Date().toISOString(),
-      ENT_DI_PRO: origin,
-      ENT_DI_GUI: guideNumber,                   // (Distribución) - Plan de carga
-      ENT_DI_PNC: calculatedNetWeight,           // (Distribución) - Peso Neto Calculado
-      ENT_DI_CPA: palletsQuatity,                // (Distribución) - Cantidad de Paletas | Se manda en 0 en la romana
-      ENT_DI_PPA: palletWeight,                  // (Distribución) - Peso de las paletas
-      ENT_DI_PLA: chargePlan,                    // (Distribución) - Plan de carga
-      ENT_DI_DES: chargeDestination,             // (Distribución) - Destino de carga
-      ENT_DI_PAD: aditionalWeight,               // (Distribución) - Peso adicional corregido | Se manda en 0 en la romana
-      ENT_DI_DPA: aditionalWeightDescription,    // (Distribución) - Algún tipo de descripción ❓
-      ENT_DI_STA: vehiculeStatus,                // (Distribución) - Status (1 | null)
-      ENT_DI_AUT: exitAuthorization,
-      ENT_DI_NDE: dispatchNote,                  // (Distribución) - Plan de carga
-      ENT_DI_PAL: palletChargePlan,              // (Distribución) - Plan de carga con paletas (si colocan cantidad de paletas deja de ser null) | NULL
-      ENT_DI_OBS: distDetails,                   // (Distribución) - Observaciones
-      ENT_DI_REV: false,                         // 1 | 0 (Aparentemente siempre es 0)
+  const handleSubmit = async () => {
+    try {
+      const { entryNumber, origin, guideNumber, calculatedNetWeight, palletsQuatity, palletWeight } = selectedEntry
+      const { chargePlan, chargeDestination, aditionalWeight, aditionalWeightDescription, vehiculeStatus } = selectedEntry
+      const { exitAuthorization, dispatchNote, palletChargePlan, distDetails } = selectedEntry
+
+      const PALLET_DEFAULT_WEIGHT = 30
+
+      const ENT_DI_DPA = aditionalWeight ? (aditionalWeightDescription || null) : null
+
+      const distEntry: P_ENT_DI = {
+        ENT_NUM: entryNumber,                                        // ✅ Número de entrada                  | SIEMPRE 
+        USU_LOG: "yherrera",                                         // ✅ Usuario que modificó la entrada    | SIEMPRE
+        ENT_DI_FEC: getDateTime(),                                   // ✅ Fecha de edición de la entrada     | SIEMPRE
+        ENT_DI_PRO: origin,                                          // ✅ Procedencia                        | SIEMPRE
+        ENT_DI_GUI: chargePlan,                                      // ✅ Número de Guía     (Plan de carga) | SIEMPRE
+        ENT_DI_PNC: calculatedNetWeight,                             // ✅ Peso Neto Calculado                | SIEMPRE - SE COLOCA ABAJO CON LA INFO DEL PLAN DE CARGA
+        ENT_DI_CPA: palletChargePlan ? palletsQuatity : 0,           // ✅ Cantidad de Paletas                |         - Se manda en 0    si no se coloca cantidad de paletas ni control de paleta
+        ENT_DI_PPA: palletChargePlan ? PALLET_DEFAULT_WEIGHT : null, // ✅ Peso de las paletas                |         - Se manda en null si no se coloca cantidad de paletas ni control de paleta
+        ENT_DI_PLA: chargePlan,                                      // ✅ Plan de carga                      | SIEMPRE
+        ENT_DI_DES: chargeDestination,                               // ✅ Destino de carga                   | SIEMPRE - SE COLOCA ABAJO CON LA INFO DEL PLAN DE CARGA
+        ENT_DI_PAD: aditionalWeight || 0,                            // ✅ Peso adicional corregido           |         - Se manda en 0 si no hay diferencia de peso
+        ENT_DI_DPA,                                                  // ✅ Descripción del Peso Adicional     |         - Se manda en null si no hay peso adicional (DEBE COLOCARSE COMO OBLIGLATORIO CUANDO HAY DIFERENCIA DE PESO)
+        ENT_DI_STA: 1,                                               // ✅ Estatus del Vehículo               |         - En distribución siempre es 1
+        ENT_DI_AUT: exitAuthorization || null,                       // ✅ Autorización de Salida             |         - Se manda en null si es string vacío
+        ENT_DI_NDE: chargePlan,                                      // ✅ Nota de despacho   (Plan de carga) | SIEMPRE
+        ENT_DI_PAL: palletsQuatity ? palletChargePlan : null,        // ✅ Control de paletas (Plan de carga) |         - Si hay cantidad de paletas, se debe mandar, sino es null
+        ENT_DI_OBS: distDetails || null,                             // ✅ Observaciones
+        ENT_DI_REV: false,                                           // 1 | 0 (Aparentemente siempre es 0)
+      }
+
+      if (BOTH_ENABLED_EDIT) {
+        const chargePlanInfo = await getChargePlan(chargePlan as string)
+
+        const chargePlanNumber = chargePlanInfo.number.toString()
+
+        distEntry.ENT_DI_GUI = chargePlanNumber;
+        distEntry.ENT_DI_PLA = chargePlanNumber;
+        distEntry.ENT_DI_NDE = chargePlanNumber;
+
+        if (DESPATCH_ENABLED_EDIT && palletChargePlan) {
+          distEntry.ENT_DI_PAL = chargePlanNumber;
+        }
+      }
+
+      if (DESPATCH_ENABLED_EDIT) {
+        const { ENT_NUM, ...rest } = await getEntry(entryNumber)
+
+        const udpatedEntry: UpdateP_ENT = {
+          ...rest,
+          ENT_FLW: 2, // Lo manda a "por salir"
+        }
+
+        await updateEntry(entryNumber, udpatedEntry)
+      }
+
+      await updateDistEntry(distEntry)
+    } catch (error) {
+      alert("Ha habido un error")
+      console.log(error)
     }
   }
 
   const { entryNumber, vehicule, driver, entryDate, entryDetails, origin, truckWeight } = selectedEntry
 
-  const BOTH_ENABLED_EDIT = ((ENTRIES_TYPE === "initial" || ENTRIES_TYPE === "dispatch") && editEntries)
-  const DESPATCH_ENABLED_EDIT = (ENTRIES_TYPE === "dispatch" && editEntries)
+  const handleChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = ({ target }) => {
+    setSelectedEntry({
+      ...selectedEntry,
+      [target.name]: target.value
+    })
+  }
 
   return (
     <>
@@ -112,7 +153,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
               <span className="font-semibold">Cantidad de Paletas: </span>
               {
                 DESPATCH_ENABLED_EDIT ?
-                  <input type="number" className="block" value={selectedEntry.palletsQuatity || 0} />
+                  <input type="number" onChange={handleChange} className="block" value={selectedEntry.palletsQuatity || 0} />
                   :
                   <p>{selectedEntry.palletsQuatity}</p>
               }
@@ -122,7 +163,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
               <span className="font-semibold">Control de Paleta: </span>
               {
                 DESPATCH_ENABLED_EDIT ?
-                  <input type="text" className="block" value={selectedEntry.palletChargePlan || ""} />
+                  <input type="text" onChange={handleChange} className="block" value={selectedEntry.palletChargePlan || ""} />
                   :
                   <p>{selectedEntry.palletChargePlan}</p>
               }
@@ -132,7 +173,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
               <span className="font-semibold">Plan de Carga: </span>
               {
                 BOTH_ENABLED_EDIT ?
-                  <input type="text" className="block" value={selectedEntry.chargePlan || ""} />
+                  <input type="text" onChange={handleChange} className="block" value={selectedEntry.chargePlan || ""} />
                   :
                   <p>{selectedEntry.chargePlan}</p>
               }
@@ -152,7 +193,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
               <span className="font-semibold">Peso Neto Calculado: </span>
               {
                 DESPATCH_ENABLED_EDIT ?
-                  <input type="number" className="block" value={selectedEntry.calculatedNetWeight || 0} />
+                  <input type="number" onChange={handleChange} className="block" value={selectedEntry.calculatedNetWeight || 0} />
                   :
                   <p>{selectedEntry.calculatedNetWeight}</p>
               }
@@ -162,7 +203,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
               <span className="font-semibold">Peso Adicional: </span>
               {
                 DESPATCH_ENABLED_EDIT ?
-                  <input type="number" className="block" value={selectedEntry.aditionalWeight} />
+                  <input type="number" onChange={handleChange} className="block" value={selectedEntry.aditionalWeight} />
                   :
                   <p>{selectedEntry.aditionalWeight}</p>
               }
@@ -172,7 +213,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
               <span className="font-semibold">Peso de Paletas: </span>
               {
                 DESPATCH_ENABLED_EDIT ?
-                  <input type="number" className="block" value={selectedEntry.palletWeight || 30} />
+                  <input type="number" onChange={handleChange} className="block" value={selectedEntry.palletWeight || 30} />
                   :
                   <p>{selectedEntry.palletWeight}</p>
               }
@@ -187,7 +228,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
               <span className="font-semibold">Autorización de Salida: </span>
               {
                 DESPATCH_ENABLED_EDIT ?
-                  <input type="text" className="block" value={selectedEntry.exitAuthorization || ""} />
+                  <input type="text" onChange={handleChange} className="block" value={selectedEntry.exitAuthorization || ""} />
                   :
                   <p>{selectedEntry.exitAuthorization}</p>
               }
@@ -202,7 +243,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
               <span className="font-semibold">Observaciones: </span>
               {
                 BOTH_ENABLED_EDIT ?
-                  <textarea className="block" value={selectedEntry.distDetails || ""} />
+                  <textarea className="block" onChange={handleChange} value={selectedEntry.distDetails || ""} />
                   :
                   <p>{selectedEntry.distDetails}</p>
               }
@@ -210,7 +251,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
 
           </ul>
           {
-            editEntries && 
+            editEntries &&
             <Button className="bg-secondary" type="submit">
               Guardar
             </Button>

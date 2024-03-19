@@ -1,22 +1,16 @@
-import { NewEntry } from "@/components/pages/VehiculesEntrance"
-import { NewExit } from "@/components/pages/VehiculesExit"
 import axios from "axios"
+import { NewEntry } from "@/components/pages/VehiculesEntrance"
 
 type newEntryParams = {
   entry: NewEntry,
   entryByDestination: object,
 }
 
-type newExitParams = {
-  leavingEntry: NewExit,
-  updateEntryByDestination: object | undefined,
-}
-
 export type EntriesType = "entry" | "initial" | "dispatch" | "aboutToLeave" | "all"
 
-export const getEntriesInPlant = async () => {
-  const { data } = await axios.get<Entry[]>("/api/entries/inPlant")
-  return data;
+export const getEntry = async (entryNumber: P_ENT["ENT_NUM"]) => {
+  const { data } = await axios.post<P_ENT[]>("/api/entries", { entries: [entryNumber] })
+  return data[0];
 }
 
 export const createNewEntry = async (body: newEntryParams) => {
@@ -24,18 +18,18 @@ export const createNewEntry = async (body: newEntryParams) => {
   return data;
 }
 
-export const createNewExit = async (body: newExitParams) => {
-  const { data } = await axios.post("/api/entries/newExit", body)
+export const updateEntry = async (entryNumber: P_ENT["ENT_NUM"], entry: UpdateP_ENT) => {
+  const { data } = await axios.post<{ message: string }>("/api/entries/updateEntry", { entryNumber, entry })
+  return data;
+}
+
+export const getEntriesInPlant = async () => {
+  const { data } = await axios.get<Entry[]>("/api/entries/inPlant")
   return data;
 }
 
 export const getNextEntryNumber = async () => {
   const { data } = await axios.get<{ nextEntryNumber: string }>("/api/entries/nextEntry")
-  return data;
-}
-
-export const getTodaysExits = async () => {
-  const { data } = await axios.get<P_SAL[]>("/api/entries/todaysExits")
   return data;
 }
 
@@ -46,5 +40,11 @@ export const getDistEntries = async (entriesType: EntriesType) => {
 
 export const getFormattedDistEntries = async (entriesType: EntriesType) => {
   const { data } = await axios.post<DistributionEntry[]>("/api/entries/distribution", { entriesType, formatted: true })
+  return data;
+}
+
+
+export const updateDistEntry = async (distEntry: P_ENT_DI) => {
+  const { data } = await axios.post<{ message: string }>("/api/entries/updateDistEntry", { distEntry })
   return data;
 }
