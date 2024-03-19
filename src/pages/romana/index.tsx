@@ -80,6 +80,7 @@ const Romana = () => {
             message='En estos momentos no hay níngun camión registrado en la planta'
           />
         }
+        
         {
           loading ?
             <Spinner size="normal" />
