@@ -11,8 +11,15 @@ const hostname = 'localhost'
 const port = process.env.PORT || 5000
 
 console.log("NODE_ENV ->", NODE_ENV);
-console.log("Production Build ->", dev);
+console.log("Development Build ->", dev);
 console.log("PORT ->", port);
+
+console.log("dbHost: ", dbHost)
+console.log("dbUser: ", dbUser)
+console.log("dbName: ", dbName)
+console.log("dbPassword: ", dbPassword)
+console.log("dbInstance: ", dbInstance)
+
 
 // when using middleware `hostname` and `port` must be provided below
 const app = next({ dev: dev, hostname, port })
