@@ -14,6 +14,12 @@ console.log("NODE_ENV ->", NODE_ENV);
 console.log("Development Build ->", dev);
 console.log("PORT ->", port);
 
+const dbHost = process.env.DB_HOST
+const dbUser = process.env.DB_USER
+const dbName = process.env.DB_NAME
+const dbPassword = process.env.DB_PASSWORD
+const dbInstance = process.env.DB_INSTANCE
+
 console.log("dbHost: ", dbHost)
 console.log("dbUser: ", dbUser)
 console.log("dbName: ", dbName)
