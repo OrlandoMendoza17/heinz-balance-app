@@ -4,6 +4,7 @@ import Modal from '@/components/widgets/Modal'
 import { HandleNotification } from '@/hooks/useNotification'
 import { getChargePlan } from '@/services/chargePlan'
 import { EntriesType, getEntry, updateDistEntry, updateEntry } from '@/services/entries'
+import { getMaterials } from '@/services/materials'
 import distributionEntry from '@/utils/defaultValues/distributionEntry'
 import { getCuteFullDate, getDateTime } from '@/utils/parseDate'
 import React, { ChangeEventHandler, Dispatch, FormEventHandler, SetStateAction, useEffect, useState } from 'react'
@@ -27,98 +28,96 @@ const DEPARTMENT_AREAS = {
 
 const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEntries = false, handleAlert }: Props) => {
 
+  const [loading, setLoading] = useState<boolean>(false)
   const [selectedEntry, setSelectedEntry] = useState<DistributionEntry>(distributionEntry)
   
-  const [loading, setLoading] = useState<boolean>(false)
-  
   useEffect(() => {
-    setSelectedEntry(entry)
+      setSelectedEntry(entry)
   }, [entry])
-
-
+  
   const BOTH_ENABLED_EDIT = ((ENTRIES_TYPE === "initial" || ENTRIES_TYPE === "dispatch") && editEntries)
   const DESPATCH_ENABLED_EDIT = (ENTRIES_TYPE === "dispatch" && editEntries)
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
-    try {
-      setLoading(true)
+    // try {
+    //   setLoading(true)
       
-      const { entryNumber, origin, guideNumber, calculatedNetWeight, palletsQuatity, palletWeight } = selectedEntry
-      const { chargePlan, chargeDestination, aditionalWeight, aditionalWeightDescription, vehiculeStatus } = selectedEntry
-      const { exitAuthorization, dispatchNote, palletChargePlan, distDetails } = selectedEntry
+    //   const { entryNumber, origin, guideNumber, calculatedNetWeight, palletsQuatity, palletWeight } = selectedEntry
+    //   const { chargePlan, chargeDestination, aditionalWeight, aditionalWeightDescription, vehiculeStatus } = selectedEntry
+    //   const { exitAuthorization, dispatchNote, palletChargePlan, distDetails } = selectedEntry
 
-      const PALLET_DEFAULT_WEIGHT = 30
+    //   const PALLET_DEFAULT_WEIGHT = 30
 
-      const ENT_DI_DPA = aditionalWeight ? (aditionalWeightDescription || null) : null
+    //   const ENT_DI_DPA = aditionalWeight ? (aditionalWeightDescription || null) : null
 
-      const distEntry: P_ENT_DI = {
-        ENT_NUM: entryNumber,                                        // ✅ Número de entrada                  | SIEMPRE 
-        USU_LOG: "yherrera",                                         // ✅ Usuario que modificó la entrada    | SIEMPRE
-        ENT_DI_FEC: getDateTime(),                                   // ✅ Fecha de edición de la entrada     | SIEMPRE
-        ENT_DI_PRO: origin,                                          // ✅ Procedencia                        | SIEMPRE
-        ENT_DI_GUI: chargePlan,                                      // ✅ Número de Guía     (Plan de carga) | SIEMPRE
-        ENT_DI_PNC: calculatedNetWeight,                             // ✅ Peso Neto Calculado                | SIEMPRE - SE COLOCA ABAJO CON LA INFO DEL PLAN DE CARGA
-        ENT_DI_CPA: palletChargePlan ? palletsQuatity : 0,           // ✅ Cantidad de Paletas                |         - Se manda en 0    si no se coloca cantidad de paletas ni control de paleta
-        ENT_DI_PPA: palletChargePlan ? PALLET_DEFAULT_WEIGHT : null, // ✅ Peso de las paletas                |         - Se manda en null si no se coloca cantidad de paletas ni control de paleta
-        ENT_DI_PLA: chargePlan,                                      // ✅ Plan de carga                      | SIEMPRE
-        ENT_DI_DES: chargeDestination,                               // ✅ Destino de carga                   | SIEMPRE - SE COLOCA ABAJO CON LA INFO DEL PLAN DE CARGA
-        ENT_DI_PAD: aditionalWeight || 0,                            // ✅ Peso adicional corregido           |         - Se manda en 0 si no hay diferencia de peso
-        ENT_DI_DPA,                                                  // ✅ Descripción del Peso Adicional     |         - Se manda en null si no hay peso adicional (DEBE COLOCARSE COMO OBLIGLATORIO CUANDO HAY DIFERENCIA DE PESO)
-        ENT_DI_STA: 1,                                               // ✅ Estatus del Vehículo               |         - En distribución siempre es 1
-        ENT_DI_AUT: exitAuthorization || null,                       // ✅ Autorización de Salida             |         - Se manda en null si es string vacío
-        ENT_DI_NDE: chargePlan,                                      // ✅ Nota de despacho   (Plan de carga) | SIEMPRE
-        ENT_DI_PAL: palletsQuatity ? palletChargePlan : null,        // ✅ Control de paletas (Plan de carga) |         - Si hay cantidad de paletas, se debe mandar, sino es null
-        ENT_DI_OBS: distDetails || null,                             // ✅ Observaciones
-        ENT_DI_REV: false,                                           // 1 | 0 (Aparentemente siempre es 0)
-      }
+    //   const distEntry: P_ENT_DI = {
+    //     ENT_NUM: entryNumber,                                        // ✅ Número de entrada                  | SIEMPRE 
+    //     USU_LOG: "yherrera",                                         // ✅ Usuario que modificó la entrada    | SIEMPRE
+    //     ENT_DI_FEC: getDateTime(),                                   // ✅ Fecha de edición de la entrada     | SIEMPRE
+    //     ENT_DI_PRO: origin,                                          // ✅ Procedencia                        | SIEMPRE
+    //     ENT_DI_GUI: chargePlan,                                      // ✅ Número de Guía     (Plan de carga) | SIEMPRE
+    //     ENT_DI_PNC: calculatedNetWeight,                             // ✅ Peso Neto Calculado                | SIEMPRE - SE COLOCA ABAJO CON LA INFO DEL PLAN DE CARGA
+    //     ENT_DI_CPA: palletChargePlan ? palletsQuatity : 0,           // ✅ Cantidad de Paletas                |         - Se manda en 0    si no se coloca cantidad de paletas ni control de paleta
+    //     ENT_DI_PPA: palletChargePlan ? PALLET_DEFAULT_WEIGHT : null, // ✅ Peso de las paletas                |         - Se manda en null si no se coloca cantidad de paletas ni control de paleta
+    //     ENT_DI_PLA: chargePlan,                                      // ✅ Plan de carga                      | SIEMPRE
+    //     ENT_DI_DES: chargeDestination,                               // ✅ Destino de carga                   | SIEMPRE - SE COLOCA ABAJO CON LA INFO DEL PLAN DE CARGA
+    //     ENT_DI_PAD: aditionalWeight || 0,                            // ✅ Peso adicional corregido           |         - Se manda en 0 si no hay diferencia de peso
+    //     ENT_DI_DPA,                                                  // ✅ Descripción del Peso Adicional     |         - Se manda en null si no hay peso adicional (DEBE COLOCARSE COMO OBLIGLATORIO CUANDO HAY DIFERENCIA DE PESO)
+    //     ENT_DI_STA: 1,                                               // ✅ Estatus del Vehículo               |         - En distribución siempre es 1
+    //     ENT_DI_AUT: exitAuthorization || null,                       // ✅ Autorización de Salida             |         - Se manda en null si es string vacío
+    //     ENT_DI_NDE: chargePlan,                                      // ✅ Nota de despacho   (Plan de carga) | SIEMPRE
+    //     ENT_DI_PAL: palletsQuatity ? palletChargePlan : null,        // ✅ Control de paletas (Plan de carga) |         - Si hay cantidad de paletas, se debe mandar, sino es null
+    //     ENT_DI_OBS: distDetails || null,                             // ✅ Observaciones
+    //     ENT_DI_REV: false,                                           // 1 | 0 (Aparentemente siempre es 0)
+    //   }
 
-      if (BOTH_ENABLED_EDIT) {
-        const chargePlanInfo = await getChargePlan(chargePlan as string)
+    //   if (BOTH_ENABLED_EDIT) {
+    //     const chargePlanInfo = await getChargePlan(chargePlan as string)
 
-        const chargePlanNumber = chargePlanInfo.number.toString()
+    //     const chargePlanNumber = chargePlanInfo.number.toString()
         
-        // La asignación de estos 3 valores hace que la aplicación los detecte como que están en despacho
-        distEntry.ENT_DI_GUI = chargePlanNumber;
-        distEntry.ENT_DI_PLA = chargePlanNumber;
-        distEntry.ENT_DI_NDE = chargePlanNumber;
+    //     // La asignación de estos 3 valores hace que la aplicación los detecte como que están en despacho
+    //     distEntry.ENT_DI_GUI = chargePlanNumber;
+    //     distEntry.ENT_DI_PLA = chargePlanNumber;
+    //     distEntry.ENT_DI_NDE = chargePlanNumber;
 
-        if (DESPATCH_ENABLED_EDIT && palletChargePlan) {
-          distEntry.ENT_DI_PAL = chargePlanNumber;
-        }
-      }
+    //     if (DESPATCH_ENABLED_EDIT && palletChargePlan) {
+    //       distEntry.ENT_DI_PAL = chargePlanNumber;
+    //     }
+    //   }
 
-      if (DESPATCH_ENABLED_EDIT) {
-        const { ENT_NUM, ...rest } = await getEntry(entryNumber)
+    //   if (DESPATCH_ENABLED_EDIT) {
+    //     const { ENT_NUM, ...rest } = await getEntry(entryNumber)
 
-        const udpatedEntry: UpdateP_ENT = {
-          ...rest,
-          ENT_FLW: 2, // La asignación de este valor indica que lo manda a "por salir"
-        }
+    //     const udpatedEntry: UpdateP_ENT = {
+    //       ...rest,
+    //       ENT_FLW: 2, // La asignación de este valor indica que lo manda a "por salir"
+    //     }
 
-        await updateEntry(entryNumber, udpatedEntry)
-      }
+    //     // await updateEntry(entryNumber, udpatedEntry)
+    //   }
 
-      await updateDistEntry(distEntry)
+    //   // await updateDistEntry(distEntry)
       
-      handleAlert.open(({
-        type: "success",
-        title: "Actualización de entrada",
-        message: `Se ha guardados los datos de la entrada exitosamente y se ha mandado a "${DEPARTMENT_AREAS[ENTRIES_TYPE]}"`,
-      }))
+    //   handleAlert.open(({
+    //     type: "success",
+    //     title: "Actualización de entrada",
+    //     message: `Se ha guardados los datos de la entrada exitosamente y se ha mandado a "${DEPARTMENT_AREAS[ENTRIES_TYPE]}"`,
+    //   }))
       
-      setLoading(false)
-      setModal(false)
+    //   setLoading(false)
+    //   setModal(false)
       
-    } catch (error) {
-      setLoading(false)
-      console.log(error)
-      handleAlert.open(({
-        type: "danger",
-        title: "Error ❌",
-        message: "Ha habido un error guardando los datos, por favor intentelo de nuevo",
-      }))
-    }
+    // } catch (error) {
+    //   setLoading(false)
+    //   console.log(error)
+    //   handleAlert.open(({
+    //     type: "danger",
+    //     title: "Error ❌",
+    //     message: "Ha habido un error guardando los datos, por favor intentelo de nuevo",
+    //   }))
+    // }
   }
 
   const { entryNumber, vehicule, driver, entryDate, entryDetails, origin, truckWeight } = selectedEntry

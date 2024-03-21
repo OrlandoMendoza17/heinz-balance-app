@@ -23,7 +23,7 @@ const updateEntryHandler = async (request: NextApiRequest, response: NextApiResp
     `
     
     // const sequelize = await getSequelize()
-    await sequelize.query(queryString)
+    // await sequelize.query(queryString)
 
     response.status(200).json({
       message: `Entry ${entryNumber} Updated Succesfully`

@@ -161,7 +161,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
         }
 
         const table_values: TABLE_VALUES = {
-          "D01": {
+          "D01": { // Distribución
             ENT_NUM,
             USU_LOG: "USR9509C",
             ENT_DI_FEC: getDateTime(),
@@ -181,14 +181,14 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             ENT_DI_OBS: null,    // (Distribución) - Observaciones
             ENT_DI_REV: false,   // 1 | 0 (Aparentemente siempre es 0)
           },
-          "D02": { // ✅
+          "D02": { // ✅ Materia Prima
             ENT_NUM,
             ENT_MP_PRO: origin,
             ENT_MP_FAC: (invoice) ? invoice : null,
             ENT_MP_NOT: null,     // SIEMPRE NULL
             ENT_MP_PAL: null      // SIEMPRE NULL
           },
-          "D03": { // ✅
+          "D03": { // ✅ Servicios Generales
             ENT_NUM,
             ENT_SG_PRO: origin,
             ENT_SG_FAC: (invoice) ? invoice : null,
@@ -196,18 +196,18 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             ENT_SG_AUT: null,
             ENT_SG_NDE: null
           },
-          "D04": { // ✅
+          "D04": { // ✅ Almacén
             ENT_NUM,
             ENT_ALM_PRO: origin,
             ENT_ALM_FAC: (invoice) ? invoice : null,
           },
-          "D05": { // ✅
+          "D05": { // ✅ Materiales
             ENT_NUM,
             ENT_PRO: origin,
             OPE_COD,
             MAT_COD: null       // Este codigo se pone en la salida pero aquí se manda en null
           },
-          "D07": { // ✅
+          "D07": { // ✅ Otros Servicios
             ENT_NUM,
             ENT_OS_PRO: origin,
             ENT_OS_AUT: null    // Se coloca en la salida en el caso de existir
