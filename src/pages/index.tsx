@@ -12,6 +12,9 @@ import useNotification from "@/hooks/useNotification";
 import NotificationModal from "@/components/widgets/NotificationModal";
 import getDestinationEntryQuery from "@/utils/api/aboutToLeave";
 
+import { SerialPort } from "serialport";
+const { DelimiterParser } = require("@serialport/parser-delimiter")
+
 const auth = new AuthService()
 
 const Home = () => {
@@ -86,16 +89,30 @@ const Home = () => {
     }
   }
 
+  const handleClick = () => {
+    const puerto = new SerialPort({
+      path: "COM1",
+      baudRate: 9600,
+    })
+    
+    const parser = puerto.pipe(new DelimiterParser({ delimiter: "\n" }))
+    
+    parser.on("data", function (data: any) {
+      console.log('data', data)
+    })
+  }
+  
   const handleChange: ChangeEventHandler<HTMLInputElement> = ({ currentTarget }) => {
     const { value } = currentTarget
     setEmail(value.trim())
   }
 
+
   return (
     <main className={`LoginForm`}>
-      
+
       <img className="justify-self-center" width={150} src="https://i.imgur.com/yoGBPON.png" alt="" />
-      
+
       <UnauthenticatedTemplate>
         <Form onSubmit={handleLoginMicrosoft}>
           <h1>Ingresar al sistema de balanza:</h1>
