@@ -7,7 +7,7 @@ const testHandler = async (request: NextApiRequest, response: NextApiResponse,) 
   try {
     
     const puerto = new SerialPort({
-      path: "COM4",
+      path: "COM3",
       baudRate: 9600,
     })
 

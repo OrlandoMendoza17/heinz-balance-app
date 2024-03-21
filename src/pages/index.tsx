@@ -89,18 +89,18 @@ const Home = () => {
     }
   }
 
-  const handleClick = () => {
-    const puerto = new SerialPort({
-      path: "COM1",
-      baudRate: 9600,
-    })
+  // const handleClick = () => {
+  //   const puerto = new SerialPort({
+  //     path: "COM1",
+  //     baudRate: 9600,
+  //   })
     
-    const parser = puerto.pipe(new DelimiterParser({ delimiter: "\n" }))
+  //   const parser = puerto.pipe(new DelimiterParser({ delimiter: "\n" }))
     
-    parser.on("data", function (data: any) {
-      console.log('data', data)
-    })
-  }
+  //   parser.on("data", function (data: any) {
+  //     console.log('data', data)
+  //   })
+  // }
   
   const handleChange: ChangeEventHandler<HTMLInputElement> = ({ currentTarget }) => {
     const { value } = currentTarget
