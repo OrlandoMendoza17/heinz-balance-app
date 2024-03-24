@@ -48,7 +48,6 @@ const Entradas = () => {
     })()
   }, [])
 
-
   return (
     <div className="Distribucion">
       <DistributionAside />
@@ -86,6 +85,7 @@ const Entradas = () => {
         ENTRIES_TYPE,
         editEntries,
         handleAlert,
+        setEntries,
       }} />
       <NotificationModal alertProps={[alert, handleAlert]} />
     </div>

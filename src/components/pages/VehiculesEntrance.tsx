@@ -10,7 +10,7 @@ import NotificationModal from '../widgets/NotificationModal'
 import useNotification from '@/hooks/useNotification'
 import { getDestination } from '@/services/destination'
 import { getDriver, getVehicule } from '@/services/transportInfo'
-import { INVOICE_BY_CODE } from '@/lib/enums'
+import { ACTION, INVOICE_BY_CODE, STATUS } from '@/lib/enums'
 import { createNewEntry, getNextEntryNumber } from '@/services/entries'
 import { format } from 'date-fns'
 import { getDateTime } from '@/utils/parseDate'
@@ -33,6 +33,8 @@ type TABLE_VALUES = {
   D05: P_ENT_MAT,
   D07: P_ENT_OS,
 }
+
+const { CARGA, DESCARGA, DEVOLUCION } = ACTION
 
 const VehiculesEntrance = ({ showModal, setModal }: Props) => {
 
@@ -90,7 +92,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             DES_DES: 'OTROS SERVICIOS',
           },
         ]
-        
+
         const operationOptions: SelectOptions[] = destinations.map(({ DES_DES, OPE_COD, DES_COD }) => {
 
           const value: DestinationSelectValue = {
@@ -135,7 +137,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
 
       const form = new FormData(currentTarget)
 
-      const action = parseInt(form.get("action") as string)
+      const action = parseInt(form.get("action") as string) as ACTION
 
       const { destination, truckWeight, details, origin, invoice } = newEntry; // Destiny code 
       const { DES_COD, OPE_COD }: DestinationSelectValue = JSON.parse(destination)
@@ -154,8 +156,8 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
           OPE_COD,
           ENT_PES_TAR: truckWeight,
           EMP_ID: null,
-          ENT_OBS: details,
-          ENT_FLW: 2,
+          ENT_OBS: (details !== "") ? details : null,
+          ENT_FLW: (DES_COD === "D01" && action === ACTION.DEVOLUCION) ? STATUS.DISTRIBUTION : STATUS.ABOUT_TO_LEAVE,
           ENT_FEC_COL: null,
           ENT_FLW_ACC: action,
         }
@@ -219,8 +221,8 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
         console.log('entry', entry)
         console.log('entryByDestination', entryByDestination)
 
-        const data = await createNewEntry({ entry, entryByDestination })
-        console.log('data', data)
+        // const data = await createNewEntry({ entry, entryByDestination })
+        // console.log('data', data)
 
         handleAlert.open(({
           type: "success",
@@ -252,6 +254,10 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
       setEnableInvoice(REQUIRES_INVOICE)
 
       invoice = REQUIRES_INVOICE ? newEntry.invoice : null
+
+      // Esto lo que hace es resetear los radio buttons
+      const radios: NodeListOf<HTMLInputElement> = document.querySelectorAll('input[type="radio"]')
+      radios.forEach((input) => input.checked = false)
     }
 
     setNewEntry({
@@ -261,7 +267,8 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
     })
   }
 
-  const { origin, invoice, truckWeight, details } = newEntry
+  const { origin, invoice, destination, truckWeight, details } = newEntry
+  const DES_COD = destination.slice(12, 15)
 
   return (
     <>
@@ -271,7 +278,6 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
           onSubmit={handleSubmit}
           className='grid grid-cols-2 gap-x-5 gap-y-8'
         >
-
           <>
             <VehiculeEntranceSearch
               id="vehiculePlate"
@@ -279,30 +285,29 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
               placeholder="A7371V"
               searchInfo={searchVehicule}
             />
-
+            {
+              <span className="self-end pb-4 text-secondary">
+                {
+                  vehicule &&
+                  <>{vehicule.plate} - {vehicule.model} - {vehicule.company}</>
+                }
+              </span>
+            }
+          </>
+          <>
             <VehiculeEntranceSearch
               id="driverPersonalID"
               title="Cédula del Chofer"
               placeholder="27313279"
               searchInfo={searchDriver}
             />
-
             {
-              (driver || vehicule) &&
-              <div className="col-span-2 grid grid-cols-2 gap-x-5 text-secondary">
-                {
-                  vehicule &&
-                  <span className="col-start-1 row-start-1">
-                    {vehicule.plate} - {vehicule.model} - {vehicule.company}
-                  </span>
-                }
+              <span className="self-end pb-4 text-secondary">
                 {
                   driver &&
-                  <span className="col-start-2 row-start-1">
-                    {driver.cedula} - {driver.name}
-                  </span>
+                  <>{driver.cedula} - {driver.name}</>
                 }
-              </div>
+              </span>
             }
           </>
 
@@ -338,6 +343,45 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             </Button>
           </div>
 
+          <div className="pt-12 flex justify-center items-center gap-5">
+            <label htmlFor="carga">
+              <input
+                id="carga"
+                name="action"
+                type="radio"
+                className="mr-2"
+                value="1"
+                required
+              />
+              <span>Carga</span>
+            </label>
+
+            <label htmlFor="descarga">
+              <input
+                id="descarga"
+                name="action"
+                type="radio"
+                className="mr-2"
+                value="2"
+                disabled={!(DES_COD === "D02" || DES_COD === "D03" || DES_COD === "D04" || DES_COD === "D07")}
+                required
+              />
+              <span>Descarga</span>
+            </label>
+
+            <label htmlFor="devolucion">
+              <input
+                id="devolucion"
+                name="action"
+                type="radio"
+                className="mr-2"
+                value="3" disabled={!(DES_COD === "D01")}
+                required
+              />
+              <span>Devolución</span>
+            </label>
+          </div>
+
           {
             enableInvoice &&
             <Input
@@ -349,23 +393,6 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
               onChange={handleChange}
             />
           }
-
-          <div className="pt-12 flex items-center gap-5">
-            <label htmlFor="carga">
-              <input id="carga" name="action" type="radio" className="mr-2" value="1" />
-              <span>Carga</span>
-            </label>
-
-            <label htmlFor="descarga">
-              <input id="descarga" name="action" type="radio" className="mr-2" value="2" />
-              <span>Descarga</span>
-            </label>
-
-            <label htmlFor="devolucion">
-              <input id="devolucion" name="action" type="radio" className="mr-2" value="3" />
-              <span>Devolución</span>
-            </label>
-          </div>
 
           <Textarea
             id="details"

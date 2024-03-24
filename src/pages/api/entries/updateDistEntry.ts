@@ -22,7 +22,7 @@ const updateDistEntryHandler = async (request: NextApiRequest, response: NextApi
     `
 
     // const sequelize = await getSequelize()
-    // await sequelize.query(queryString)
+    await sequelize.query(queryString)
 
     response.status(200).json({
       message: `Dist Entry ${distEntry.ENT_NUM} Updated Succesfully`

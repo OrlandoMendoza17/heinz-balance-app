@@ -65,7 +65,10 @@ const Header = () => {
         </nav>
       </header>
       
-      <VehiculesEntrance {...{ showModal, setModal }}/>
+      {
+        showModal &&
+        <VehiculesEntrance {...{ showModal, setModal }}/>
+      }
       
     </>
   )

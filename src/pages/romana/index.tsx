@@ -53,8 +53,8 @@ const Romana = () => {
         setLoading(true)
 
         const entries = await getEntriesInPlant()
-        // setEntries(entries.filter(({ aboutToLeave }) => aboutToLeave))
-        setEntries(entries)
+        setEntries(entries.filter(({ aboutToLeave }) => aboutToLeave))
+        // setEntries(entries)
 
         setLoading(false)
 
@@ -72,7 +72,7 @@ const Romana = () => {
 
   return (
     <>
-      {/* <Header /> */}
+      <Header />
       <main className="Romana">
         {
           (!entries.length && !loading) &&
@@ -111,7 +111,10 @@ const Romana = () => {
               </tbody>
             </table>
         }
-        <VehiclesExit {...{ showModal, setModal, entry: selectedEntry }} />
+        {
+          showModal &&
+          <VehiclesExit {...{ showModal, setModal, entry: selectedEntry }} />
+        }
         <NotificationModal alertProps={[alert, handleAlert]} />
       </main>
     </>

@@ -85,6 +85,7 @@ const Vehiculos = () => {
         ENTRIES_TYPE,
         editEntries,
         handleAlert,
+        setEntries,
       }} />
       <NotificationModal alertProps={[alert, handleAlert]} />
     </div>

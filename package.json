@@ -15,7 +15,6 @@
     "@azure/identity": "4.0.0",
     "@azure/msal-browser": "3.7.0",
     "@azure/msal-react": "2.0.9",
-    "@serialport/parser-delimiter": "^12.0.0",
     "axios": "1.6.7",
     "date-fns": "3.3.1",
     "dotenv": "16.1.4",
@@ -25,9 +24,7 @@
     "react-dom": "18.2.0",
     "react-icons": "5.0.1",
     "sequelize": "6.32.1",
-    "serialport": "^12.0.0",
-    "tedious": "16.1.0",
-    "ws": "^8.16.0"
+    "tedious": "16.1.0"
   },
   "devDependencies": {
     "@azure/keyvault-secrets": "4.7.0",

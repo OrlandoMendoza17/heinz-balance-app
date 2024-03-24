@@ -1,5 +1,6 @@
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
+import { DRIVER_NOT_FOUND } from "@/utils/services/errorMessages";
 import { NextApiRequest, NextApiResponse } from "next";
 
 type BodyProps = {
@@ -18,17 +19,25 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
         SELECT * FROM [HDTA025].[dbo].[H025_T_CON] 
         WHERE CON_CED = '${driverPersonalID}'
       `
-
+      
       // const sequelize = await getSequelize()
       const [data] = await sequelize.query(queryString) as [T_CON[], unknown]
-
-      const driver: Driver = {
-        name: data[0].CON_NOM,
-        cedula: data[0].CON_CED,
-        code: data[0].CON_COD,
+      
+      if(data.length){
+        
+        const driver: Driver = {
+          name: data[0].CON_NOM,
+          cedula: data[0].CON_CED,
+          code: data[0].CON_COD,
+        }
+  
+        response.json(driver)
+        
+      }else{
+        response.status(400).json({
+          message: DRIVER_NOT_FOUND
+        });
       }
-
-      response.json(driver)
 
     } else {
 

@@ -2,7 +2,7 @@ import React, { SelectHTMLAttributes } from 'react';
 
 export type SelectOptions = {
   name: string,
-  value: string,
+  value: string | number,
 }
 
 interface Props extends SelectHTMLAttributes<HTMLSelectElement> {

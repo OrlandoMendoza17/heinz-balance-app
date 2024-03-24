@@ -1,4 +1,4 @@
-import React, { ChangeEventHandler, Dispatch, FormEventHandler, SetStateAction, useEffect, useState } from 'react'
+import React, { ChangeEventHandler, Dispatch, FormEventHandler, SetStateAction, useEffect, useRef, useState } from 'react'
 import Select, { SelectOptions } from '../widgets/Select'
 import { getDestination } from '@/services/destination'
 import Modal from '../widgets/Modal'
@@ -13,6 +13,8 @@ import { createNewExit } from '@/services/exits'
 import { format } from 'date-fns'
 import Form from '../widgets/Form'
 import { getMaterials } from '@/services/materials'
+import { getDensity } from '@/services/density'
+import { getDistEntries, getFormattedDistEntries } from '@/services/entries'
 
 type Props = {
   showModal: boolean,
@@ -31,14 +33,18 @@ type TABLE_VALUES = {
   D07: P_ENT_OS,
 }
 
+type ChargeTypes = "KG" | "LTS"
 type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
 
 const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
+
+  const $authCheck = useRef<HTMLInputElement>(null)
 
   const [alert, handleAlert] = useNotification()
 
   const [OS_AUTHORIZATION, setOS_AUTHORIZATION] = useState<string>("")
 
+  const [density, setDensity] = useState<SelectOptions[]>([])
   const [materials, setMaterials] = useState<SelectOptions[]>([])
 
   const [selectedEntry, setSelectedEntry] = useState<Entry>({
@@ -68,22 +74,63 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
     aboutToLeave: false,
   })
 
-  const [chargeType, setChargeType] = useState(null)
+  const [chargeType, setChargeType] = useState<ChargeTypes>("KG")
+
+  useEffect(() => {
+    (async () => {
+      try {
+
+        const entries = await getFormattedDistEntries("aboutToLeave")
+        const distEntry = entries.find(({ entryNumber }) => entry.entryNumber === entryNumber)
+
+        if (distEntry) {
+          const { chargePlan, calculatedNetWeight, chargeDestination } = distEntry
+
+          const details = `PLAN DE CARGA: ${chargePlan}\nPESO DE CARGA: ${calculatedNetWeight}\nDESTINO DE CARGA: ${chargeDestination}`
+
+          setSelectedEntry({ ...selectedEntry, details })
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    })()
+  }, [])
+
 
   useEffect(() => {
     (async () => {
       setSelectedEntry(entry)
+      try {
 
-      const materials = await getMaterials()
+        const density = await getDensity()
+        const materials = await getMaterials()
 
-      const materialsOptions: SelectOptions[] = materials.map(({ MAT_DES, MAT_COD }) => {
-        return {
-          name: MAT_DES,
-          value: MAT_COD,
-        }
-      })
+        const densityOptions: SelectOptions[] = density.map(({ DEN_DES, DEN_DEN }) => {
+          return {
+            name: `${DEN_DES} - ${DEN_DEN}`,
+            value: DEN_DEN,
+          }
+        })
 
-      setMaterials(materialsOptions)
+        const materialsOptions: SelectOptions[] = materials.map(({ MAT_DES, MAT_COD }) => {
+          return {
+            name: MAT_DES,
+            value: MAT_COD,
+          }
+        })
+
+        setDensity(densityOptions)
+        setMaterials(materialsOptions)
+
+      } catch (error) {
+        console.log(error)
+        handleAlert.open(({
+          type: "danger",
+          title: "Error ❌",
+          message: "Ha habido un error trayendose la información de la densidad y los materiales, por favor inténtelo de nuevo",
+        }))
+        setModal(false)
+      }
     })()
   }, [entry])
 
@@ -92,12 +139,16 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
     try {
 
       const form = new FormData(event.currentTarget)
-      
+
       const material = form.get("materials")
+      const density = parseInt(form.get("density") as string)
+
       console.log('material', material)
       const { entryNumber: ENT_NUM, invoice, truckWeight, details, destination, operation } = selectedEntry
 
       // Si es Descarga o es Devoluación
+
+      const netWeight = Math.abs(grossWeight - truckWeight)
 
       const leavingEntry: NewExit = {
         ENT_NUM: '95505',
@@ -107,7 +158,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
         ENT_PES_NET: Math.abs(grossWeight - truckWeight),
         SAL_PES_BRU: grossWeight,
         DEN_COD: null,        // Siempre es NULL
-        SAL_DEN_LIT: null,    // Siempre es NULL
+        SAL_DEN_LIT: density ? netWeight / density : null,
         SAL_OBS: (details === "") ? details : null,
       }
 
@@ -125,7 +176,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
         "D07": {          // Otros Servicios
           ENT_NUM,
           ENT_OS_PRO: origin,
-          ENT_OS_AUT: OS_AUTHORIZATION || null
+          ENT_OS_AUT: $authCheck.current?.checked ? (OS_AUTHORIZATION || null) : null
         },
       }
 
@@ -155,17 +206,27 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
 
   const handleChange: ChangeHandler = async ({ target }) => {
     type DESTINATION_VALUES = { DES_COD: DES_COD, OPE_COD: string }
+    if (target.name === "chargeType") {
 
-    setSelectedEntry({
-      ...selectedEntry,
-      [target.id]: target.value,
-    })
+      setChargeType(target.value as ChargeTypes)
+
+    } else if (target.name === "authorization") {
+
+      setOS_AUTHORIZATION(target.value)
+
+    } else {
+      setSelectedEntry({
+        ...selectedEntry,
+        [target.id]: target.value,
+      })
+    }
+
   }
 
   // console.log("HOY", getDateTime())
   // console.log("Otra Fecha", getDateTime("2024-11-02 00:19"))
 
-  const { entryNumber, vehicule, driver, entryDate, destination, origin, truckWeight, grossWeight, netWeight } = selectedEntry
+  const { entryNumber, vehicule, driver, entryDate, destination, origin, details, truckWeight, grossWeight, netWeight } = selectedEntry
 
   return (
     <>
@@ -173,58 +234,97 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
         <h1 className="font-semibold pb-10">Procesar Salida de Vehículo</h1>
         <Form onSubmit={handleSubmit} className='grid gap-x-5 gap-y-8'>
 
-          <ul className="grid grid-cols-2 gap-5">
-            <li>Número de Entrada: <br />{entryNumber}</li>
-            <li>Cédula del Chofer: <br />{driver.cedula}</li>
-            <li>Fecha de Entrada: <br />{getCuteFullDate(entryDate)}</li>
-            <li>Fecha de Salida: <br />{getCuteFullDate(getDateTime())}</li>
-            <li>Placa del Vehículo: <br />{vehicule.plate}</li>
-            <li>Procedencia: <br />{origin}</li>
-            <li>Destino: <br />{DESTINATION_BY_CODE[destination]}</li>
-            <li>Peso Tara: <br />{truckWeight}</li>
-            <li className="grid grid-cols-[1fr_auto] items-end mt-5">
+          <ul className="grid grid-cols-3 gap-5">
+            <li className="bg-sky-100 p-2">
+              <span className="font-bold block">Número de Entrada:</span>
+              {entryNumber}
+            </li>
+            <li className="bg-sky-100 p-2">
+              <span className="font-bold block">Cédula del Chofer:</span>
+              {driver.cedula}
+            </li>
+            <li className="bg-sky-100 p-2">
+              <span className="font-bold block">Placa del Vehículo:</span>
+              {vehicule.plate}
+            </li>
+            <li className="bg-sky-100 p-2">
+              <span className="font-bold block">Fecha de Entrada:</span>
+              {getCuteFullDate(entryDate)}
+            </li>
+            <li className="bg-sky-100 p-2">
+              <span className="font-bold block">Fecha de Salida:</span>
+              {getCuteFullDate(getDateTime())}
+            </li>
+            <li className="bg-sky-100 p-2">
+              <span className="font-bold block">Procedencia:</span>
+              {origin}
+            </li>
+            <li className="bg-sky-100 p-2">
+              <span className="font-bold block">Destino:</span>
+              {DESTINATION_BY_CODE[destination]}
+            </li>
+          </ul>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="grid gap-[7px] self-end items-center">
+              <span className="font-semibold block">Peso Tara:</span>
+              <span className="h-[41px] flex items-center border px-5">{truckWeight}</span>
+            </div>
+            <div className="grid grid-cols-[17rem_6rem] items-end mt-5">
               <Input
                 id="grossWeight"
                 value={grossWeight}
                 type='number'
-                className="w-full !rounded-r-none"
+                className="!rounded-r-none"
                 title="Peso Bruto:"
                 placeholder="0.00"
                 onChange={handleChange}
               />
-              <Button className='bg-secondary !rounded-l-none' style={{ maxHeight: "41px" }} onClick={() => { }}>
-                Leer Peso
+              <Button className='bg-secondary !rounded-l-none h-[41px]' onClick={() => { }}>
+                Leer
               </Button>
-            </li>
-            <li className="mt-5">
+            </div>
+            <div className="mt-5">
               <Input
                 id="netWeight"
                 value={netWeight}
                 type='number'
-                className="w-full !rounded-r-none"
+                className="!rounded-r-none"
                 title="Peso Neto:"
                 placeholder="0.00"
                 onChange={handleChange}
               />
-            </li>
-          </ul>
+            </div>
+          </div>
 
           {
             // Materia Prima
             destination === "D02" &&
-            <div>
-              <span>Tipo de Carga</span>
-              <div className="flex gap-4 pt-4">
-                <label htmlFor="kilos" className="flex gap-2">
-                  <input type="radio" name="chargeType" id="kilos" value="kilos" />
-                  <span>kilos</span>
-                </label>
-                <label htmlFor="litros" className="flex gap-2">
-                  <input type="radio" name="chargeType" id="litros" value="litros" />
-                  <span>Litros</span>
-                </label>
+            <>
+              <div>
+                <span>Tipo de Carga</span>
+                <div className="flex gap-4 pt-4">
+                  <label htmlFor="kilos" className="flex gap-2">
+                    <input type="radio" name="chargeType" id="kilos" value="KG" />
+                    <span>kilos</span>
+                  </label>
+                  <label htmlFor="litros" className="flex gap-2">
+                    <input type="radio" name="chargeType" id="litros" value="LTS" />
+                    <span>Litros</span>
+                  </label>
+                </div>
               </div>
-            </div>
+              {
+                chargeType === "LTS" &&
+                <Select
+                  name="density"
+                  title="Densidad"
+                  defaultOption="-"
+                  options={density}
+                  onChange={() => { }}
+                />
+              }
+            </>
           }
           {
             // Materiales
@@ -232,9 +332,9 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
             <Select
               name="materials"
               title="Tipo de Material"
-              defaultOption="Destino"
+              defaultOption="Material"
               options={materials}
-              onChange={()=>{}}
+              onChange={() => { }}
             />
           }
           {
@@ -242,12 +342,12 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
             destination === "D07" &&
             <div>
               <div className="flex gap-4 justify-start pb-4">
-                <input type="checkbox" name="" id="autorizacion" />
-                <label htmlFor="autorizacion" className="cursor-pointer">Autorización de salida</label>
+                <input type="checkbox" name="auth-check" id="auth-check" />
+                <label htmlFor="auth-check" className="cursor-pointer">Autorización de salida</label>
               </div>
               <Input
-                id="truckWeight"
-                value={grossWeight}
+                id="authorization"
+                value={OS_AUTHORIZATION}
                 type="text"
                 className="w-full !rounded-r-none"
                 onChange={handleChange}
@@ -257,9 +357,9 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
 
           <Textarea
             id="details"
-            value={""}
+            value={details}
             title="Observaciones de salida"
-            className=""
+            className="h-60"
             onChange={handleChange}
             placeholder="📝 ..."
             required={false}
