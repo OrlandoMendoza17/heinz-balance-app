@@ -4,19 +4,19 @@ import { getCuteFullDate, shortDate } from '@/utils/parseDate'
 
 type Props = {
   setModal: (value: SetStateAction<boolean>) => void,
-  setSelectedTransport: (value: SetStateAction<Entry>) => void,
-  entry: Entry
+  setSelectedExit: (value: SetStateAction<Exit>) => void,
+  exit: Exit
 }
 
-const TableVehicules = ({setModal, setSelectedTransport, entry}: Props) => {
+const TableVehicules = ({setModal, setSelectedExit, exit}: Props) => {
   
   const handleClick: MouseEventHandler<HTMLTableRowElement> = () => {
     // alert("Hello! I'm the radio demon! 👹")
     setModal(true)
-    setSelectedTransport(entry)
+    setSelectedExit(exit)
   }
   
-  const { entryNumber, driver, vehicule, destination, entryDate, origin } = entry
+  const { entryNumber, driver, vehicule, destination, entryDate, origin } = exit
   
   return (
     <tr onClick={handleClick}>

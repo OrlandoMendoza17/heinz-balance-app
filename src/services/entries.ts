@@ -24,7 +24,7 @@ export const updateEntry = async (entryNumber: P_ENT["ENT_NUM"], entry: UpdateP_
 }
 
 export const getEntriesInPlant = async () => {
-  const { data } = await axios.get<Entry[]>("/api/entries/inPlant")
+  const { data } = await axios.get<Exit[]>("/api/entries/inPlant")
   return data;
 }
 

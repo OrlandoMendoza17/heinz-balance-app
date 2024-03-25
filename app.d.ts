@@ -29,6 +29,23 @@ type Entry = {
   aboutToLeave: boolean,
 }
 
+type Exit = {
+  entryNumber: P_ENT["ENT_NUM"],
+  entryDate: string,
+  driver: Driver,
+  vehicule: Vehicule,
+  destination: T_DES["DES_COD"],
+  operation: string,
+  invoice: string | null,
+  origin: string,
+  truckWeight: number,
+  grossWeight: number,
+  calculatedNetWeight: number,
+  netWeight: number,
+  details: string,
+  aboutToLeave: boolean,
+}
+
 type DistributionEntry = {
   entryNumber: P_ENT_DI["ENT_NUM"],
   entryDate: P_ENT["ENT_FEC"],

@@ -60,7 +60,7 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
     const [vehicules] = await sequelize.query(queryString2) as [T_VEH[], unknown]
     const [drivers] = await sequelize.query(queryString3) as [T_CON[], unknown]
 
-    const entries: Entry[] = []
+    const exits: Exit[] = []
     
     for (const { ENT_NUM, CON_COD, VEH_ID, DES_COD, OPE_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW } of data) {
       
@@ -73,7 +73,7 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
       
       const entry = data.find((entry) => entry.ENT_NUM === ENT_NUM)
       
-      entries.push({
+      exits.push({
         entryNumber: ENT_NUM,
         driver: {
           name: driver?.CON_NOM || "",
@@ -92,7 +92,8 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
         entryDate: ENT_FEC,
         origin: entry[ORIGIN_BY_DESTINATION[DES_COD]] || "",
         truckWeight: ENT_PES_TAR,
-        grossWeight: (entry.ENT_DI_PNC === null) ? 0 : entry.ENT_DI_PNC,
+        grossWeight: 0,
+        calculatedNetWeight: (entry.ENT_DI_PNC === null) ? 0 : entry.ENT_DI_PNC,
         netWeight: (entry.ENT_DI_PNC === null) ? 0 : entry.ENT_DI_PNC,
         operation: OPE_COD,
         invoice: null,
@@ -101,7 +102,7 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
       }) 
     }
   
-    response.json(entries)
+    response.json(exits)
 
   } catch (error) {
     response.status(500).json({

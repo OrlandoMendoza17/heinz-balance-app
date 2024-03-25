@@ -19,7 +19,7 @@ import { getDistEntries, getFormattedDistEntries } from '@/services/entries'
 type Props = {
   showModal: boolean,
   setModal: Dispatch<SetStateAction<boolean>>,
-  entry: Entry
+  exit: Exit
 }
 
 export type NewExit = P_SAL
@@ -36,10 +36,10 @@ type TABLE_VALUES = {
 type ChargeTypes = "KG" | "LTS"
 type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
 
-const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
+const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
 
-  const $authCheck = useRef<HTMLInputElement>(null)
-
+  const [authCheck, setAuthCheck] = useState<boolean>(true)
+  
   const [alert, handleAlert] = useNotification()
 
   const [OS_AUTHORIZATION, setOS_AUTHORIZATION] = useState<string>("")
@@ -47,7 +47,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
   const [density, setDensity] = useState<SelectOptions[]>([])
   const [materials, setMaterials] = useState<SelectOptions[]>([])
 
-  const [selectedEntry, setSelectedEntry] = useState<Entry>({
+  const [selectedExit, setSelectedEntry] = useState<Exit>({
     entryNumber: "",
     driver: {
       name: "",
@@ -68,6 +68,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
     origin: "",
     truckWeight: 0,
     grossWeight: 0,
+    calculatedNetWeight: 0,
     netWeight: 0,
     invoice: null,
     details: "",
@@ -81,25 +82,25 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
       try {
 
         const entries = await getFormattedDistEntries("aboutToLeave")
-        const distEntry = entries.find(({ entryNumber }) => entry.entryNumber === entryNumber)
+        const distEntry = entries.find(({ entryNumber }) => exit.entryNumber === entryNumber)
 
         if (distEntry) {
           const { chargePlan, calculatedNetWeight, chargeDestination } = distEntry
 
           const details = `PLAN DE CARGA: ${chargePlan}\nPESO DE CARGA: ${calculatedNetWeight}\nDESTINO DE CARGA: ${chargeDestination}`
 
-          setSelectedEntry({ ...selectedEntry, details })
+          setSelectedEntry({ ...exit, details })
         }
+        
       } catch (error) {
         console.log(error)
       }
     })()
   }, [])
 
-
   useEffect(() => {
     (async () => {
-      setSelectedEntry(entry)
+      setSelectedEntry(exit)
       try {
 
         const density = await getDensity()
@@ -132,7 +133,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
         setModal(false)
       }
     })()
-  }, [entry])
+  }, [exit])
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
@@ -144,7 +145,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
       const density = parseInt(form.get("density") as string)
 
       console.log('material', material)
-      const { entryNumber: ENT_NUM, invoice, truckWeight, details, destination, operation } = selectedEntry
+      const { entryNumber: ENT_NUM, invoice, truckWeight, details, destination, operation } = selectedExit
 
       // Si es Descarga o es Devoluación
 
@@ -155,13 +156,13 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
         USU_LOG: 'USR9509C',
         SAL_FEC: getDateTime(),
         ENT_PES_TAR: truckWeight,
-        ENT_PES_NET: Math.abs(grossWeight - truckWeight),
+        ENT_PES_NET: netWeight,
         SAL_PES_BRU: grossWeight,
         DEN_COD: null,        // Siempre es NULL
         SAL_DEN_LIT: density ? netWeight / density : null,
         SAL_OBS: (details === "") ? details : null,
       }
-
+      
       const table_values: TABLE_VALUES = {
         "D01": undefined, // Distribución
         "D02": undefined, // Materia Prima
@@ -176,7 +177,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
         "D07": {          // Otros Servicios
           ENT_NUM,
           ENT_OS_PRO: origin,
-          ENT_OS_AUT: $authCheck.current?.checked ? (OS_AUTHORIZATION || null) : null
+          ENT_OS_AUT: !authCheck ? (OS_AUTHORIZATION || null) : null
         },
       }
 
@@ -204,19 +205,25 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
     }
   }
 
-  const handleChange: ChangeHandler = async ({ target }) => {
+  const handleChange: ChangeHandler = async (event) => {
+    const target = event.target
     type DESTINATION_VALUES = { DES_COD: DES_COD, OPE_COD: string }
     if (target.name === "chargeType") {
-
+      
       setChargeType(target.value as ChargeTypes)
-
+      
     } else if (target.name === "authorization") {
-
+      
       setOS_AUTHORIZATION(target.value)
+      
+    } if (target.name === "auth-check") {
+    
+      const currentTarget = event.currentTarget as HTMLInputElement
+      setAuthCheck(currentTarget.checked)
 
     } else {
       setSelectedEntry({
-        ...selectedEntry,
+        ...selectedExit,
         [target.id]: target.value,
       })
     }
@@ -226,7 +233,7 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
   // console.log("HOY", getDateTime())
   // console.log("Otra Fecha", getDateTime("2024-11-02 00:19"))
 
-  const { entryNumber, vehicule, driver, entryDate, destination, origin, details, truckWeight, grossWeight, netWeight } = selectedEntry
+  const { entryNumber, vehicule, driver, entryDate, destination, origin, details, truckWeight, grossWeight, netWeight } = selectedExit
 
   return (
     <>
@@ -284,16 +291,9 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
                 Leer
               </Button>
             </div>
-            <div className="mt-5">
-              <Input
-                id="netWeight"
-                value={netWeight}
-                type='number'
-                className="!rounded-r-none"
-                title="Peso Neto:"
-                placeholder="0.00"
-                onChange={handleChange}
-              />
+            <div className="grid gap-[7px] self-end items-center">
+              <span className="font-semibold block">Peso Neto:</span>
+              <span className="h-[41px] flex items-center border px-5">{Math.abs(grossWeight - truckWeight)}</span>
             </div>
           </div>
 
@@ -342,14 +342,15 @@ const VehiclesExit = ({ showModal, setModal, entry }: Props) => {
             destination === "D07" &&
             <div>
               <div className="flex gap-4 justify-start pb-4">
-                <input type="checkbox" name="auth-check" id="auth-check" />
-                <label htmlFor="auth-check" className="cursor-pointer">Autorización de salida</label>
+                <input type="checkbox" name="auth-check" id="auth-check" onChange={handleChange} />
+                <label htmlFor="auth-check" className="cursor-pointer">Sin autorización de salida</label>
               </div>
               <Input
                 id="authorization"
                 value={OS_AUTHORIZATION}
                 type="text"
                 className="w-full !rounded-r-none"
+                disabled={authCheck}
                 onChange={handleChange}
               />
             </div>

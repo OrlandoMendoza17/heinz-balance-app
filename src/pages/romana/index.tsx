@@ -15,12 +15,12 @@ import React, { ChangeEventHandler, MouseEventHandler, useEffect, useState } fro
 const Romana = () => {
 
   const [showModal, setModal] = useState<boolean>(false)
-  const [entries, setEntries] = useState<Entry[]>([])
+  const [exits, setExits] = useState<Exit[]>([])
 
   const [loading, setLoading] = useState<boolean>(false)
   const [alert, handleAlert] = useNotification()
 
-  const [selectedEntry, setSelectedTransport] = useState<Entry>({
+  const [selectedExit, setSelectedExit] = useState<Exit>({
     entryNumber: "",
     entryDate: "",
     driver: {
@@ -41,6 +41,7 @@ const Romana = () => {
     origin: "",
     truckWeight: 0,
     grossWeight: 0,
+    calculatedNetWeight: 0,
     netWeight: 0,
     details: "",
     invoice: "",
@@ -52,8 +53,8 @@ const Romana = () => {
       try {
         setLoading(true)
 
-        const entries = await getEntriesInPlant()
-        setEntries(entries.filter(({ aboutToLeave }) => aboutToLeave))
+        const exits = await getEntriesInPlant()
+        setExits(exits.filter(({ aboutToLeave }) => aboutToLeave))
         // setEntries(entries)
 
         setLoading(false)
@@ -75,7 +76,7 @@ const Romana = () => {
       <Header />
       <main className="Romana">
         {
-          (!entries.length && !loading) &&
+          (!exits.length && !loading) &&
           <NoEntries
             message='En estos momentos no hay níngun camión registrado en la planta'
           />
@@ -99,12 +100,12 @@ const Romana = () => {
               </thead>
               <tbody>
                 {
-                  entries.map((entry, i) =>
+                  exits.map((exit, i) =>
                     <TableVehicules
                       key={i}
                       setModal={setModal}
-                      setSelectedTransport={setSelectedTransport}
-                      entry={entry}
+                      setSelectedExit={setSelectedExit}
+                      exit={exit}
                     />
                   )
                 }
@@ -113,7 +114,7 @@ const Romana = () => {
         }
         {
           showModal &&
-          <VehiclesExit {...{ showModal, setModal, entry: selectedEntry }} />
+          <VehiclesExit {...{ showModal, setModal, exit: selectedExit }} />
         }
         <NotificationModal alertProps={[alert, handleAlert]} />
       </main>
