@@ -1,0 +1,11 @@
+.VehiculeEntranceSearch{
+  @apply grid grid-cols-[1fr_auto] items-end;
+  position: relative;
+  
+  .create-btn{
+    @apply bg-gray-400 hover:bg-sky-600 text-white text-sm px-2 py-0 rounded-xl;
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+}

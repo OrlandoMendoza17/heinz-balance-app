@@ -7,6 +7,11 @@ type ModelTypes = {
   Tipo: string,
 }
 
+export type ModelTypesOptions = {
+  models: string[];
+  types: string[];
+}
+
 const modelsHandler = async (request: NextApiRequest, response: NextApiResponse) => {
   try {
     // const sequelize = await getSequelize()
@@ -17,7 +22,9 @@ const modelsHandler = async (request: NextApiRequest, response: NextApiResponse)
     const models = [...new Set(data.map(({ Modelo }) => Modelo))]
     const types = [...new Set(data.map(({ Tipo }) => Tipo))]
 
-    response.json({ models, types })
+    const modelTypes: ModelTypesOptions = { models, types }
+    
+    response.json(modelTypes)
 
   } catch (error) {
     response.status(500).json({

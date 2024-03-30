@@ -4,6 +4,8 @@ type Driver =  {
   code: T_CON["CON_COD"],
 }
 
+type NewDriverDto = Omit<Driver, "code">
+
 type Vehicule = {
   id: T_VEH["VEH_ID"],
   plate: T_VEH["VEH_PLA"],
@@ -12,6 +14,8 @@ type Vehicule = {
   capacity: T_VEH["VEH_CAP"],
   company: T_TRA["TRA_COD"],
 }
+
+type NewVehiculeDto = Omit<Vehicule, "id">
 
 type Entry = {
   entryNumber: P_ENT["ENT_NUM"],

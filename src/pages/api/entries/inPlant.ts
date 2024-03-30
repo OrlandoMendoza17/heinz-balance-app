@@ -33,7 +33,6 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
 
     const [data] = await sequelize.query(queryString1) as [P_ENT[], unknown]
 
-    const entryNums = data.map(({ ENT_NUM }) => ENT_NUM)
     const vehiculeIDs = data.map(({ VEH_ID }) => VEH_ID)
     const driversIDs = data.map(({ CON_COD }) => CON_COD)
 
@@ -51,12 +50,6 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
       )
     `
     
-    const destinationCodes: DES_COD[] = ["D01", "D02", "D03", "D04", "D05", "D07"]
-    
-    const a = await destinationCodes.map(async (DES_CODE)=>{
-      return data
-    })
-
     const [vehicules] = await sequelize.query(queryString2) as [T_VEH[], unknown]
     const [drivers] = await sequelize.query(queryString3) as [T_CON[], unknown]
 

@@ -15,6 +15,7 @@ import Form from '../widgets/Form'
 import { getMaterials } from '@/services/materials'
 import { getDensity } from '@/services/density'
 import { getDistEntries, getFormattedDistEntries } from '@/services/entries'
+import VehiculeExitDetails from './VehiculeExitDetails'
 
 type Props = {
   showModal: boolean,
@@ -39,7 +40,7 @@ type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
 const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
 
   const [authCheck, setAuthCheck] = useState<boolean>(true)
-  
+
   const [alert, handleAlert] = useNotification()
 
   const [OS_AUTHORIZATION, setOS_AUTHORIZATION] = useState<string>("")
@@ -47,7 +48,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
   const [density, setDensity] = useState<SelectOptions[]>([])
   const [materials, setMaterials] = useState<SelectOptions[]>([])
 
-  const [selectedExit, setSelectedEntry] = useState<Exit>({
+  const [selectedExit, setSelectedExit] = useState<Exit>({
     entryNumber: "",
     driver: {
       name: "",
@@ -79,28 +80,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
 
   useEffect(() => {
     (async () => {
-      try {
-
-        const entries = await getFormattedDistEntries("aboutToLeave")
-        const distEntry = entries.find(({ entryNumber }) => exit.entryNumber === entryNumber)
-
-        if (distEntry) {
-          const { chargePlan, calculatedNetWeight, chargeDestination } = distEntry
-
-          const details = `PLAN DE CARGA: ${chargePlan}\nPESO DE CARGA: ${calculatedNetWeight}\nDESTINO DE CARGA: ${chargeDestination}`
-
-          setSelectedEntry({ ...exit, details })
-        }
-        
-      } catch (error) {
-        console.log(error)
-      }
-    })()
-  }, [])
-
-  useEffect(() => {
-    (async () => {
-      setSelectedEntry(exit)
+      setSelectedExit(exit)
       try {
 
         const density = await getDensity()
@@ -142,14 +122,22 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
       const form = new FormData(event.currentTarget)
 
       const material = form.get("materials")
-      const density = parseInt(form.get("density") as string)
+      const density = parseFloat(form.get("density") as string)
 
       console.log('material', material)
+      console.log('density', density)
       const { entryNumber: ENT_NUM, invoice, truckWeight, details, destination, operation } = selectedExit
 
       // Si es Descarga o es Devoluación
-
+      console.log('destination', destination)
       const netWeight = Math.abs(grossWeight - truckWeight)
+
+      const densityLts = netWeight / density
+      console.log('densityLts', densityLts)
+
+
+      // Si viene a cargar    -> el peso bruto tiene que ser mayor a la tara
+      // Si viene a descargar -> el peso bruto tiene que ser menor a la tara
 
       const leavingEntry: NewExit = {
         ENT_NUM: '95505',
@@ -159,10 +147,10 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
         ENT_PES_NET: netWeight,
         SAL_PES_BRU: grossWeight,
         DEN_COD: null,        // Siempre es NULL
-        SAL_DEN_LIT: density ? netWeight / density : null,
+        SAL_DEN_LIT: density ? densityLts : null,
         SAL_OBS: (details === "") ? details : null,
       }
-      
+
       const table_values: TABLE_VALUES = {
         "D01": undefined, // Distribución
         "D02": undefined, // Materia Prima
@@ -205,24 +193,31 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
     }
   }
 
+  // const persona = {
+  //   "nombre": "Orlando",
+  //   "undefined": "Mendoza"
+  // }
+
+  // persona[JSON.stringify(undefined) as "undefined"]
+
   const handleChange: ChangeHandler = async (event) => {
     const target = event.target
     type DESTINATION_VALUES = { DES_COD: DES_COD, OPE_COD: string }
     if (target.name === "chargeType") {
-      
+
       setChargeType(target.value as ChargeTypes)
-      
+
     } else if (target.name === "authorization") {
-      
+
       setOS_AUTHORIZATION(target.value)
-      
+
     } if (target.name === "auth-check") {
-    
+
       const currentTarget = event.currentTarget as HTMLInputElement
       setAuthCheck(currentTarget.checked)
 
     } else {
-      setSelectedEntry({
+      setSelectedExit({
         ...selectedExit,
         [target.id]: target.value,
       })
@@ -282,7 +277,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
                 id="grossWeight"
                 value={grossWeight}
                 type='number'
-                className="!rounded-r-none"
+                className="!rounded-r-none font-semibold"
                 title="Peso Bruto:"
                 placeholder="0.00"
                 onChange={handleChange}
@@ -300,16 +295,16 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
           {
             // Materia Prima
             destination === "D02" &&
-            <>
+            <div className="flex gap-10 py-5">
               <div>
-                <span>Tipo de Carga</span>
+                <span className="font-semibold">Tipo de Carga:</span>
                 <div className="flex gap-4 pt-4">
                   <label htmlFor="kilos" className="flex gap-2">
-                    <input type="radio" name="chargeType" id="kilos" value="KG" />
+                    <input type="radio" name="chargeType" onChange={handleChange} id="kilos" value="KG" />
                     <span>kilos</span>
                   </label>
                   <label htmlFor="litros" className="flex gap-2">
-                    <input type="radio" name="chargeType" id="litros" value="LTS" />
+                    <input type="radio" name="chargeType" onChange={handleChange} id="litros" value="LTS" />
                     <span>Litros</span>
                   </label>
                 </div>
@@ -318,13 +313,14 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
                 chargeType === "LTS" &&
                 <Select
                   name="density"
-                  title="Densidad"
-                  defaultOption="-"
+                  title="Densidad:"
+                  className="font-semibold"
+                  defaultOption=""
                   options={density}
                   onChange={() => { }}
                 />
               }
-            </>
+            </div>
           }
           {
             // Materiales
@@ -342,7 +338,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
             destination === "D07" &&
             <div>
               <div className="flex gap-4 justify-start pb-4">
-                <input type="checkbox" name="auth-check" id="auth-check" onChange={handleChange} />
+                <input type="checkbox" name="auth-check" id="auth-check" checked={authCheck} onChange={handleChange} />
                 <label htmlFor="auth-check" className="cursor-pointer">Sin autorización de salida</label>
               </div>
               <Input
@@ -355,18 +351,21 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
               />
             </div>
           }
-
-          <Textarea
-            id="details"
-            value={details}
-            title="Observaciones de salida"
-            className="h-60"
-            onChange={handleChange}
-            placeholder="📝 ..."
-            required={false}
+          
+          <VehiculeExitDetails
+            exit={exit}
+            details={details}
+            densityOptions={density}
+            materialsOptions={materials}
+            OS_AUTHORIZATION={OS_AUTHORIZATION}
+            handleAlert={handleAlert}
+            handleChange={handleChange}
+            setSelectedExit={setSelectedExit}
           />
 
-          <Button type="submit" className="bg-secondary">Procesar</Button>
+          <Button type="submit" className="bg-secondary">
+            Procesar
+          </Button>
 
         </Form>
       </Modal>

@@ -9,6 +9,7 @@ type BodyProps = {
   formatted: boolean,
 };
 
+// Si ninguno de estos 3 valores está es porque el vehículo está en entrada
 const isDistInitialEntry = (distEntry: P_ENT_DI) => {
   const { ENT_DI_GUI, ENT_DI_PLA, ENT_DI_NDE } = distEntry
   return !(
@@ -68,7 +69,7 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
         WHERE ENT_NUM IN (${distributionIDS})
         ORDER BY ENT_NUM DESC
       `
-
+      
       const [entries] = await sequelize.query(queryString2) as [P_ENT_DI[], unknown]
       // const entries = distEntriesExamples
 

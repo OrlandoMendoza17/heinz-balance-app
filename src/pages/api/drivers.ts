@@ -4,36 +4,37 @@ import { DRIVER_NOT_FOUND } from "@/utils/services/errorMessages";
 import { NextApiRequest, NextApiResponse } from "next";
 
 type BodyProps = {
-  driverPersonalID: number,
+  driverID: number,
+  field: "CON_COD" | "CON_CED"
 }
 
 const driversHandler = async (request: NextApiRequest, response: NextApiResponse) => {
   try {
 
     const METHOD = request.method
-    const { driverPersonalID }: BodyProps = request.body
+    const { driverID, field }: BodyProps = request.body
 
     if (METHOD === "POST") {
 
       const queryString = `
         SELECT * FROM [HDTA025].[dbo].[H025_T_CON] 
-        WHERE CON_CED = '${driverPersonalID}'
+        WHERE ${field} = '${driverID}'
       `
-      
+
       // const sequelize = await getSequelize()
       const [data] = await sequelize.query(queryString) as [T_CON[], unknown]
-      
-      if(data.length){
-        
+
+      if (data.length) {
+
         const driver: Driver = {
           name: data[0].CON_NOM,
           cedula: data[0].CON_CED,
           code: data[0].CON_COD,
         }
-  
+
         response.json(driver)
-        
-      }else{
+
+      } else {
         response.status(400).json({
           message: DRIVER_NOT_FOUND
         });

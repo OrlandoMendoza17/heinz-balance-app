@@ -11,42 +11,45 @@ type Props = {
   id: string,
   title: string,
   placeholder: string,
-  searchInfo: (searchValue: string) => Promise<void>
+  createButton: string,
+  handleCreateButton: () => Promise<void>,
+  searchInfo: (searchValue: string) => Promise<void>,
+  disabled?: boolean,
 }
 
-const VehiculeEntranceSearch = ({ searchInfo, ...props }: Props) => {
+const VehiculeEntranceSearch = ({ searchInfo, createButton, disabled = false, handleCreateButton, ...props }: Props) => {
 
   const [alert, handleAlert] = useNotification()
-  
+
   const [searchValue, setSearch] = useState<string>("")
   const [loading, setLoading] = useState<boolean>(false)
 
-  const handleChange: ChangeEventHandler<HTMLInputElement> = async ({target}) => {
+  const handleChange: ChangeEventHandler<HTMLInputElement> = async ({ target }) => {
     setSearch(target.value)
   }
-  
+
   const handleSearch = async () => {
     setLoading(true)
     try {
-      
-      if(searchValue) {
+
+      if (searchValue) {
         await searchInfo(searchValue)
       }
-      
+
       setLoading(false)
-    
+
     } catch (error) {
       setLoading(false)
-      
       console.log(error)
-      let message = "Ha habido un error en la consulta"
       
-      if(error instanceof AxiosError){
+      let message = "Ha habido un error en la consulta"
+
+      if (error instanceof AxiosError) {
         debugger
         const errorMessage = error.response?.data.message
         message = getErrorMessage(errorMessage)
       }
-      
+
       handleAlert.open(({
         type: "danger",
         title: "Error ❌",
@@ -56,12 +59,14 @@ const VehiculeEntranceSearch = ({ searchInfo, ...props }: Props) => {
   }
 
   return (
-    <div className="grid grid-cols-[1fr_auto] items-end">
+    <div className="VehiculeEntranceSearch">
       <Input
         {...props}
         value={searchValue}
         className="w-full"
+        disabled={disabled}
         onChange={handleChange}
+        required={false}
       />
       <Button
         onClick={handleSearch}
@@ -71,6 +76,9 @@ const VehiculeEntranceSearch = ({ searchInfo, ...props }: Props) => {
       >
         <FaSearch className="fill-white" />
       </Button>
+      <button type="button" className="create-btn" onClick={handleCreateButton}>
+        {createButton}
+      </button>
       <NotificationModal alertProps={[alert, handleAlert]} />
     </div>
   )

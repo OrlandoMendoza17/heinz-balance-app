@@ -4,6 +4,10 @@
 @import "./pages/romana";
 @import "./pages/distribucion";
 
+// Components - Pages
+@import "../components/pages/styles/VehiculeExitDetails";
+@import "../components/pages/styles/VehiculeEntranceSearch";
+
 // Components - Widgets
 @import "../components/widgets/styles/Header";
 @import "../components/widgets/styles/Button";

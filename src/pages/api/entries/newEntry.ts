@@ -61,10 +61,6 @@ const newEntryHandler = async (request: NextApiRequest, response: NextApiRespons
 
     response.status(201).json({
       message: "Created Succesfully",
-      queries: {
-        queryString1,
-        queryString2,
-      }
     })
 
   } catch (error) {

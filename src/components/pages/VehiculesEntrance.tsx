@@ -9,12 +9,14 @@ import VehiculeEntranceSearch from './VehiculeEntranceSearch'
 import NotificationModal from '../widgets/NotificationModal'
 import useNotification from '@/hooks/useNotification'
 import { getDestination } from '@/services/destination'
-import { getDriver, getVehicule } from '@/services/transportInfo'
+import { getDriver, getDriverFromVehicule, getVehicule } from '@/services/transportInfo'
 import { ACTION, INVOICE_BY_CODE, STATUS } from '@/lib/enums'
 import { createNewEntry, getNextEntryNumber } from '@/services/entries'
 import { format } from 'date-fns'
 import { getDateTime } from '@/utils/parseDate'
 import { DESTINATIONS } from '@/pages/api/destinations'
+import CreateVehiculeModal from './CreateVehiculeModal'
+import CreateDriverModal from './CreateDriverModal'
 
 type Props = {
   showModal: boolean,
@@ -39,7 +41,12 @@ const { CARGA, DESCARGA, DEVOLUCION } = ACTION
 const VehiculesEntrance = ({ showModal, setModal }: Props) => {
 
   const [alert, handleAlert] = useNotification()
-  const [enableInvoice, setEnableInvoice] = useState<Boolean>(false)
+  
+  const [showVehiculeModal, setVehiculeModal] = useState<boolean>(false)
+  const [showDriverModal, setDriverModal] = useState<boolean>(false)
+
+  const [disableDriver, setDisableDriver] = useState<boolean>(true)
+  const [enableInvoice, setEnableInvoice] = useState<boolean>(false)
 
   const [destinations, setDestinations] = useState<SelectOptions[]>([])
 
@@ -114,20 +121,33 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
     })()
   }, [])
 
+  const handleCreateVehicule = async () =>{
+    setVehiculeModal(true)
+  }
+  
+  const handleCreateDriver = async () =>{
+    setDriverModal(true)
+  }
+  
   const searchVehicule = async (vehiculePlate: string) => {
 
+    // Antes de la busqueda se vuelve undefined para borrar los datos almacenados en el estado
     setVehicule(undefined)
+
     const vehicule = await getVehicule(vehiculePlate)
     setVehicule(vehicule)
 
+    const driver = await getDriverFromVehicule(vehicule.id)
+    setDriver(driver)
   }
 
-  const searchDriver = async (driverPersonalID: string) => {
+  const searchDriver = async (driverID: string) => {
 
+    // Antes de la busqueda se vuelve undefined para borrar los datos almacenados en el estado
     setDriver(undefined)
-    const driver = await getDriver(driverPersonalID)
-    setDriver(driver)
 
+    const driver = await getDriver(driverID, "CON_CED")
+    setDriver(driver)
   }
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
@@ -138,10 +158,10 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
       const form = new FormData(currentTarget)
 
       const action = parseInt(form.get("action") as string) as ACTION
+      const { truckWeight, details, origin, invoice } = newEntry; // Destiny code
 
-      const { destination, truckWeight, details, origin, invoice } = newEntry; // Destiny code 
-      const { DES_COD, OPE_COD }: DestinationSelectValue = JSON.parse(destination)
-
+      const { DES_COD, OPE_COD }: DestinationSelectValue = JSON.parse(form.get("destination") as string)
+      debugger
       if (vehicule && driver) {
 
         const { nextEntryNumber: ENT_NUM } = await getNextEntryNumber()
@@ -230,7 +250,14 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
           message: `Se ha procesado la entrada del vehículo exitosamente"`,
         }))
 
+      } else {
+        handleAlert.open(({
+          type: "warning",
+          title: "Validación",
+          message: `Para poder dar entrada al vehículo es necesario tener los datos tanto del "conductor" como del "vehículo"`,
+        }))
       }
+
     } catch (error) {
       console.log(error)
       handleAlert.open(({
@@ -255,6 +282,8 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
 
       invoice = REQUIRES_INVOICE ? newEntry.invoice : null
 
+      setDisableDriver(DES_COD === "D01")
+
       // Esto lo que hace es resetear los radio buttons
       const radios: NodeListOf<HTMLInputElement> = document.querySelectorAll('input[type="radio"]')
       radios.forEach((input) => input.checked = false)
@@ -278,11 +307,15 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
           onSubmit={handleSubmit}
           className='grid grid-cols-2 gap-x-5 gap-y-8'
         >
+
+          {/* Búsqueda por placa del vehículo */}
           <>
             <VehiculeEntranceSearch
               id="vehiculePlate"
               title="Placa del Vehículo"
               placeholder="A7371V"
+              createButton="Crear Vehículo"
+              handleCreateButton={handleCreateVehicule}
               searchInfo={searchVehicule}
             />
             {
@@ -294,11 +327,16 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
               </span>
             }
           </>
+
+          {/* Búsqueda por cédula del conductor */}
           <>
             <VehiculeEntranceSearch
-              id="driverPersonalID"
+              id="driverID"
               title="Cédula del Chofer"
               placeholder="27313279"
+              createButton="Crear Chofer"
+              handleCreateButton={handleCreateDriver}
+              disabled={disableDriver}
               searchInfo={searchDriver}
             />
             {
@@ -405,7 +443,10 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
           />
 
           <Button type="submit" className="bg-secondary col-span-2">Procesar</Button>
-
+          
+          <CreateVehiculeModal {...{showVehiculeModal, setVehiculeModal}}/>
+          <CreateDriverModal {...{showDriverModal, setDriverModal}}/>
+          
         </Form>
       </Modal>
       <NotificationModal alertProps={[alert, handleAlert]} />
