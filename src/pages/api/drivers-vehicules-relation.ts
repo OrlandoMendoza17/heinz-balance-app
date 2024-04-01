@@ -25,7 +25,7 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
       const [data] = await sequelize.query(queryString) as [T_CON_VEH[], unknown]
 
       if (data.length) {
-
+        
         const { CON_COD } = data[0]
 
         const queryString = `

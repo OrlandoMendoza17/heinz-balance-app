@@ -1,9 +1,8 @@
 import axios from "axios"
 import { ModelTypesOptions } from "@/pages/api/models";
 
-export const getDriver = async (driverPersonalID: string, field: "CON_COD" | "CON_CED") => {
-  debugger
-  const { data } = await axios.post<Driver>("/api/drivers", { driverPersonalID, field })
+export const getDriver = async (driverID: string, field: "CON_COD" | "CON_CED") => {
+  const { data } = await axios.post<Driver>("/api/drivers", { driverID, field })
   return data;
 }
 
