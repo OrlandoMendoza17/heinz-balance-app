@@ -1,16 +1,12 @@
 import TableVehicules from '@/components/pages/TableVehicules';
 import VehiclesExit from '@/components/pages/VehiculesExit';
 import Header from '@/components/widgets/Header'
-import Modal from '@/components/widgets/Modal';
 import NoEntries from '@/components/widgets/NoEntries';
 import NotificationModal from '@/components/widgets/NotificationModal';
 import Spinner from '@/components/widgets/Spinner';
 import useNotification from '@/hooks/useNotification';
 import { getEntriesInPlant } from '@/services/entries';
-import { getTransports } from '@/utils';
-import { format } from 'date-fns';
-import React, { ChangeEventHandler, MouseEventHandler, useEffect, useState } from 'react'
-
+import React, { useEffect, useState } from 'react'
 
 const Romana = () => {
 
@@ -36,6 +32,7 @@ const Romana = () => {
       capacity: 0,
       company: "",
     },
+    action: 1,
     destination: "D01",
     operation: "",
     origin: "",
@@ -81,7 +78,6 @@ const Romana = () => {
             message='En estos momentos no hay níngun camión registrado en la planta'
           />
         }
-        
         {
           loading ?
             <Spinner size="normal" />
@@ -95,6 +91,7 @@ const Romana = () => {
                   <th>Placa</th>
                   <th>Procedencia</th>
                   <th>Destino</th>
+                  <th>Acción</th>
                   <th>Fecha de Entrada</th>
                 </tr>
               </thead>

@@ -16,6 +16,11 @@ export const getVehicule = async (vehiculePlate: string) => {
   return data;
 }
 
+export const getTransports = async (name: T_TRA["TRA_NOM"]) =>{
+  const { data } = await axios.post<Transport[]>("/api/transports", { name })
+  return data;
+}
+
 export const createVehicule = async (vehicule: Omit<T_VEH, "VEH_ID">) => {
   const { data } = await axios.post<Vehicule>("/api/newVehicule", { vehicule })
   return data;

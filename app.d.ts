@@ -38,6 +38,7 @@ type Exit = {
   entryDate: string,
   driver: Driver,
   vehicule: Vehicule,
+  action: ACTION, // Carga (1), Descarga (2), Devolución (3), Ticket de salida (4)
   destination: T_DES["DES_COD"],
   operation: string,
   invoice: string | null,
@@ -48,6 +49,12 @@ type Exit = {
   netWeight: number,
   details: string,
   aboutToLeave: boolean,
+}
+
+type Transport = {
+  name: T_TRA["TRA_NOM"],
+  RIF: T_TRA["TRA_RIF"],
+  code: T_TRA["TRA_COD"],
 }
 
 type DistributionEntry = {

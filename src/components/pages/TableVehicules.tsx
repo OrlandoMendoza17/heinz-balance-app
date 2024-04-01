@@ -1,5 +1,5 @@
 import React, { MouseEventHandler, SetStateAction } from 'react'
-import { DESTINATION_BY_CODE } from '@/lib/enums'
+import { ACTION_BY_NAME, DESTINATION_BY_CODE } from '@/lib/enums'
 import { getCuteFullDate, shortDate } from '@/utils/parseDate'
 
 type Props = {
@@ -8,16 +8,16 @@ type Props = {
   exit: Exit
 }
 
-const TableVehicules = ({setModal, setSelectedExit, exit}: Props) => {
-  
+const TableVehicules = ({ setModal, setSelectedExit, exit }: Props) => {
+
   const handleClick: MouseEventHandler<HTMLTableRowElement> = () => {
     // alert("Hello! I'm the radio demon! 👹")
     setModal(true)
     setSelectedExit(exit)
   }
-  
-  const { entryNumber, driver, vehicule, destination, entryDate, origin } = exit
-  
+
+  const { entryNumber, driver, vehicule, action, destination, entryDate, origin } = exit
+
   return (
     <tr onClick={handleClick}>
       <td>{entryNumber}</td>
@@ -26,6 +26,7 @@ const TableVehicules = ({setModal, setSelectedExit, exit}: Props) => {
       <td>{vehicule.plate}</td>
       <td>{origin}</td>
       <td>{DESTINATION_BY_CODE[destination]}</td>
+      <td>{ACTION_BY_NAME[action as Action]}</td>
       <td>{getCuteFullDate(entryDate)}</td>
     </tr>
   )

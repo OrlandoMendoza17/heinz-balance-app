@@ -55,7 +55,7 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
 
     const exits: Exit[] = []
     
-    for (const { ENT_NUM, CON_COD, VEH_ID, DES_COD, OPE_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW } of data) {
+    for (const { ENT_NUM, CON_COD, VEH_ID, DES_COD, OPE_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW, ENT_FLW_ACC } of data) {
       
       const vehicule = vehicules.find((vehicule) => vehicule.VEH_ID === VEH_ID)
       const driver = drivers.find((driver) => driver.CON_COD === CON_COD)
@@ -81,6 +81,7 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
           capacity: vehicule?.VEH_CAP || 0,
           company: vehicule?.TRA_COD || "",
         },
+        action: ENT_FLW_ACC,
         destination: DES_COD,
         entryDate: ENT_FEC,
         origin: entry[ORIGIN_BY_DESTINATION[DES_COD]] || "",

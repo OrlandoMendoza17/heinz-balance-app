@@ -1,3 +1,4 @@
+type Action = 1 | 2 | 3 | 4 // Carga (1), Descarga (2), Devolución (3), Ticket de salida (4)
 type DES_COD = "D01" | "D02" | "D03" | "D04" | "D05" | "D07"
 type PROCEDENCE = "ENT_DI_PRO" | "ENT_MP_PRO" | "ENT_SG_PRO" | "ENT_ALM_PRO" | "ENT_PRO" | "ENT_OS_PRO"
 
@@ -15,7 +16,7 @@ type P_ENT = {
   ENT_OBS: string | null;     // Observaciones
   ENT_FLW: 1 | 2;             // 1 = No está listo para salir (SOLO DISTRIBUCIÓN) | 2 = Por salir
   ENT_FEC_COL: string | null; // Preguntarle a yamileth - Posible hora de llegada a la romana 
-  ENT_FLW_ACC: number;        // Carga (1), Descarga (2), Devolución (3), Ticket de salida (4)
+  ENT_FLW_ACC: ACTION;        // Carga (1), Descarga (2), Devolución (3), Ticket de salida (4)
 }
 
 // H025_P_ENT_DI -> Entrada a Distribución

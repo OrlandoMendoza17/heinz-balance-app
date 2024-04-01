@@ -11,7 +11,7 @@ import useNotification from '@/hooks/useNotification'
 import { getDestination } from '@/services/destination'
 import { getDriver, getDriverFromVehicule, getVehicule } from '@/services/transportInfo'
 import { ACTION, INVOICE_BY_CODE, STATUS } from '@/lib/enums'
-import { createNewEntry, getNextEntryNumber } from '@/services/entries'
+import { createNewEntry, getEntriesInPlant, getNextEntryNumber } from '@/services/entries'
 import { format } from 'date-fns'
 import { getDateTime } from '@/utils/parseDate'
 import { DESTINATIONS } from '@/pages/api/destinations'
@@ -41,7 +41,8 @@ const { CARGA, DESCARGA, DEVOLUCION } = ACTION
 const VehiculesEntrance = ({ showModal, setModal }: Props) => {
 
   const [alert, handleAlert] = useNotification()
-  
+  const [loading, setLoading] = useState<boolean>(false)
+
   const [showVehiculeModal, setVehiculeModal] = useState<boolean>(false)
   const [showDriverModal, setDriverModal] = useState<boolean>(false)
 
@@ -121,14 +122,14 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
     })()
   }, [])
 
-  const handleCreateVehicule = async () =>{
+  const handleCreateVehicule = async () => {
     setVehiculeModal(true)
   }
-  
-  const handleCreateDriver = async () =>{
+
+  const handleCreateDriver = async () => {
     setDriverModal(true)
   }
-  
+
   const searchVehicule = async (vehiculePlate: string) => {
 
     // Antes de la busqueda se vuelve undefined para borrar los datos almacenados en el estado
@@ -154,108 +155,140 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
     event.preventDefault()
     const { currentTarget } = event
     try {
-
+      setLoading(true)
       const form = new FormData(currentTarget)
 
       const action = parseInt(form.get("action") as string) as ACTION
       const { truckWeight, details, origin, invoice } = newEntry; // Destiny code
 
       const { DES_COD, OPE_COD }: DestinationSelectValue = JSON.parse(form.get("destination") as string)
-      debugger
+
+      let exits = await getEntriesInPlant()
+      exits = exits.filter(({ aboutToLeave }) => aboutToLeave)
+
+
       if (vehicule && driver) {
 
-        const { nextEntryNumber: ENT_NUM } = await getNextEntryNumber()
+        const vehiculeInPlantYet = exits.find(({ vehicule: { plate } }) => vehicule?.plate === plate)
 
-        const entry: NewEntry = {
-          // ENT_NUM: "", // Esto es auto incremental
-          ENT_FEC: getDateTime(),
-          USU_LOG: "USR9509C",
-          VEH_ID: vehicule.id,
-          CON_COD: driver.cedula,
-          DES_COD,
-          OPE_COD,
-          ENT_PES_TAR: truckWeight,
-          EMP_ID: null,
-          ENT_OBS: (details !== "") ? details : null,
-          ENT_FLW: (DES_COD === "D01" && action === ACTION.DEVOLUCION) ? STATUS.DISTRIBUTION : STATUS.ABOUT_TO_LEAVE,
-          ENT_FEC_COL: null,
-          ENT_FLW_ACC: action,
-        }
+        if (vehiculeInPlantYet?.vehicule.plate !== vehicule?.plate) {
 
-        const table_values: TABLE_VALUES = {
-          "D01": { // Distribución
-            ENT_NUM,
+          const { nextEntryNumber: ENT_NUM } = await getNextEntryNumber()
+
+          const getStatus = (): STATUS => {
+            if (DES_COD === "D01") {
+              return (action === ACTION.DEVOLUCION) ? STATUS.ABOUT_TO_LEAVE : STATUS.DISTRIBUTION
+            } else {
+              return STATUS.ABOUT_TO_LEAVE
+            }
+          }
+
+          const entry: NewEntry = {
+            // ENT_NUM: "", // Esto es auto incremental
+            ENT_FEC: getDateTime(),
             USU_LOG: "USR9509C",
-            ENT_DI_FEC: getDateTime(),
-            ENT_DI_PRO: origin,
-            ENT_DI_GUI: null,    // (Distribución) - Plan de carga
-            ENT_DI_PNC: null,    // (Distribución) - Peso Neto Calculado
-            ENT_DI_CPA: 0,       // (Distribución) - Cantidad de Paletas | Se manda en 0 en la romana
-            ENT_DI_PPA: null,    // (Distribución) - Peso de las paletas
-            ENT_DI_PLA: null,    // (Distribución) - Plan de carga
-            ENT_DI_DES: null,    // (Distribución) - Destino de carga
-            ENT_DI_PAD: 0,       // (Distribución) - Peso adicional corregido | Se manda en 0 en la romana
-            ENT_DI_DPA: null,    // (Distribución) - Algún tipo de descripción ❓
-            ENT_DI_STA: null,    // (Distribución) - Status (1 | null)
-            ENT_DI_AUT: null,
-            ENT_DI_NDE: null,    // (Distribución) - Plan de carga
-            ENT_DI_PAL: null,    // (Distribución) - Plan de carga con paletas (si colocan cantidad de paletas deja de ser null) | NULL
-            ENT_DI_OBS: null,    // (Distribución) - Observaciones
-            ENT_DI_REV: false,   // 1 | 0 (Aparentemente siempre es 0)
-          },
-          "D02": { // ✅ Materia Prima
-            ENT_NUM,
-            ENT_MP_PRO: origin,
-            ENT_MP_FAC: (invoice) ? invoice : null,
-            ENT_MP_NOT: null,     // SIEMPRE NULL
-            ENT_MP_PAL: null      // SIEMPRE NULL
-          },
-          "D03": { // ✅ Servicios Generales
-            ENT_NUM,
-            ENT_SG_PRO: origin,
-            ENT_SG_FAC: (invoice) ? invoice : null,
-            ENT_SG_NOT: null,
-            ENT_SG_AUT: null,
-            ENT_SG_NDE: null
-          },
-          "D04": { // ✅ Almacén
-            ENT_NUM,
-            ENT_ALM_PRO: origin,
-            ENT_ALM_FAC: (invoice) ? invoice : null,
-          },
-          "D05": { // ✅ Materiales
-            ENT_NUM,
-            ENT_PRO: origin,
+            VEH_ID: vehicule.id,
+            CON_COD: driver.cedula,
+            DES_COD,
             OPE_COD,
-            MAT_COD: null       // Este codigo se pone en la salida pero aquí se manda en null
-          },
-          "D07": { // ✅ Otros Servicios
-            ENT_NUM,
-            ENT_OS_PRO: origin,
-            ENT_OS_AUT: null    // Se coloca en la salida en el caso de existir
-          },
+            ENT_PES_TAR: truckWeight,
+            EMP_ID: null,
+            ENT_OBS: (details !== "") ? details : null,
+            ENT_FLW: getStatus(),
+            ENT_FEC_COL: null,
+            ENT_FLW_ACC: action,
+          }
+
+          const table_values: TABLE_VALUES = {
+            "D01": { // Distribución
+              ENT_NUM,
+              USU_LOG: "USR9509C",
+              ENT_DI_FEC: getDateTime(),
+              ENT_DI_PRO: origin,
+              ENT_DI_GUI: null,    // (Distribución) - Plan de carga
+              ENT_DI_PNC: null,    // (Distribución) - Peso Neto Calculado
+              ENT_DI_CPA: 0,       // (Distribución) - Cantidad de Paletas | Se manda en 0 en la romana
+              ENT_DI_PPA: null,    // (Distribución) - Peso de las paletas
+              ENT_DI_PLA: null,    // (Distribución) - Plan de carga
+              ENT_DI_DES: null,    // (Distribución) - Destino de carga
+              ENT_DI_PAD: 0,       // (Distribución) - Peso adicional corregido | Se manda en 0 en la romana
+              ENT_DI_DPA: null,    // (Distribución) - Algún tipo de descripción ❓
+              ENT_DI_STA: null,    // (Distribución) - Status (1 | null)
+              ENT_DI_AUT: null,
+              ENT_DI_NDE: null,    // (Distribución) - Plan de carga
+              ENT_DI_PAL: null,    // (Distribución) - Plan de carga con paletas (si colocan cantidad de paletas deja de ser null) | NULL
+              ENT_DI_OBS: null,    // (Distribución) - Observaciones
+              ENT_DI_REV: false,   // 1 | 0 (Aparentemente siempre es 0)
+            },
+            "D02": { // ✅ Materia Prima
+              ENT_NUM,
+              ENT_MP_PRO: origin,
+              ENT_MP_FAC: (invoice) ? invoice : null,
+              ENT_MP_NOT: null,     // SIEMPRE NULL
+              ENT_MP_PAL: null      // SIEMPRE NULL
+            },
+            "D03": { // ✅ Servicios Generales
+              ENT_NUM,
+              ENT_SG_PRO: origin,
+              ENT_SG_FAC: (invoice) ? invoice : null,
+              ENT_SG_NOT: null,
+              ENT_SG_AUT: null,
+              ENT_SG_NDE: null
+            },
+            "D04": { // ✅ Almacén
+              ENT_NUM,
+              ENT_ALM_PRO: origin,
+              ENT_ALM_FAC: (invoice) ? invoice : null,
+            },
+            "D05": { // ✅ Materiales
+              ENT_NUM,
+              ENT_PRO: origin,
+              OPE_COD,
+              MAT_COD: null       // Este codigo se pone en la salida pero aquí se manda en null
+            },
+            "D07": { // ✅ Otros Servicios
+              ENT_NUM,
+              ENT_OS_PRO: origin,
+              ENT_OS_AUT: null    // Se coloca en la salida en el caso de existir
+            },
+          }
+
+          const entryByDestination = table_values[DES_COD]
+
+          console.log('entry', entry)
+          console.log('entryByDestination', entryByDestination)
+
+          // const data = await createNewEntry({ entry, entryByDestination })
+          // console.log('data', data)
+
+          handleAlert.open(({
+            type: "success",
+            title: "Entrada de Vehículo",
+            message: `Se ha procesado la entrada del vehículo exitosamente"`,
+          }))
+
+          setTimeout(() => setModal(false), 3000)
+
+        } else {
+
+          handleAlert.open(({
+            type: "danger",
+            title: "Vehículo en planta",
+            message: `No es posible darle entrada a un vehículo que se encuentra actualmente en planta`,
+          }))
+
+          setLoading(false)
         }
-
-        const entryByDestination = table_values[DES_COD]
-
-        console.log('entry', entry)
-        console.log('entryByDestination', entryByDestination)
-
-        // const data = await createNewEntry({ entry, entryByDestination })
-        // console.log('data', data)
-
-        handleAlert.open(({
-          type: "success",
-          title: "Entrada de Vehículo",
-          message: `Se ha procesado la entrada del vehículo exitosamente"`,
-        }))
 
       } else {
+
         handleAlert.open(({
           type: "warning",
           title: "Validación",
           message: `Para poder dar entrada al vehículo es necesario tener los datos tanto del "conductor" como del "vehículo"`,
         }))
+
+        setLoading(false)
       }
 
     } catch (error) {
@@ -283,6 +316,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
       invoice = REQUIRES_INVOICE ? newEntry.invoice : null
 
       setDisableDriver(DES_COD === "D01")
+      setDriver(DES_COD === "D01" ? undefined : driver)
 
       // Esto lo que hace es resetear los radio buttons
       const radios: NodeListOf<HTMLInputElement> = document.querySelectorAll('input[type="radio"]')
@@ -429,6 +463,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
               title="Factura"
               placeholder=""
               onChange={handleChange}
+              required={false}
             />
           }
 
@@ -442,12 +477,24 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             required={false}
           />
 
-          <Button type="submit" className="bg-secondary col-span-2">Procesar</Button>
-          
-          <CreateVehiculeModal {...{showVehiculeModal, setVehiculeModal}}/>
-          <CreateDriverModal {...{showDriverModal, setDriverModal}}/>
-          
+          <Button
+            type="submit"
+            loading={loading}
+            className="bg-secondary col-span-2"
+          >
+            Procesar
+          </Button>
+
         </Form>
+
+        {
+          showVehiculeModal &&
+          <CreateVehiculeModal {...{ showVehiculeModal, setVehiculeModal }} />
+        }
+        {
+          showDriverModal &&
+          <CreateDriverModal {...{ showDriverModal, setDriverModal }} />
+        }
       </Modal>
       <NotificationModal alertProps={[alert, handleAlert]} />
     </>

@@ -51,6 +51,13 @@ export enum ACTION {
   TICKET_DE_SALIDA = 4,
 }
 
+export const ACTION_BY_NAME = {
+  "1": "CARGA",
+  "2": "DESCARGA",
+  "3": "DEVOLUCIÓN",
+  "4": "TICKET_DE_SALIDA",
+}
+
 export enum STATUS {
   DISTRIBUTION = 1,
   ABOUT_TO_LEAVE = 2,

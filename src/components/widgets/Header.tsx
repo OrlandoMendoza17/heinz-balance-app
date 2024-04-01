@@ -2,9 +2,8 @@ import React, { MouseEventHandler, useState } from 'react'
 import { FaFilePen, FaTruck } from "react-icons/fa6";
 import { FaQuestion } from "react-icons/fa";
 import { LiaListAlt } from "react-icons/lia";
-import Modal from './Modal';
+import { RiRefreshLine } from "react-icons/ri";
 import { IconType } from 'react-icons';
-import Input from './Input';
 import VehiculesEntrance from '../pages/VehiculesEntrance';
 import useAuth from '@/hooks/useAuth';
 
@@ -41,6 +40,11 @@ const Header = () => {
     {
       title: "Procesar Entrada de Vehículo",
       Icon: FaTruck,
+      handleClick: () =>{}
+    },
+    {
+      title: "Recargar entradas en planta",
+      Icon: RiRefreshLine,
       handleClick: () =>{}
     },
   ]

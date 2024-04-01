@@ -17,7 +17,6 @@ const Modal = ({ showModal, setModal, closeButton = true, transparent = false, c
 
   const handleClick: MouseEventHandler<HTMLDivElement> = ({ target }) => {
     const clickedOutModal = getDataAttribute(target as TargetProps, targetModal.toLowerCase())
-    debugger
     if (clickedOutModal) {
       setModal(false)
     }
