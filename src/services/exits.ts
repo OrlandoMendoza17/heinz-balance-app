@@ -1,12 +1,9 @@
 import axios from "axios";
-import { NewExit } from "@/components/pages/VehiculesExit";
+import { NewExitParamsBodyProps } from "@/pages/api/exits/newExit";
 
-type newExitParams = {
-  leavingEntry: NewExit,
-  updateEntryByDestination: object | undefined,
-}
+type NewExitParams = NewExitParamsBodyProps
 
-export const createNewExit = async (body: newExitParams) => {
+export const createNewExit = async (body: NewExitParams) => {
   const { data } = await axios.post("/api/exits/newExit", body)
   return data;
 }

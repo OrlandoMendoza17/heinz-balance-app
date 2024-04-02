@@ -17,7 +17,7 @@ type Props = {
 }
 
 const VehiculeExitDetails = (props: Props) => {
-  
+
   const { handleAlert, handleChange, setSelectedExit } = props
   const { exit, details, OS_AUTHORIZATION, densityOptions, materialsOptions } = props
 
@@ -26,20 +26,28 @@ const VehiculeExitDetails = (props: Props) => {
   const getDetails = (async () => {
     try {
       setLoading(true)
-      
+
       const { invoice, destination } = exit
 
       let details = ""
 
       const departments = {
         "D01": async () => { // Distribución
-          
+
           const entries = await getFormattedDistEntries("aboutToLeave")
           const distEntry = entries.find(({ entryNumber }) => exit.entryNumber === entryNumber)
 
           if (distEntry) {
             const { chargePlan, calculatedNetWeight, chargeDestination } = distEntry
-            details = `PLAN DE CARGA: ${chargePlan}\nPESO DE CARGA: ${calculatedNetWeight}\nDESTINO DE CARGA: ${chargeDestination}`
+
+            // Si no están alguno de estos es por es para devolución
+            if (chargePlan && calculatedNetWeight && chargeDestination) {
+              
+              details = `PLAN DE CARGA: ${chargePlan}\nPESO DE CARGA: ${calculatedNetWeight}\nDESTINO DE CARGA: ${chargeDestination}`
+
+            } else {
+              details = "TIKET DE SALIDA: PARA DEVOLUCION."
+            }
           }
         },
         "D02": () => { // Materia Prima
@@ -66,7 +74,7 @@ const VehiculeExitDetails = (props: Props) => {
             const materialValue = materialsOptions.find(({ value }) => value === material?.value)
             return materialValue?.name
           }
-          
+
           const material = getMaterial()
           details = `${material ? `TIPO DE MATERIAL: ${material}` : ""}`
         },
@@ -76,15 +84,15 @@ const VehiculeExitDetails = (props: Props) => {
       }
 
       await departments[destination]()
-      
-      if(details === ""){
+
+      if (details === "") {
         handleAlert.open({
-          type:"warning",
+          type: "warning",
           title: "Sin contenido",
           message: "No hay información para generar observaciones automáticamente"
         })
       }
-      
+
       setSelectedExit((exit) => ({ ...exit, details }))
 
       setLoading(false)

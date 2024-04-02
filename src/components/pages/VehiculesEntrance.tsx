@@ -134,6 +134,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
 
     // Antes de la busqueda se vuelve undefined para borrar los datos almacenados en el estado
     setVehicule(undefined)
+    setDriver(undefined)
 
     const vehicule = await getVehicule(vehiculePlate)
     setVehicule(vehicule)
@@ -188,7 +189,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             ENT_FEC: getDateTime(),
             USU_LOG: "USR9509C",
             VEH_ID: vehicule.id,
-            CON_COD: driver.cedula,
+            CON_COD: driver.code,
             DES_COD,
             OPE_COD,
             ENT_PES_TAR: truckWeight,
@@ -258,8 +259,10 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
           console.log('entry', entry)
           console.log('entryByDestination', entryByDestination)
 
-          // const data = await createNewEntry({ entry, entryByDestination })
-          // console.log('data', data)
+          const data = await createNewEntry({ entry, entryByDestination })
+          console.log('data', data)
+
+          debugger
 
           handleAlert.open(({
             type: "success",
@@ -305,6 +308,8 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
   const handleChange: ChangeHandler = async ({ target }) => {
     type DESTINATION_VALUES = { DES_COD: DES_COD, OPE_COD: string }
 
+    const { name, value } = target
+
     let invoice = newEntry.invoice
 
     if (target.name === "destination") {
@@ -326,7 +331,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
     setNewEntry({
       ...newEntry,
       invoice,
-      [target.id]: target.value,
+      [name]: name === "truckWeight" ? parseInt(value) : value.toUpperCase(),
     })
   }
 

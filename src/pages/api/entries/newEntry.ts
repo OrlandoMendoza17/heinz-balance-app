@@ -56,8 +56,8 @@ const newEntryHandler = async (request: NextApiRequest, response: NextApiRespons
     console.log('queryString2', queryString2)
 
     // const sequelize = await getSequelize()
-    // await sequelize.query(queryString1)
-    // await sequelize.query(queryString2)
+    await sequelize.query(queryString1)
+    await sequelize.query(queryString2)
 
     response.status(201).json({
       message: "Created Succesfully",

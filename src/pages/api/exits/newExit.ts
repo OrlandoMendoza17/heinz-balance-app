@@ -1,12 +1,14 @@
 import { NewEntry } from "@/components/pages/VehiculesEntrance";
+import { NewExit } from "@/components/pages/VehiculesExit";
 import { DESTINATION_TABLES, ORIGIN_BY_DESTINATION } from "@/lib/enums";
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
 import { NextApiRequest, NextApiResponse } from "next";
 
-type BodyProps = {
-  entry: NewEntry,
-  entryByDestination: object,
+export type NewExitParamsBodyProps = {
+  leavingEntry: NewExit,
+  updateEntryByDestination: object | undefined,
+  destination: DES_COD,
 }
 
 export const getSQLValue = (value: string | number | null) => {
@@ -20,41 +22,53 @@ export const getSQLValue = (value: string | number | null) => {
 const newExitHandler = async (request: NextApiRequest, response: NextApiResponse) => {
   try {
 
-    const { entry, entryByDestination }: BodyProps = request.body
+    const { leavingEntry, updateEntryByDestination, destination }: NewExitParamsBodyProps = request.body
 
-    const getExitString = () => {
-      const keys = `(${Object.keys(entry).map(key => `[${key}]`).join(", ")})`
-      const values = `(${Object.values(entry).map(value => getSQLValue(value)).join(", ")})`
+    console.log('leavingEntry', leavingEntry)
+
+    const getExitQueryString = () => {
+      const keys = `(${Object.keys(leavingEntry).map(key => `[${key}]`).join(", ")})`
+      const values = `(${Object.values(leavingEntry).map(value => getSQLValue(value)).join(", ")})`
 
       const queryString = `
         INSERT H025_P_SAL\n${keys} 
         VALUES ${values}
       `
-      
+
       return queryString;
     }
 
     const getUpdateQueryString = () => {
-      const keys = `(${Object.keys(entryByDestination).map(key => `[${key}]`).join(", ")})`
-      const values = `(${Object.values(entryByDestination).map(value => getSQLValue(value)).join(", ")})`
 
-      const queryString = `
-        INSERT H025_P_${DESTINATION_TABLES[entry.DES_COD]}\n${keys} 
-        VALUES ${values}
-      `
+      if (updateEntryByDestination) {
 
-      return queryString;
+        const object = Object.entries(updateEntryByDestination)
+        const values = object.map(([key, value]) => `${key} = ${getSQLValue(value)}`).join(",\n    ")
+
+        const queryString = `
+          UPDATE H025_P_${DESTINATION_TABLES[destination]}
+          SET
+            ${values}
+          WHERE ENT_NUM = ${leavingEntry.ENT_NUM};
+        `
+        return queryString;
+
+      } else {
+        return "";
+      }
+
     }
 
-    const queryString1 = getExitString()
+    const queryString1 = getExitQueryString()
     const queryString2 = getUpdateQueryString()
 
     console.log('queryString1', queryString1)
     console.log('queryString2', queryString2)
 
     // const sequelize = await getSequelize()
-    // await sequelize.query(queryString1)
-    // await sequelize.query(queryString2)
+    
+    await sequelize.query(queryString1)
+    if (queryString2) await sequelize.query(queryString2)
 
     response.status(201).json({
       message: "Created Succesfully",

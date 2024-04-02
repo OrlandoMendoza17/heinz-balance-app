@@ -6,7 +6,7 @@ import Button from '../widgets/Button'
 import Input from '../widgets/Input'
 import Textarea from '../widgets/Textarea'
 import { getCuteFullDate, getDateTime, shortDate } from '@/utils/parseDate'
-import { DESTINATION_BY_CODE } from '@/lib/enums'
+import { ACTION, DESTINATION_BY_CODE } from '@/lib/enums'
 import useNotification from '@/hooks/useNotification'
 import NotificationModal from '../widgets/NotificationModal'
 import { createNewExit } from '@/services/exits'
@@ -37,12 +37,15 @@ type TABLE_VALUES = {
 type ChargeTypes = "KG" | "LTS"
 type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
 
+const { CARGA } = ACTION
+
 const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
 
   const [authCheck, setAuthCheck] = useState<boolean>(true)
 
   const [alert, handleAlert] = useNotification()
-
+  const [loading, setLoading] = useState<boolean>(false)
+  
   const [OS_AUTHORIZATION, setOS_AUTHORIZATION] = useState<string>("")
 
   const [density, setDensity] = useState<SelectOptions[]>([])
@@ -63,6 +66,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
       capacity: 0,
       company: "",
     },
+    action: 1,
     destination: "D01",
     operation: "",
     entryDate: "",
@@ -118,7 +122,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
     try {
-
+      setLoading(true)
       const form = new FormData(event.currentTarget)
 
       const material = form.get("materials")
@@ -134,13 +138,14 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
 
       const densityLts = netWeight / density
       console.log('densityLts', densityLts)
-
+      
+      debugger
 
       // Si viene a cargar    -> el peso bruto tiene que ser mayor a la tara
       // Si viene a descargar -> el peso bruto tiene que ser menor a la tara
 
       const leavingEntry: NewExit = {
-        ENT_NUM: '95505',
+        ENT_NUM,
         USU_LOG: 'USR9509C',
         SAL_FEC: getDateTime(),
         ENT_PES_TAR: truckWeight,
@@ -148,7 +153,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
         SAL_PES_BRU: grossWeight,
         DEN_COD: null,        // Siempre es NULL
         SAL_DEN_LIT: density ? densityLts : null,
-        SAL_OBS: (details === "") ? details : null,
+        SAL_OBS: (details !== "") ? details : null,
       }
 
       const table_values: TABLE_VALUES = {
@@ -175,7 +180,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
       console.log('leavingEntry', leavingEntry)
       console.log('updateEntryByDestination', updateEntryByDestination)
 
-      // await createNewExit({ leavingEntry, updateEntryByDestination })
+      await createNewExit({ leavingEntry, updateEntryByDestination, destination })
 
       handleAlert.open(({
         type: "success",
@@ -183,8 +188,11 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
         message: `Se ha procesado la salida del vehículo exitosamente"`,
       }))
 
+      setTimeout(() => setModal(false), 3000)
+      
     } catch (error) {
       console.log(error)
+      setLoading(false)
       handleAlert.open(({
         type: "danger",
         title: "Error ❌",
@@ -228,7 +236,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
   // console.log("HOY", getDateTime())
   // console.log("Otra Fecha", getDateTime("2024-11-02 00:19"))
 
-  const { entryNumber, vehicule, driver, entryDate, destination, origin, details, truckWeight, grossWeight, netWeight } = selectedExit
+  const { entryNumber, vehicule, driver, entryDate, destination, origin, details, truckWeight, grossWeight, action } = selectedExit
 
   return (
     <>
@@ -267,11 +275,19 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
             </li>
           </ul>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-end gap-4">
             <div className="grid gap-[7px] self-end items-center">
               <span className="font-semibold block">Peso Tara:</span>
               <span className="h-[41px] flex items-center border px-5">{truckWeight}</span>
             </div>
+            <span className="pb-3 text-lg">
+              {action === CARGA ? "+" : "-"}
+            </span>
+            <div className="grid gap-[7px] self-end items-center">
+              <span className="font-semibold block">Peso Neto:</span>
+              <span className="h-[41px] flex items-center border px-5">{Math.abs(grossWeight - truckWeight)}</span>
+            </div>
+            <span className="pb-3 text-lg">=</span>
             <div className="grid grid-cols-[17rem_6rem] items-end mt-5">
               <Input
                 id="grossWeight"
@@ -285,10 +301,6 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
               <Button className='bg-secondary !rounded-l-none h-[41px]' onClick={() => { }}>
                 Leer
               </Button>
-            </div>
-            <div className="grid gap-[7px] self-end items-center">
-              <span className="font-semibold block">Peso Neto:</span>
-              <span className="h-[41px] flex items-center border px-5">{Math.abs(grossWeight - truckWeight)}</span>
             </div>
           </div>
 
@@ -351,7 +363,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
               />
             </div>
           }
-          
+
           <VehiculeExitDetails
             exit={exit}
             details={details}
@@ -363,7 +375,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
             setSelectedExit={setSelectedExit}
           />
 
-          <Button type="submit" className="bg-secondary">
+          <Button type="submit" loading={loading} className="bg-secondary">
             Procesar
           </Button>
 

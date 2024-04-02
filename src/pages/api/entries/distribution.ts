@@ -69,18 +69,22 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
         WHERE ENT_NUM IN (${distributionIDS})
         ORDER BY ENT_NUM DESC
       `
-      
+
       const [entries] = await sequelize.query(queryString2) as [P_ENT_DI[], unknown]
       // const entries = distEntriesExamples
 
       const distribution = {
         entry:
-          entries.filter(({ ENT_NUM }) => entryDistIDS.includes(ENT_NUM))
+          entries.filter(({ ENT_NUM }) =>
+            entryDistIDS.includes(ENT_NUM) &&
+            !aboutToLeaveDistIDS.includes(ENT_NUM) // Valida que no es una entrada que está por salir de distribución
+          )
         ,
         initial:
-          entries.filter((distEntry) => {
-            return isDistInitialEntry(distEntry)
-          })
+          entries.filter((distEntry) =>
+            isDistInitialEntry(distEntry) &&
+            !aboutToLeaveDistIDS.includes(distEntry.ENT_NUM) // Valida que no es una entrada que está por salir de distribución
+          )
         ,
         dispatch:
           entries.filter((distEntry) => {
