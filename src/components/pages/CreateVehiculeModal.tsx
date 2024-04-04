@@ -172,7 +172,7 @@ const CreateVehiculeModal = ({ showVehiculeModal, setVehiculeModal }: Props) => 
           value={plate}
           className="w-full"
           title="Placa del Vehículo"
-          placeholder="VALENCIA"
+          placeholder="A73A71V"
           onChange={handleChange}
         />
         <Input

@@ -152,6 +152,13 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
     setDriver(driver)
   }
 
+  const readWeight = () => {
+    setNewEntry({
+      ...newEntry,
+      truckWeight: 3910,
+    })
+  }
+
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
     const { currentTarget } = event
@@ -413,9 +420,14 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
               className="w-full !rounded-r-none"
               title="Peso Tara"
               placeholder="0.00"
+              disabled={true}
               onChange={handleChange}
             />
-            <Button className='bg-secondary !rounded-l-none' style={{ maxHeight: "41px" }} onClick={() => { }}>
+            <Button
+              onClick={readWeight}
+              style={{ maxHeight: "41px" }}
+              className='bg-secondary !rounded-l-none'
+            >
               Leer Peso
             </Button>
           </div>

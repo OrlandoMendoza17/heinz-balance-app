@@ -26,7 +26,7 @@ const newVehiculeHandler = async (request: NextApiRequest, response: NextApiResp
       console.log('queryString', queryString)
       
       // const sequelize = await getSequelize()
-      // await sequelize.query(queryString)
+      await sequelize.query(queryString)
 
       response.status(201).json({
         message: "Created Succesfully",

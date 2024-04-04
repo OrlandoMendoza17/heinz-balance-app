@@ -45,7 +45,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
 
   const [alert, handleAlert] = useNotification()
   const [loading, setLoading] = useState<boolean>(false)
-  
+
   const [OS_AUTHORIZATION, setOS_AUTHORIZATION] = useState<string>("")
 
   const [density, setDensity] = useState<SelectOptions[]>([])
@@ -119,6 +119,14 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
     })()
   }, [exit])
 
+  const readWeight = () => {
+    setSelectedExit({
+      ...selectedExit,
+      grossWeight: 18050.000,
+    })
+  }
+
+
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
     try {
@@ -138,7 +146,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
 
       const densityLts = netWeight / density
       console.log('densityLts', densityLts)
-      
+
       debugger
 
       // Si viene a cargar    -> el peso bruto tiene que ser mayor a la tara
@@ -189,7 +197,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
       }))
 
       setTimeout(() => setModal(false), 3000)
-      
+
     } catch (error) {
       console.log(error)
       setLoading(false)
@@ -236,7 +244,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
   // console.log("HOY", getDateTime())
   // console.log("Otra Fecha", getDateTime("2024-11-02 00:19"))
 
-  const { entryNumber, vehicule, driver, entryDate, destination, origin, details, truckWeight, grossWeight, action } = selectedExit
+  const { entryNumber, vehicule, driver, entryDate, destination, origin, details, truckWeight, grossWeight, calculatedNetWeight, action } = selectedExit
 
   return (
     <>
@@ -273,6 +281,10 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
               <span className="font-bold block">Destino:</span>
               {DESTINATION_BY_CODE[destination]}
             </li>
+            <li className="bg-sky-100 p-2">
+              <span className="font-bold block">Peso Neto Calculado:</span>
+              {calculatedNetWeight}
+            </li>
           </ul>
 
           <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-end gap-4">
@@ -296,9 +308,13 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
                 className="!rounded-r-none font-semibold"
                 title="Peso Bruto:"
                 placeholder="0.00"
+                disabled={true}
                 onChange={handleChange}
               />
-              <Button className='bg-secondary !rounded-l-none h-[41px]' onClick={() => { }}>
+              <Button
+                onClick={readWeight}
+                className='bg-secondary !rounded-l-none h-[41px]'
+              >
                 Leer
               </Button>
             </div>
