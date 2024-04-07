@@ -14,12 +14,13 @@ import { format } from 'date-fns'
 import Form from '../widgets/Form'
 import { getMaterials } from '@/services/materials'
 import { getDensity } from '@/services/density'
-import { getDistEntries, getFormattedDistEntries } from '@/services/entries'
+import { createNewEntryDifference, getDistEntries, getEntriesInPlant, getEntry, getFormattedDistEntries, updateDistEntry, updateEntry } from '@/services/entries'
 import VehiculeExitDetails from './VehiculeExitDetails'
 
 type Props = {
   showModal: boolean,
   setModal: Dispatch<SetStateAction<boolean>>,
+  setExits: Dispatch<SetStateAction<Exit[]>>,
   exit: Exit
 }
 
@@ -39,12 +40,15 @@ type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
 
 const { CARGA } = ACTION
 
-const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
+const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
   const [authCheck, setAuthCheck] = useState<boolean>(true)
 
   const [alert, handleAlert] = useNotification()
   const [loading, setLoading] = useState<boolean>(false)
+
+
+  const [isDifference, setIsDifference] = useState<boolean>(false)
 
   const [OS_AUTHORIZATION, setOS_AUTHORIZATION] = useState<string>("")
 
@@ -77,6 +81,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
     netWeight: 0,
     invoice: null,
     details: "",
+    weightDifference: 0,
     aboutToLeave: false,
   })
 
@@ -119,102 +124,166 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
     })()
   }, [exit])
 
-  const readWeight = () => {
-    setSelectedExit({
-      ...selectedExit,
-      grossWeight: 18050.000,
-    })
-  }
-
-
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
-    try {
-      setLoading(true)
-      const form = new FormData(event.currentTarget)
+    if (isDifference) {
 
-      const material = form.get("materials")
-      const density = parseFloat(form.get("density") as string)
+      try {
+        setLoading(true)
+        const form = new FormData(event.currentTarget)
 
-      console.log('material', material)
-      console.log('density', density)
-      const { entryNumber: ENT_NUM, invoice, truckWeight, details, destination, operation } = selectedExit
+        const material = form.get("materials")
+        const density = parseFloat(form.get("density") as string)
 
-      // Si es Descarga o es Devoluación
-      console.log('destination', destination)
-      const netWeight = Math.abs(grossWeight - truckWeight)
+        console.log('material', material)
+        console.log('density', density)
+        const { entryNumber: ENT_NUM, invoice, truckWeight, details, destination, operation } = selectedExit
 
-      const densityLts = netWeight / density
-      console.log('densityLts', densityLts)
+        // Si es Descarga o es Devoluación
+        console.log('destination', destination)
+        const netWeight = Math.abs(grossWeight - truckWeight)
 
-      debugger
+        const densityLts = netWeight / density
+        console.log('densityLts', densityLts)
 
-      // Si viene a cargar    -> el peso bruto tiene que ser mayor a la tara
-      // Si viene a descargar -> el peso bruto tiene que ser menor a la tara
+        debugger
 
-      const leavingEntry: NewExit = {
-        ENT_NUM,
-        USU_LOG: 'USR9509C',
-        SAL_FEC: getDateTime(),
-        ENT_PES_TAR: truckWeight,
-        ENT_PES_NET: netWeight,
-        SAL_PES_BRU: grossWeight,
-        DEN_COD: null,        // Siempre es NULL
-        SAL_DEN_LIT: density ? densityLts : null,
-        SAL_OBS: (details !== "") ? details : null,
+        // Si viene a cargar    -> el peso bruto tiene que ser mayor a la tara
+        // Si viene a descargar -> el peso bruto tiene que ser menor a la tara
+
+        const leavingEntry: NewExit = {
+          ENT_NUM,
+          USU_LOG: 'USR9509C',
+          SAL_FEC: getDateTime(),
+          ENT_PES_TAR: truckWeight,
+          ENT_PES_NET: netWeight,
+          SAL_PES_BRU: grossWeight,
+          DEN_COD: null,        // Siempre es NULL
+          SAL_DEN_LIT: density ? densityLts : null,
+          SAL_OBS: (details !== "") ? details : null,
+        }
+
+        const table_values: TABLE_VALUES = {
+          "D01": undefined, // Distribución
+          "D02": undefined, // Materia Prima
+          "D03": undefined, // Servicios Generales
+          "D04": undefined, // Almacén
+          "D05": {          // Materiales
+            ENT_NUM,
+            ENT_PRO: origin,
+            OPE_COD: operation,
+            MAT_COD: material as string,       // Este codigo se pone en la salida pero aquí se manda en null
+          },
+          "D07": {          // Otros Servicios
+            ENT_NUM,
+            ENT_OS_PRO: origin,
+            ENT_OS_AUT: !authCheck ? (OS_AUTHORIZATION || null) : null
+          },
+        }
+
+        // Dependiendo si es undefined o si trae un valor es porque sí se actualiza o no
+        const updateEntryByDestination = table_values[destination]
+
+        console.log('leavingEntry', leavingEntry)
+        console.log('updateEntryByDestination', updateEntryByDestination)
+
+        await createNewExit({ leavingEntry, updateEntryByDestination, destination })
+
+        // Saca al vehículo de las entradas por salir que está en el cliente
+        setExits((exits) => exits.filter((item) => item.entryNumber !== entryNumber))
+
+        handleAlert.open(({
+          type: "success",
+          title: "Salida de Vehículo",
+          message: `Se ha procesado la salida del vehículo exitosamente"`,
+        }))
+
+        setTimeout(() => setModal(false), 3000)
+
+      } catch (error) {
+        console.log(error)
+        setLoading(false)
+        handleAlert.open(({
+          type: "danger",
+          title: "Error ❌",
+          message: "Ha habido un error procesando la entrada del vehículo, intentelo de nuevo",
+        }))
       }
 
-      const table_values: TABLE_VALUES = {
-        "D01": undefined, // Distribución
-        "D02": undefined, // Materia Prima
-        "D03": undefined, // Servicios Generales
-        "D04": undefined, // Almacén
-        "D05": {          // Materiales
-          ENT_NUM,
-          ENT_PRO: origin,
-          OPE_COD: operation,
-          MAT_COD: material as string,       // Este codigo se pone en la salida pero aquí se manda en null
-        },
-        "D07": {          // Otros Servicios
-          ENT_NUM,
-          ENT_OS_PRO: origin,
-          ENT_OS_AUT: !authCheck ? (OS_AUTHORIZATION || null) : null
-        },
-      }
-
-      // Dependiendo si es undefined o si trae un valor es porque sí se actualiza o no
-      const updateEntryByDestination = table_values[destination]
-
-      console.log('leavingEntry', leavingEntry)
-      console.log('updateEntryByDestination', updateEntryByDestination)
-
-      await createNewExit({ leavingEntry, updateEntryByDestination, destination })
-
+    } else {
       handleAlert.open(({
-        type: "success",
-        title: "Salida de Vehículo",
-        message: `Se ha procesado la salida del vehículo exitosamente"`,
-      }))
-
-      setTimeout(() => setModal(false), 3000)
-
-    } catch (error) {
-      console.log(error)
-      setLoading(false)
-      handleAlert.open(({
-        type: "danger",
-        title: "Error ❌",
-        message: "Ha habido un error procesando la entrada del vehículo, intentelo de nuevo",
+        type: "warning",
+        title: "Salida de Vehículo - Rechazada ❌",
+        message: `No es posible darle salida al vehpiculo si existe una diferencia"`,
       }))
     }
   }
 
-  // const persona = {
-  //   "nombre": "Orlando",
-  //   "undefined": "Mendoza"
-  // }
+  const handleReturnVehicule: FormEventHandler<HTMLFormElement> = async (event) => {
+    event.preventDefault()
+    try {
+      setLoading(true)
 
-  // persona[JSON.stringify(undefined) as "undefined"]
+      const distEntries = await getDistEntries("aboutToLeave")
+      const distEntry = distEntries.find(({ ENT_NUM }) => selectedExit.entryNumber === ENT_NUM)
+
+      if (distEntry) {
+
+        const updatedDistEntry = {
+          ...distEntry,
+          ENT_DI_REV: true, // Actualizando la entrada de distribución indicandole que lo devolvieron por una diferencia de peso.
+        }
+
+        const { entryNumber, grossWeight, weightDifference } = selectedExit
+
+        const entry = await getEntry(selectedExit.entryNumber)
+        const { ENT_NUM, ...rest } = entry
+
+        const entryDif: Omit<P_ENT_DIF, "ENT_DIF_NUM"> = {
+          ENT_NUM,                          // Numero de la entrada 
+          ENT_DIF_FEC: getDateTime(),       // Fecha en la que ocurre la diferencia 
+          ENT_PES_TAR: truckWeight,         // Tara- peso de entrada 
+          ENT_DI_PNC: distEntry.ENT_DI_PNC, // Peso del plan de carga
+          ENT_DI_PAD: distEntry.ENT_DI_PAD, // Peso adicional 
+          ENT_DI_PPA: distEntry.ENT_DI_PPA, // Peso de las paletas 
+          SAL_PES_BRU: grossWeight,         // Peso bruto de la salida 
+          DIF_PES: weightDifference,        // diferencia de peso 
+          USU_LOG: "USR9509C",              // Usuario que la registro
+        }
+
+        const udpatedEntry: UpdateP_ENT = {
+          ...rest,
+          ENT_FLW: 1, // La asignación de este valor indica que lo SACA* de los vehículos "por salIr" y lo manda a "Distribución"
+        }
+
+        // Actualizando la entrada en ambas tablas y creando la entrada en la tabla de diferencias
+        
+        // await updateEntry(entryNumber, udpatedEntry)
+        // await updateDistEntry(updatedDistEntry)
+        // await createNewEntryDifference(entryDif)
+
+        // Saca al vehículo de las entradas por salir que está en el cliente
+        setExits((exits) => exits.filter((item) => item.entryNumber !== entryNumber))
+        
+        handleAlert.open(({
+          type: "success",
+          title: "Devolución a Distribución",
+          message: `Se ha devuelto el camión al distribición exitosamente"`,
+        }))
+
+        setTimeout(() => setModal(false), 3000)
+      }
+
+    } catch (error) {
+      setLoading(false)
+      console.log('error', error)
+      handleAlert.open(({
+        type: "danger",
+        title: "Error ❌",
+        message: "Ha habido un error procesando la devolución del vehículo a distribución, intentelo de nuevo",
+      }))
+    }
+  }
 
   const handleChange: ChangeHandler = async (event) => {
     const target = event.target
@@ -241,8 +310,38 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
 
   }
 
-  // console.log("HOY", getDateTime())
-  // console.log("Otra Fecha", getDateTime("2024-11-02 00:19"))
+  const handleWeightReading = () => {
+
+    setIsDifference(false)
+
+    let DIFFERENCE = 0
+    const READ_WEIGHT = 37302
+
+    const TOLERANCE = 150
+    const CHARGED_TRUCK_WEIGHT = (truckWeight + calculatedNetWeight)
+
+    const MAXIMUM_TOLERABLE_WEIGHT = TOLERANCE + CHARGED_TRUCK_WEIGHT
+    const MINIMUM_TOLERABLE_WEIGHT = CHARGED_TRUCK_WEIGHT - TOLERANCE
+
+    if (READ_WEIGHT < MINIMUM_TOLERABLE_WEIGHT || READ_WEIGHT > MAXIMUM_TOLERABLE_WEIGHT) {
+
+      setIsDifference(true)
+
+      DIFFERENCE = READ_WEIGHT - CHARGED_TRUCK_WEIGHT
+
+      handleAlert.open(({
+        type: "warning",
+        title: "Diferencia de Peso",
+        message: `Se ha detectado una diferencia con respecto al peso neto calculado de ${DIFFERENCE} KG"`,
+      }))
+    }
+
+    setSelectedExit({
+      ...selectedExit,
+      weightDifference: DIFFERENCE,
+      grossWeight: READ_WEIGHT,
+    })
+  }
 
   const { entryNumber, vehicule, driver, entryDate, destination, origin, details, truckWeight, grossWeight, calculatedNetWeight, action } = selectedExit
 
@@ -250,7 +349,10 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
     <>
       <Modal className="py-10 !items-baseline overflow-auto !grid-cols-[minmax(auto,_750px)]" {...{ showModal, setModal }}>
         <h1 className="font-semibold pb-10">Procesar Salida de Vehículo</h1>
-        <Form onSubmit={handleSubmit} className='grid gap-x-5 gap-y-8'>
+        <Form
+          className='grid gap-x-5 gap-y-8'
+          onSubmit={!isDifference ? handleSubmit : handleReturnVehicule}
+        >
 
           <ul className="grid grid-cols-3 gap-5">
             <li className="bg-sky-100 p-2">
@@ -297,7 +399,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
             </span>
             <div className="grid gap-[7px] self-end items-center">
               <span className="font-semibold block">Peso Neto:</span>
-              <span className="h-[41px] flex items-center border px-5">{Math.abs(grossWeight - truckWeight)}</span>
+              <span className={`h-[41px] flex items-center border px-5 ${isDifference ? "!bg-red-500 !text-white !border-red-800" : ""}`}>{Math.abs(grossWeight - truckWeight)}</span>
             </div>
             <span className="pb-3 text-lg">=</span>
             <div className="grid grid-cols-[17rem_6rem] items-end mt-5">
@@ -305,15 +407,15 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
                 id="grossWeight"
                 value={grossWeight}
                 type='number'
-                className="!rounded-r-none font-semibold"
+                className={`!rounded-r-none font-semibold`}
                 title="Peso Bruto:"
                 placeholder="0.00"
                 disabled={true}
                 onChange={handleChange}
               />
               <Button
-                onClick={readWeight}
-                className='bg-secondary !rounded-l-none h-[41px]'
+                onClick={handleWeightReading}
+                className={`bg-secondary !rounded-l-none h-[41px] `}
               >
                 Leer
               </Button>
@@ -392,7 +494,7 @@ const VehiclesExit = ({ showModal, setModal, exit }: Props) => {
           />
 
           <Button type="submit" loading={loading} className="bg-secondary">
-            Procesar
+            {!isDifference ? "Procesar" : "Devolver a Distribución"}
           </Button>
 
         </Form>

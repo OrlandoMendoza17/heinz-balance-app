@@ -1,4 +1,4 @@
-type Driver =  {
+type Driver = {
   name: T_CON["CON_NOM"],
   cedula: T_CON["CON_CED"],
   code: T_CON["CON_COD"],
@@ -48,6 +48,7 @@ type Exit = {
   calculatedNetWeight: number,
   netWeight: number,
   details: string,
+  weightDifference: number,
   aboutToLeave: boolean,
 }
 
@@ -79,6 +80,18 @@ type DistributionEntry = {
   aditionalWeight: P_ENT_DI["ENT_DI_PAD"],
   aditionalWeightDescription: P_ENT_DI["ENT_DI_DPA"],
   exitAuthorization: P_ENT_DI["ENT_DI_AUT"],
+}
+
+type EntryDif = {
+  entryDifferenceNumber: P_ENT_DIF["ENT_DIF_NUM"]; // id de la diferencia 
+  entryNumber: P_ENT["ENT_NUM"];               // numero de la entrada 
+  entryDifferenceDate: P_ENT_DIF["ENT_DIF_FEC"];   // Fecha en la que ocurre la diferencia 
+  truckWeight: P_ENT["ENT_PES_TAR"];           // Tara- peso de entrada 
+  calculatedNetWeight: P_ENT_DI["ENT_DI_PNC"];    // peso del plan de carga (verificar )
+  aditionalWeight: P_ENT_DI["ENT_DI_PAD"];        // Peso adicional 
+  palletWeight: P_ENT_DI["ENT_DI_PPA"];           // Peso de las paletas 
+  grossWeight: P_SAL["SAL_PES_BRU"];           // Peso bruto de la salida 
+  weightDifference: P_ENT_DIF["DIF_PES"];          // diferencia de peso 
 }
 
 type NewEntryDto = Omit<Entry, "entryNumber" | "entryDate" | "vehicule" | "driver" | "grossWeight" | "netWeight" | "destination"> & {

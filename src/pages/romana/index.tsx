@@ -36,6 +36,7 @@ const Romana = () => {
     destination: "D01",
     operation: "",
     origin: "",
+    weightDifference: 0,
     truckWeight: 0,
     grossWeight: 0,
     calculatedNetWeight: 0,
@@ -46,31 +47,33 @@ const Romana = () => {
   })
 
   useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true)
-
-        const exits = await getEntriesInPlant()
-        setExits(exits.filter(({ aboutToLeave }) => aboutToLeave))
-        // setEntries(entries)
-
-        setLoading(false)
-
-      } catch (error) {
-        setLoading(false)
-        console.log(error)
-        handleAlert.open(({
-          type: "danger",
-          title: "Error ❌",
-          message: "Ha habido un error trayendose las entradas de vehículos, intentelo de nuevo",
-        }))
-      }
-    })()
+    getEntries()
   }, [])
+
+  const getEntries = async () => {
+    try {
+      setLoading(true)
+
+      const exits = await getEntriesInPlant()
+      setExits(exits.filter(({ aboutToLeave }) => aboutToLeave))
+      // setEntries(entries)
+
+      setLoading(false)
+
+    } catch (error) {
+      setLoading(false)
+      console.log(error)
+      handleAlert.open(({
+        type: "danger",
+        title: "Error ❌",
+        message: "Ha habido un error trayendose las entradas de vehículos, intentelo de nuevo",
+      }))
+    }
+  }
 
   return (
     <>
-      <Header />
+      <Header refreshEntries={getEntries} />
       <main className="Romana">
         {
           (!exits.length && !loading) &&
@@ -111,7 +114,7 @@ const Romana = () => {
         }
         {
           showModal &&
-          <VehiclesExit {...{ showModal, setModal, exit: selectedExit }} />
+          <VehiclesExit {...{ showModal, setModal, setExits, exit: selectedExit }} />
         }
         <NotificationModal alertProps={[alert, handleAlert]} />
       </main>

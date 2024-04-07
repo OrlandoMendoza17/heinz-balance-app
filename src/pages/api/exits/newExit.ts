@@ -66,7 +66,7 @@ const newExitHandler = async (request: NextApiRequest, response: NextApiResponse
     console.log('queryString2', queryString2)
 
     // const sequelize = await getSequelize()
-    
+
     await sequelize.query(queryString1)
     if (queryString2) await sequelize.query(queryString2)
 

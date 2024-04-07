@@ -1,7 +1,7 @@
 import axios from "axios"
 import { NewEntry } from "@/components/pages/VehiculesEntrance"
 
-type newEntryParams = {
+type NewEntryParams = {
   entry: NewEntry,
   entryByDestination: object,
 }
@@ -13,7 +13,12 @@ export const getEntry = async (entryNumber: P_ENT["ENT_NUM"]) => {
   return data[0];
 }
 
-export const createNewEntry = async (body: newEntryParams) => {
+export const createNewEntryDifference = async (entryDif: Omit<P_ENT_DIF, "ENT_DIF_NUM">) => {
+  const { data } = await axios.post("/api/exits/entryDif", { entryDif })
+  return data;
+}
+
+export const createNewEntry = async (body: NewEntryParams) => {
   const { data } = await axios.post("/api/entries/newEntry", body)
   return data;
 }

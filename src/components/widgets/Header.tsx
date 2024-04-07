@@ -13,7 +13,11 @@ type NavbarListItem = {
   handleClick: MouseEventHandler<HTMLLIElement>;
 }
 
-const Header = () => {
+type Props = {
+  refreshEntries: () => Promise<void>;
+}
+
+const Header = ({ refreshEntries }: Props) => {
   
   const [, credentials] = useAuth()
   const [showModal, setModal] = useState<boolean>(false)
@@ -23,7 +27,6 @@ const Header = () => {
       title: "Procesar Entrada de Vehículo",
       Icon: FaFilePen,
       handleClick: () =>{
-        console.log("hola")
         setModal(true)
       }
     },
@@ -45,7 +48,7 @@ const Header = () => {
     {
       title: "Recargar entradas en planta",
       Icon: RiRefreshLine,
-      handleClick: () =>{}
+      handleClick: refreshEntries,
     },
   ]
   
@@ -71,7 +74,7 @@ const Header = () => {
       
       {
         showModal &&
-        <VehiculesEntrance {...{ showModal, setModal }}/>
+        <VehiculesEntrance {...{ showModal, setModal, refreshEntries }}/>
       }
       
     </>

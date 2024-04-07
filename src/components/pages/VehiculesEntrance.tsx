@@ -21,6 +21,7 @@ import CreateDriverModal from './CreateDriverModal'
 type Props = {
   showModal: boolean,
   setModal: Dispatch<SetStateAction<boolean>>,
+  refreshEntries: () => Promise<void>,
 }
 
 type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -38,7 +39,7 @@ type TABLE_VALUES = {
 
 const { CARGA, DESCARGA, DEVOLUCION } = ACTION
 
-const VehiculesEntrance = ({ showModal, setModal }: Props) => {
+const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
 
   const [alert, handleAlert] = useNotification()
   const [loading, setLoading] = useState<boolean>(false)
@@ -152,13 +153,6 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
     setDriver(driver)
   }
 
-  const readWeight = () => {
-    setNewEntry({
-      ...newEntry,
-      truckWeight: 3910,
-    })
-  }
-
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
     const { currentTarget } = event
@@ -269,15 +263,15 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
           const data = await createNewEntry({ entry, entryByDestination })
           console.log('data', data)
 
-          debugger
-
           handleAlert.open(({
             type: "success",
             title: "Entrada de Vehículo",
             message: `Se ha procesado la entrada del vehículo exitosamente"`,
           }))
+          
+          await refreshEntries()
 
-          setTimeout(() => setModal(false), 3000)
+          setModal(false)
 
         } else {
 
@@ -342,6 +336,13 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
     })
   }
 
+  const handleWeightReading = () => {
+    setNewEntry({
+      ...newEntry,
+      truckWeight: 3910,
+    })
+  }
+  
   const { origin, invoice, destination, truckWeight, details } = newEntry
   const DES_COD = destination.slice(12, 15)
 
@@ -424,7 +425,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
               onChange={handleChange}
             />
             <Button
-              onClick={readWeight}
+              onClick={handleWeightReading}
               style={{ maxHeight: "41px" }}
               className='bg-secondary !rounded-l-none'
             >

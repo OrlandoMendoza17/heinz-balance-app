@@ -50,16 +50,16 @@ type P_ENT_ALM = {
 
 // H025_P_ENT_DIF -> Diferencia de Peso
 type P_ENT_DIF = {
-  ENT_DIF_NUM: string; // id de la diferencia 
-  ENT_NUM: string;     // numero de la entrada 
-  ENT_DIF_FEC: string; // Fecha en la que ocurre la diferencia 
-  ENT_PES_TAR: number; // Tara- peso de entrada 
-  ENT_DI_PNC: number;  // peso del plan de carga (verificar )
-  ENT_DI_PAD: number;  // Peso adicional 
-  ENT_DI_PPA: number;  // Peso de las paletas 
-  SAL_PES_BRU: number; // Peso bruto de la salida 
-  DIF_PES: number;     // diferencia de peso 
-  USU_LOG: string;     // Usuario que la registro
+  ENT_DIF_NUM: string;                 // id de la diferencia 
+  ENT_NUM: P_ENT["ENT_NUM"];           // numero de la entrada 
+  ENT_DIF_FEC: string;                 // Fecha en la que ocurre la diferencia 
+  ENT_PES_TAR: P_ENT["ENT_PES_TAR"];   // Tara- peso de entrada 
+  ENT_DI_PNC: P_ENT_DI["ENT_DI_PNC"];  // peso del plan de carga (verificar )
+  ENT_DI_PAD: P_ENT_DI["ENT_DI_PAD"];  // Peso adicional 
+  ENT_DI_PPA: P_ENT_DI["ENT_DI_PPA"];  // Peso de las paletas 
+  SAL_PES_BRU: P_SAL["SAL_PES_BRU"];   // Peso bruto de la salida 
+  DIF_PES: number;                     // diferencia de peso 
+  USU_LOG: string;                     // Usuario que la registro
 }
 
 // H025_P_ENT_MAT -> Entrada a Materiales
