@@ -1,4 +1,4 @@
-import React, { ChangeEventHandler, Dispatch, FormEventHandler, SetStateAction, useEffect, useRef, useState } from 'react'
+import React, { ChangeEvent, ChangeEventHandler, Dispatch, FormEventHandler, MouseEventHandler, SetStateAction, useEffect, useRef, useState } from 'react'
 import Select, { SelectOptions } from '../widgets/Select'
 import { getDestination } from '@/services/destination'
 import Modal from '../widgets/Modal'
@@ -16,6 +16,8 @@ import { getMaterials } from '@/services/materials'
 import { getDensity } from '@/services/density'
 import { createNewEntryDifference, getDistEntries, getEntriesInPlant, getEntry, getFormattedDistEntries, updateDistEntry, updateEntry } from '@/services/entries'
 import VehiculeExitDetails from './VehiculeExitDetails'
+import PDFRender from '../widgets/PDF'
+import ConfirmModal from '../widgets/ConfirmModal'
 
 type Props = {
   showModal: boolean,
@@ -45,8 +47,11 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
   const [authCheck, setAuthCheck] = useState<boolean>(true)
 
   const [alert, handleAlert] = useNotification()
+  const [confirm, handleConfirm] = useNotification()
+  
   const [loading, setLoading] = useState<boolean>(false)
 
+  const [rendered, setRendered] = useState<boolean>(false)
 
   const [isDifference, setIsDifference] = useState<boolean>(false)
 
@@ -74,13 +79,15 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
     destination: "D01",
     operation: "",
     entryDate: "",
+    exitDate: "",
     origin: "",
     truckWeight: 0,
     grossWeight: 0,
     calculatedNetWeight: 0,
     netWeight: 0,
     invoice: null,
-    details: "",
+    entryDetails: "",
+    exitDetails: "",
     weightDifference: 0,
     aboutToLeave: false,
   })
@@ -124,24 +131,36 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
     })()
   }, [exit])
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
+  const handleOpenModal: FormEventHandler<HTMLFormElement> = (event) =>{
     event.preventDefault()
-    if (isDifference) {
-
+    
+    const exitMessage = "¿Estás seguro de que quieres darle salida al vehículo?"
+    const returnMessage = '¿Estás seguro de que quieres devolver el vehículo a "Despacho"?'
+    
+    !isDifference ? handleSubmit : handleReturnVehicule
+    
+    handleConfirm.open({
+      type: "warning",
+      title: "Advertencia",
+      message: !isDifference ? exitMessage : returnMessage
+    })
+  }
+  
+  const handleSubmit = async () => {
+    if (!isDifference) {
       try {
         setLoading(true)
-        const form = new FormData(event.currentTarget)
+        const form = new FormData(document.getElementsByTagName("form")[0])
 
         const material = form.get("materials")
         const density = parseFloat(form.get("density") as string)
 
         console.log('material', material)
         console.log('density', density)
-        const { entryNumber: ENT_NUM, invoice, truckWeight, details, destination, operation } = selectedExit
+        const { entryNumber: ENT_NUM, invoice, truckWeight, exitDetails, netWeight, destination, operation } = selectedExit
 
         // Si es Descarga o es Devoluación
         console.log('destination', destination)
-        const netWeight = Math.abs(grossWeight - truckWeight)
 
         const densityLts = netWeight / density
         console.log('densityLts', densityLts)
@@ -151,16 +170,18 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         // Si viene a cargar    -> el peso bruto tiene que ser mayor a la tara
         // Si viene a descargar -> el peso bruto tiene que ser menor a la tara
 
+        const exitDate = getDateTime()
+
         const leavingEntry: NewExit = {
           ENT_NUM,
           USU_LOG: 'USR9509C',
-          SAL_FEC: getDateTime(),
+          SAL_FEC: exitDate,
           ENT_PES_TAR: truckWeight,
           ENT_PES_NET: netWeight,
           SAL_PES_BRU: grossWeight,
           DEN_COD: null,        // Siempre es NULL
           SAL_DEN_LIT: density ? densityLts : null,
-          SAL_OBS: (details !== "") ? details : null,
+          SAL_OBS: (exitDetails !== "") ? exitDetails : null,
         }
 
         const table_values: TABLE_VALUES = {
@@ -198,7 +219,18 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
           message: `Se ha procesado la salida del vehículo exitosamente"`,
         }))
 
-        setTimeout(() => setModal(false), 3000)
+        setSelectedExit(() => ({
+          ...selectedExit, exitDate
+        }))
+
+        setTimeout(() => {
+          setRendered(true)
+
+          setTimeout(() => {
+            setRendered(false)
+            setModal(false)
+          }, 3000)
+        }, 1000)
 
       } catch (error) {
         console.log(error)
@@ -219,8 +251,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
     }
   }
 
-  const handleReturnVehicule: FormEventHandler<HTMLFormElement> = async (event) => {
-    event.preventDefault()
+  const handleReturnVehicule = async () => {
     try {
       setLoading(true)
 
@@ -229,6 +260,14 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
       if (distEntry) {
 
+        const entry = await getEntry(selectedExit.entryNumber)
+        const { ENT_NUM, ...rest } = entry
+
+        const udpatedEntry: UpdateP_ENT = {
+          ...rest,
+          ENT_FLW: 1, // La asignación de este valor indica que lo SACA* de los vehículos "por salIr" y lo manda a "Distribución"
+        }
+
         const updatedDistEntry = {
           ...distEntry,
           ENT_DI_REV: true, // Actualizando la entrada de distribución indicandole que lo devolvieron por una diferencia de peso.
@@ -236,12 +275,11 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
         const { entryNumber, grossWeight, weightDifference } = selectedExit
 
-        const entry = await getEntry(selectedExit.entryNumber)
-        const { ENT_NUM, ...rest } = entry
-
+        const difDate = getDateTime()
+        debugger
         const entryDif: Omit<P_ENT_DIF, "ENT_DIF_NUM"> = {
           ENT_NUM,                          // Numero de la entrada 
-          ENT_DIF_FEC: getDateTime(),       // Fecha en la que ocurre la diferencia 
+          ENT_DIF_FEC: difDate,             // Fecha en la que ocurre la diferencia 
           ENT_PES_TAR: truckWeight,         // Tara- peso de entrada 
           ENT_DI_PNC: distEntry.ENT_DI_PNC, // Peso del plan de carga
           ENT_DI_PAD: distEntry.ENT_DI_PAD, // Peso adicional 
@@ -251,20 +289,15 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
           USU_LOG: "USR9509C",              // Usuario que la registro
         }
 
-        const udpatedEntry: UpdateP_ENT = {
-          ...rest,
-          ENT_FLW: 1, // La asignación de este valor indica que lo SACA* de los vehículos "por salIr" y lo manda a "Distribución"
-        }
-
         // Actualizando la entrada en ambas tablas y creando la entrada en la tabla de diferencias
-        
-        // await updateEntry(entryNumber, udpatedEntry)
-        // await updateDistEntry(updatedDistEntry)
-        // await createNewEntryDifference(entryDif)
+
+        await updateEntry(entryNumber, udpatedEntry)
+        await updateDistEntry(updatedDistEntry)
+        await createNewEntryDifference(entryDif)
 
         // Saca al vehículo de las entradas por salir que está en el cliente
         setExits((exits) => exits.filter((item) => item.entryNumber !== entryNumber))
-        
+
         handleAlert.open(({
           type: "success",
           title: "Devolución a Distribución",
@@ -310,12 +343,14 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
   }
 
-  const handleWeightReading = () => {
+  const heightReading = (READ_WEIGHT: number = 0) => {
 
     setIsDifference(false)
 
     let DIFFERENCE = 0
-    const READ_WEIGHT = 37302
+    // const READ_WEIGHT = 37302
+
+    const grossWeight = READ_WEIGHT
 
     const TOLERANCE = 150
     const CHARGED_TRUCK_WEIGHT = (truckWeight + calculatedNetWeight)
@@ -323,7 +358,10 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
     const MAXIMUM_TOLERABLE_WEIGHT = TOLERANCE + CHARGED_TRUCK_WEIGHT
     const MINIMUM_TOLERABLE_WEIGHT = CHARGED_TRUCK_WEIGHT - TOLERANCE
 
-    if (READ_WEIGHT < MINIMUM_TOLERABLE_WEIGHT || READ_WEIGHT > MAXIMUM_TOLERABLE_WEIGHT) {
+    if (
+      destination === "D01" &&
+      (READ_WEIGHT < MINIMUM_TOLERABLE_WEIGHT || READ_WEIGHT > MAXIMUM_TOLERABLE_WEIGHT)
+    ) {
 
       setIsDifference(true)
 
@@ -339,11 +377,24 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
     setSelectedExit({
       ...selectedExit,
       weightDifference: DIFFERENCE,
-      grossWeight: READ_WEIGHT,
+      grossWeight,
+      netWeight: Math.abs(grossWeight - truckWeight)
     })
   }
 
-  const { entryNumber, vehicule, driver, entryDate, destination, origin, details, truckWeight, grossWeight, calculatedNetWeight, action } = selectedExit
+  const handleWeightReading: MouseEventHandler<HTMLButtonElement> = () => {
+    heightReading(21372.25 + 16130)
+  }
+
+  const { entryNumber, vehicule, driver, entryDate, destination, origin, exitDetails, entryDetails, truckWeight, grossWeight, netWeight, calculatedNetWeight, action } = selectedExit
+
+  console.log('entryDate', entryDate)
+  console.log('entryDate', getCuteFullDate(entryDate))
+
+  // console.log('exitDate', getDateTime())
+  // console.log('exitDate', getCuteFullDate(getDateTime()))
+
+  // console.log('exitDate', getCuteFullDate("2024-04-08T17:32:59.805Z"))
 
   return (
     <>
@@ -351,9 +402,8 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         <h1 className="font-semibold pb-10">Procesar Salida de Vehículo</h1>
         <Form
           className='grid gap-x-5 gap-y-8'
-          onSubmit={!isDifference ? handleSubmit : handleReturnVehicule}
+          onSubmit={handleOpenModal}
         >
-
           <ul className="grid grid-cols-3 gap-5">
             <li className="bg-sky-100 p-2">
               <span className="font-bold block">Número de Entrada:</span>
@@ -383,23 +433,32 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
               <span className="font-bold block">Destino:</span>
               {DESTINATION_BY_CODE[destination]}
             </li>
+            {
+              destination === "D01" &&
+              <li className={`${isDifference ? "bg-yellow-300" : "bg-emerald-300"} p-2`}>
+                <span className="font-bold block">Peso Neto Calculado:</span>
+                {calculatedNetWeight}
+              </li>
+            }
             <li className="bg-sky-100 p-2">
-              <span className="font-bold block">Peso Neto Calculado:</span>
-              {calculatedNetWeight}
+              <span className="font-bold block">Detalles de entrada:</span>
+              {entryDetails}
             </li>
           </ul>
 
           <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-end gap-4">
             <div className="grid gap-[7px] self-end items-center">
-              <span className="font-semibold block">Peso Tara:</span>
+              <span className="font-semibold block">Peso Tara (Entrada):</span>
               <span className="h-[41px] flex items-center border px-5">{truckWeight}</span>
             </div>
             <span className="pb-3 text-lg">
               {action === CARGA ? "+" : "-"}
             </span>
             <div className="grid gap-[7px] self-end items-center">
-              <span className="font-semibold block">Peso Neto:</span>
-              <span className={`h-[41px] flex items-center border px-5 ${isDifference ? "!bg-red-500 !text-white !border-red-800" : ""}`}>{Math.abs(grossWeight - truckWeight)}</span>
+              <span className="font-semibold block">Peso Neto (Carga):</span>
+              <span className={`h-[41px] flex items-center border px-5 ${isDifference ? "!bg-red-500 !text-white !border-red-800" : ""}`}>
+                {netWeight}
+              </span>
             </div>
             <span className="pb-3 text-lg">=</span>
             <div className="grid grid-cols-[17rem_6rem] items-end mt-5">
@@ -408,10 +467,10 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
                 value={grossWeight}
                 type='number'
                 className={`!rounded-r-none font-semibold`}
-                title="Peso Bruto:"
+                title="Peso Bruto (Salida):"
                 placeholder="0.00"
-                disabled={true}
-                onChange={handleChange}
+                // disabled={true}
+                onChange={({ currentTarget }) => heightReading(parseFloat(currentTarget.value))}
               />
               <Button
                 onClick={handleWeightReading}
@@ -484,7 +543,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
           <VehiculeExitDetails
             exit={exit}
-            details={details}
+            exitDetails={exitDetails}
             densityOptions={density}
             materialsOptions={materials}
             OS_AUTHORIZATION={OS_AUTHORIZATION}
@@ -493,6 +552,11 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
             setSelectedExit={setSelectedExit}
           />
 
+          {
+            rendered &&
+            <PDFRender exit={selectedExit} />
+          }
+
           <Button type="submit" loading={loading} className="bg-secondary">
             {!isDifference ? "Procesar" : "Devolver a Distribución"}
           </Button>
@@ -500,6 +564,10 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         </Form>
       </Modal>
       <NotificationModal alertProps={[alert, handleAlert]} />
+      <ConfirmModal
+        acceptAction={!isDifference ? handleSubmit : handleReturnVehicule}
+        confirmProps={[confirm, handleConfirm]}
+      />
     </>
   )
 }

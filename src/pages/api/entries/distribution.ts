@@ -136,7 +136,7 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
 
       const formattedEntries: DistributionEntry[] = distEntries.map((distEntry) => {
 
-        const { ENT_NUM, ENT_DI_PRO, ENT_DI_PNC, ENT_DI_DES, ENT_DI_STA, ENT_DI_OBS, ENT_DI_CPA } = distEntry
+        const { ENT_NUM, ENT_DI_PRO, ENT_DI_PNC, ENT_DI_DES, ENT_DI_STA, ENT_DI_OBS, ENT_DI_CPA, ENT_DI_REV } = distEntry
         const { ENT_DI_PAL, ENT_DI_GUI, ENT_DI_PLA, ENT_DI_NDE, ENT_DI_PPA, ENT_DI_PAD, ENT_DI_DPA, ENT_DI_AUT } = distEntry
 
         const { VEH_ID, CON_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW, ENT_OBS } = data1.find((item) => item.ENT_NUM === ENT_NUM) as P_ENT
@@ -178,6 +178,7 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
           aditionalWeight: ENT_DI_PAD,
           aditionalWeightDescription: ENT_DI_DPA,
           exitAuthorization: ENT_DI_AUT,
+          returned: Boolean(ENT_DI_REV)
         }
       })
 

@@ -19,6 +19,7 @@ const Romana = () => {
   const [selectedExit, setSelectedExit] = useState<Exit>({
     entryNumber: "",
     entryDate: "",
+    exitDate: "",
     driver: {
       name: "",
       cedula: "",
@@ -41,7 +42,8 @@ const Romana = () => {
     grossWeight: 0,
     calculatedNetWeight: 0,
     netWeight: 0,
-    details: "",
+    entryDetails: "",
+    exitDetails: "",
     invoice: "",
     aboutToLeave: false,
   })
@@ -55,7 +57,16 @@ const Romana = () => {
       setLoading(true)
 
       const exits = await getEntriesInPlant()
-      setExits(exits.filter(({ aboutToLeave }) => aboutToLeave))
+
+      setExits(
+        exits.map(({ entryDate, ...rest }) => (
+          {
+            ...rest,
+            entryDate: entryDate.replace("T", " ").replace("Z", "")
+          }
+        ))
+          .filter(({ aboutToLeave }) => aboutToLeave)
+      )
       // setEntries(entries)
 
       setLoading(false)

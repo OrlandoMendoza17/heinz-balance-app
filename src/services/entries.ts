@@ -14,7 +14,12 @@ export const getEntry = async (entryNumber: P_ENT["ENT_NUM"]) => {
 }
 
 export const createNewEntryDifference = async (entryDif: Omit<P_ENT_DIF, "ENT_DIF_NUM">) => {
-  const { data } = await axios.post("/api/exits/entryDif", { entryDif })
+  const { data } = await axios.post("/api/entries/entryDif", { entryDif })
+  return data;
+}
+
+export const getEntryDifference = async (entryNumber: P_ENT_DI["ENT_NUM"]) => {
+  const { data } = await axios.get<EntryDif>("/api/entries/entryDif", { params: { entryNumber } })
   return data;
 }
 

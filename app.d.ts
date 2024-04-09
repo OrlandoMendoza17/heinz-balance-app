@@ -36,6 +36,7 @@ type Entry = {
 type Exit = {
   entryNumber: P_ENT["ENT_NUM"],
   entryDate: string,
+  exitDate: string,
   driver: Driver,
   vehicule: Vehicule,
   action: ACTION, // Carga (1), Descarga (2), Devolución (3), Ticket de salida (4)
@@ -47,7 +48,8 @@ type Exit = {
   grossWeight: number,
   calculatedNetWeight: number,
   netWeight: number,
-  details: string,
+  entryDetails: string,
+  exitDetails: string,
   weightDifference: number,
   aboutToLeave: boolean,
 }
@@ -80,17 +82,18 @@ type DistributionEntry = {
   aditionalWeight: P_ENT_DI["ENT_DI_PAD"],
   aditionalWeightDescription: P_ENT_DI["ENT_DI_DPA"],
   exitAuthorization: P_ENT_DI["ENT_DI_AUT"],
+  returned: boolean,
 }
 
 type EntryDif = {
   entryDifferenceNumber: P_ENT_DIF["ENT_DIF_NUM"]; // id de la diferencia 
-  entryNumber: P_ENT["ENT_NUM"];               // numero de la entrada 
+  entryNumber: P_ENT["ENT_NUM"];                   // numero de la entrada 
   entryDifferenceDate: P_ENT_DIF["ENT_DIF_FEC"];   // Fecha en la que ocurre la diferencia 
-  truckWeight: P_ENT["ENT_PES_TAR"];           // Tara- peso de entrada 
-  calculatedNetWeight: P_ENT_DI["ENT_DI_PNC"];    // peso del plan de carga (verificar )
-  aditionalWeight: P_ENT_DI["ENT_DI_PAD"];        // Peso adicional 
-  palletWeight: P_ENT_DI["ENT_DI_PPA"];           // Peso de las paletas 
-  grossWeight: P_SAL["SAL_PES_BRU"];           // Peso bruto de la salida 
+  truckWeight: P_ENT["ENT_PES_TAR"];               // Tara- peso de entrada 
+  calculatedNetWeight: P_ENT_DI["ENT_DI_PNC"];     // peso del plan de carga (verificar )
+  aditionalWeight: P_ENT_DI["ENT_DI_PAD"];         // Peso adicional 
+  palletWeight: P_ENT_DI["ENT_DI_PPA"];            // Peso de las paletas 
+  grossWeight: P_SAL["SAL_PES_BRU"];               // Peso bruto de la salida 
   weightDifference: P_ENT_DIF["DIF_PES"];          // diferencia de peso 
 }
 
@@ -118,3 +121,5 @@ type AuthCredentials = {
   user: User,
   token: string,
 }
+
+type html2pdf = any

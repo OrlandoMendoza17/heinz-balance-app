@@ -1,15 +1,18 @@
 import Button from '@/components/widgets/Button'
+import ConfirmModal from '@/components/widgets/ConfirmModal'
 import Form from '@/components/widgets/Form'
 import Input from '@/components/widgets/Input'
 import Modal from '@/components/widgets/Modal'
 import Textarea from '@/components/widgets/Textarea'
-import { HandleNotification } from '@/hooks/useNotification'
+import useNotification, { HandleNotification } from '@/hooks/useNotification'
 import { getChargePlan } from '@/services/chargePlan'
-import { EntriesType, getEntry, updateDistEntry, updateEntry } from '@/services/entries'
+import { EntriesType, getEntry, getEntryDifference, updateDistEntry, updateEntry } from '@/services/entries'
 import { getMaterials } from '@/services/materials'
 import distributionEntry from '@/utils/defaultValues/distributionEntry'
 import { getCuteFullDate, getDateTime } from '@/utils/parseDate'
+import { useRouter } from 'next/router'
 import React, { ChangeEventHandler, Dispatch, FormEventHandler, SetStateAction, useEffect, useState } from 'react'
+import { IoWarning } from "react-icons/io5";
 
 type Props = {
   showModal: boolean,
@@ -31,18 +34,31 @@ const DEPARTMENT_AREAS = {
 
 const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEntries = false, handleAlert, setEntries }: Props) => {
 
+  const router = useRouter()
+  
+  const [confirm, handleConfirm]= useNotification()
   const [loading, setLoading] = useState<boolean>(false)
+  
   const [selectedEntry, setSelectedEntry] = useState<DistributionEntry>(distributionEntry)
-
+  
+  const [entryDif, setEntryDif] = useState<EntryDif>()
+  
   useEffect(() => {
-    setSelectedEntry(entry)
+    (async () => {
+      setSelectedEntry(entry)
+      try {
+        const entryDif = await getEntryDifference(entry.entryNumber)
+        setEntryDif(entryDif)
+      } catch (error) {
+        console.log('error', error)
+      }
+    })()
   }, [entry])
 
   const BOTH_ENABLED_EDIT = ((ENTRIES_TYPE === "initial" || ENTRIES_TYPE === "dispatch") && editEntries)
   const DESPATCH_ENABLED_EDIT = (ENTRIES_TYPE === "dispatch" && editEntries)
 
-  const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
-    event.preventDefault()
+  const handleSubmit = async () => {
     try {
       setLoading(true)
 
@@ -122,7 +138,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
         title: "Actualización de entrada",
         message: `Se ha guardados los datos de la entrada exitosamente y se ha mandado a "${DEPARTMENT_AREAS[ENTRIES_TYPE]}"`,
       }))
-
+      
       setLoading(false)
       setModal(false)
 
@@ -137,7 +153,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
     }
   }
 
-  const { entryNumber, vehicule, driver, entryDate, entryDetails, origin, truckWeight } = selectedEntry
+  const { entryNumber, vehicule, driver, entryDate, entryDetails, origin, truckWeight, returned } = selectedEntry
 
   const handleChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = ({ target }) => {
     setSelectedEntry({
@@ -145,13 +161,41 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
       [target.name]: target.value
     })
   }
+  
 
+  const handleOpenModal: FormEventHandler<HTMLFormElement> = (event) =>{
+    event.preventDefault()
+    type routes = "vehiculos" | "despacho"
+    
+    const name = router.pathname.replace("/distribucion/", "") as routes
+    
+    const direction = {
+      vehiculos: "Despacho",
+      despacho: "Por salir",
+    }
+    
+    console.log('router', router)
+    handleConfirm.open({
+      type: "warning",
+      title: "Advertencia",
+      message: `¿Estás seguro de que quieres mandar el transporte a "${direction[name]}"?`
+    })
+  }
+  
   return (
     <>
       <Modal className="py-10 !items-baseline overflow-auto !grid-cols-[minmax(auto,_950px)]" {...{ showModal, setModal }}>
         <h1 className="font-semibold pb-10">Detalle</h1>
-        <Form onSubmit={handleSubmit} className='grid gap-x-5 gap-y-8'>
+        <Form onSubmit={handleOpenModal} className='grid gap-x-5 gap-y-8'>
 
+          {
+            returned &&
+            <div className="bg-red-300 border-red-500 text-red-700 font-bold border-2 p-7 rounded-2xl flex gap-3 content-center">
+              <IoWarning size={20} className="fill-red-700"/>
+              <p>El Vehículo fue devuelto debido a una diferencia en el peso {entryDif ? `de ${entryDif.weightDifference} KG`: ""}  </p>
+            </div>
+          }
+          
           Datos Básicos
 
           <ul className="grid grid-cols-3 gap-5">
@@ -332,6 +376,10 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
           }
         </Form>
       </Modal>
+      <ConfirmModal
+        acceptAction={handleSubmit}
+        confirmProps={[confirm, handleConfirm]}
+      />
     </>
   )
 }

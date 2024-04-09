@@ -7,7 +7,7 @@ import { HandleNotification } from '@/hooks/useNotification'
 
 type Props = {
   exit: Exit,
-  details: string,
+  exitDetails: string,
   OS_AUTHORIZATION: string,
   densityOptions: SelectOptions[],
   materialsOptions: SelectOptions[],
@@ -19,7 +19,7 @@ type Props = {
 const VehiculeExitDetails = (props: Props) => {
 
   const { handleAlert, handleChange, setSelectedExit } = props
-  const { exit, details, OS_AUTHORIZATION, densityOptions, materialsOptions } = props
+  const { exit, exitDetails, OS_AUTHORIZATION, densityOptions, materialsOptions } = props
 
   const [loading, setLoading] = useState<boolean>(false)
 
@@ -29,7 +29,7 @@ const VehiculeExitDetails = (props: Props) => {
 
       const { invoice, destination } = exit
 
-      let details = ""
+      let exitDetails = ""
 
       const departments = {
         "D01": async () => { // Distribución
@@ -43,10 +43,10 @@ const VehiculeExitDetails = (props: Props) => {
             // Si no están alguno de estos es por es para devolución
             if (chargePlan && calculatedNetWeight && chargeDestination) {
               
-              details = `PLAN DE CARGA: ${chargePlan}\nPESO DE CARGA: ${calculatedNetWeight}\nDESTINO DE CARGA: ${chargeDestination}`
+              exitDetails = `PLAN DE CARGA: ${chargePlan}\nPESO DE CARGA: ${calculatedNetWeight}\nDESTINO DE CARGA: ${chargeDestination}`
 
             } else {
-              details = "TIKET DE SALIDA: PARA DEVOLUCION."
+              exitDetails = "TIKET DE SALIDA: PARA DEVOLUCION."
             }
           }
         },
@@ -60,13 +60,13 @@ const VehiculeExitDetails = (props: Props) => {
 
           const density = getDensity()
 
-          details = `${invoice ? `FACTURA: ${invoice}\n` : ""}${density ? `DENSIDAD: ${density}` : ""}`
+          exitDetails = `${invoice ? `FACTURA: ${invoice}\n` : ""}${density ? `DENSIDAD: ${density}` : ""}`
         },
         "D03": async () => { // Servicios Generales
-          details = `${invoice ? `FACTURA: ${invoice}` : ""}`
+          exitDetails = `${invoice ? `FACTURA: ${invoice}` : ""}`
         },
         "D04": async () => { // Almacén
-          details = `${invoice ? `FACTURA: ${invoice}` : ""}`
+          exitDetails = `${invoice ? `FACTURA: ${invoice}` : ""}`
         },
         "D05": async () => { // Materiales
           const getMaterial = () => {
@@ -76,16 +76,16 @@ const VehiculeExitDetails = (props: Props) => {
           }
 
           const material = getMaterial()
-          details = `${material ? `TIPO DE MATERIAL: ${material}` : ""}`
+          exitDetails = `${material ? `TIPO DE MATERIAL: ${material}` : ""}`
         },
         "D07": async () => { //Otros Servicios
-          details = `${OS_AUTHORIZATION ? `AUTORIZACION SALIDA: ${OS_AUTHORIZATION}` : ""}`
+          exitDetails = `${OS_AUTHORIZATION ? `AUTORIZACION SALIDA: ${OS_AUTHORIZATION}` : ""}`
         },
       }
 
       await departments[destination]()
 
-      if (details === "") {
+      if (exitDetails === "") {
         handleAlert.open({
           type: "warning",
           title: "Sin contenido",
@@ -93,7 +93,7 @@ const VehiculeExitDetails = (props: Props) => {
         })
       }
 
-      setSelectedExit((exit) => ({ ...exit, details }))
+      setSelectedExit((exit) => ({ ...exit, exitDetails }))
 
       setLoading(false)
 
@@ -107,8 +107,8 @@ const VehiculeExitDetails = (props: Props) => {
     <div className="VehiculeExitDetails">
       <Button loading={loading} onClick={getDetails}>Generar Observaciones</Button>
       <Textarea
-        id="details"
-        value={details}
+        id="exitDetails"
+        value={exitDetails}
         title="Observaciones de salida"
         className="h-60"
         onChange={handleChange}

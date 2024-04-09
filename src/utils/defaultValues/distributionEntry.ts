@@ -31,6 +31,7 @@ const distributionEntry: DistributionEntry = {
   aditionalWeight: 0,
   aditionalWeightDescription: "",
   exitAuthorization: "",
+  returned: false,
 }
 
 export default distributionEntry;
