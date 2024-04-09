@@ -91,8 +91,8 @@ const SearchTransport = ({ showModal, setModal, selectedTransport, setSelectedTr
             </thead>
             <tbody>
               {
-                transports.map((transport) =>
-                  <TransportRows {...{ transport, selectedTransport, setSelectedTransport }} />
+                transports.map((transport, i) =>
+                  <TransportRows key={i} {...{ transport, selectedTransport, setSelectedTransport }} />
                 )
               }
             </tbody>
