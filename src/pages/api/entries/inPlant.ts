@@ -99,6 +99,9 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
         entryDetails: ENT_ENTRY?.ENT_OBS || "",
         exitDetails:  "",
         weightDifference: 0,
+        palletWeight: entry.ENT_DI_PPA,
+        palletsQuatity: entry.ENT_DI_CPA,
+        aditionalWeight: entry.ENT_DI_PAD,
         aboutToLeave: Boolean(ENT_FLW === 2),
       })
     }

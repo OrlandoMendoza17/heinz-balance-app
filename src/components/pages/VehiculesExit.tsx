@@ -18,6 +18,7 @@ import { createNewEntryDifference, getDistEntries, getEntriesInPlant, getEntry, 
 import VehiculeExitDetails from './VehiculeExitDetails'
 import PDFRender from '../widgets/PDF'
 import ConfirmModal from '../widgets/ConfirmModal'
+import readWeightFromBalance from '@/utils'
 
 type Props = {
   showModal: boolean,
@@ -48,11 +49,13 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
   const [alert, handleAlert] = useNotification()
   const [confirm, handleConfirm] = useNotification()
-  
+
   const [loading, setLoading] = useState<boolean>(false)
 
+  const [disableWeight, setDisableWeight] = useState<boolean>(true)
   const [rendered, setRendered] = useState<boolean>(false)
 
+  const [weightRead, setWeightRead] = useState<boolean>(false)
   const [isDifference, setIsDifference] = useState<boolean>(false)
 
   const [OS_AUTHORIZATION, setOS_AUTHORIZATION] = useState<string>("")
@@ -88,6 +91,9 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
     invoice: null,
     entryDetails: "",
     exitDetails: "",
+    palletWeight: 0,
+    palletsQuatity: 0,
+    aditionalWeight: 0,
     weightDifference: 0,
     aboutToLeave: false,
   })
@@ -131,21 +137,38 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
     })()
   }, [exit])
 
-  const handleOpenModal: FormEventHandler<HTMLFormElement> = (event) =>{
+  const { palletWeight, palletsQuatity, aditionalWeight } = selectedExit
+  const { entryNumber, vehicule, driver, entryDate, destination, origin, action } = selectedExit
+  const { truckWeight, grossWeight, netWeight, calculatedNetWeight, exitDetails, entryDetails } = selectedExit
+
+  const allPalletWeight = (palletWeight ? (palletWeight * palletsQuatity) : 0)
+  
+  const expectedWeight = calculatedNetWeight + allPalletWeight + aditionalWeight
+  
+  const handleOpenModal: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault()
-    
+
     const exitMessage = "¿Estás seguro de que quieres darle salida al vehículo?"
     const returnMessage = '¿Estás seguro de que quieres devolver el vehículo a "Despacho"?'
-    
-    !isDifference ? handleSubmit : handleReturnVehicule
-    
-    handleConfirm.open({
-      type: "warning",
-      title: "Advertencia",
-      message: !isDifference ? exitMessage : returnMessage
-    })
+    if (weightRead) {
+
+      !isDifference ? handleSubmit : handleReturnVehicule
+
+      handleConfirm.open({
+        type: "warning",
+        title: "Advertencia",
+        message: !isDifference ? exitMessage : returnMessage
+      })
+
+    } else {
+      handleAlert.open({
+        type: "warning",
+        title: "Peso no ingresado",
+        message: "Debe leer el peso del vehículo para continuar con el proceso"
+      })
+    }
   }
-  
+
   const handleSubmit = async () => {
     if (!isDifference) {
       try {
@@ -343,51 +366,78 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
   }
 
-  const heightReading = (READ_WEIGHT: number = 0) => {
+  const heightReading = (READ_WEIGHT: number) => {
 
-    setIsDifference(false)
+    if (!Number.isNaN(READ_WEIGHT)) {
 
-    let DIFFERENCE = 0
-    // const READ_WEIGHT = 37302
+      setWeightRead(true)
+      setIsDifference(false)
 
-    const grossWeight = READ_WEIGHT
+      debugger
 
-    const TOLERANCE = 150
-    const CHARGED_TRUCK_WEIGHT = (truckWeight + calculatedNetWeight)
+      let DIFFERENCE = 0
+      // const READ_WEIGHT = 37302
 
-    const MAXIMUM_TOLERABLE_WEIGHT = TOLERANCE + CHARGED_TRUCK_WEIGHT
-    const MINIMUM_TOLERABLE_WEIGHT = CHARGED_TRUCK_WEIGHT - TOLERANCE
+      READ_WEIGHT = (READ_WEIGHT < 0) ? 0 : READ_WEIGHT
 
-    if (
-      destination === "D01" &&
-      (READ_WEIGHT < MINIMUM_TOLERABLE_WEIGHT || READ_WEIGHT > MAXIMUM_TOLERABLE_WEIGHT)
-    ) {
+      const TOLERANCE = 150
+      const CHARGED_TRUCK_WEIGHT = (truckWeight + expectedWeight)
 
-      setIsDifference(true)
+      const MAXIMUM_TOLERABLE_WEIGHT = TOLERANCE + CHARGED_TRUCK_WEIGHT
+      const MINIMUM_TOLERABLE_WEIGHT = CHARGED_TRUCK_WEIGHT - TOLERANCE
 
-      DIFFERENCE = READ_WEIGHT - CHARGED_TRUCK_WEIGHT
+      debugger
+      if (
+        destination === "D01" &&
+        (READ_WEIGHT < MINIMUM_TOLERABLE_WEIGHT || READ_WEIGHT > MAXIMUM_TOLERABLE_WEIGHT)
+      ) {
 
+        setIsDifference(true)
+
+        DIFFERENCE = READ_WEIGHT - CHARGED_TRUCK_WEIGHT
+
+        handleAlert.open(({
+          type: "warning",
+          title: "Diferencia de Peso",
+          message: `Se ha detectado una diferencia con respecto al peso neto calculado de ${DIFFERENCE} KG"`,
+        }))
+      }
+
+      setSelectedExit({
+        ...selectedExit,
+        weightDifference: DIFFERENCE,
+        grossWeight: READ_WEIGHT,
+        netWeight: Math.abs(READ_WEIGHT - truckWeight)
+      })
+
+    } else {
+      setSelectedExit({
+        ...selectedExit,
+        grossWeight: READ_WEIGHT,
+      })
+    }
+  }
+
+  const handleWeightReading: MouseEventHandler<HTMLButtonElement> = async () => {
+    try {
+
+      const truckWeight = await readWeightFromBalance()
+
+      if (truckWeight === undefined) {
+        throw Error("La lectura del peso es undefined")
+      }
+
+      heightReading(truckWeight ? truckWeight : 0)
+
+    } catch (error) {
       handleAlert.open(({
         type: "warning",
-        title: "Diferencia de Peso",
-        message: `Se ha detectado una diferencia con respecto al peso neto calculado de ${DIFFERENCE} KG"`,
+        title: "Lectura de peso",
+        message: "Hay un problema leyendo el peso de la balanza, intentelo de nuevo",
       }))
     }
-
-    setSelectedExit({
-      ...selectedExit,
-      weightDifference: DIFFERENCE,
-      grossWeight,
-      netWeight: Math.abs(grossWeight - truckWeight)
-    })
   }
-
-  const handleWeightReading: MouseEventHandler<HTMLButtonElement> = () => {
-    heightReading(21372.25 + 16130)
-  }
-
-  const { entryNumber, vehicule, driver, entryDate, destination, origin, exitDetails, entryDetails, truckWeight, grossWeight, netWeight, calculatedNetWeight, action } = selectedExit
-
+  
   console.log('entryDate', entryDate)
   console.log('entryDate', getCuteFullDate(entryDate))
 
@@ -436,8 +486,8 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
             {
               destination === "D01" &&
               <li className={`${isDifference ? "bg-yellow-300" : "bg-emerald-300"} p-2`}>
-                <span className="font-bold block">Peso Neto Calculado:</span>
-                {calculatedNetWeight}
+                <span className="font-bold block">Peso Estimado de Carga:</span>
+                {expectedWeight}
               </li>
             }
             <li className="bg-sky-100 p-2">
@@ -461,7 +511,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
               </span>
             </div>
             <span className="pb-3 text-lg">=</span>
-            <div className="grid grid-cols-[17rem_6rem] items-end mt-5">
+            <div className="grid grid-cols-[17rem_6rem] items-end mt-5 relative">
               <Input
                 id="grossWeight"
                 value={grossWeight}
@@ -469,8 +519,11 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
                 className={`!rounded-r-none font-semibold`}
                 title="Peso Bruto (Salida):"
                 placeholder="0.00"
-                // disabled={true}
-                onChange={({ currentTarget }) => heightReading(parseFloat(currentTarget.value))}
+                disabled={disableWeight}
+                onChange={({ currentTarget }) => {
+                  debugger
+                  heightReading(parseFloat(currentTarget.value))
+                }}
               />
               <Button
                 onClick={handleWeightReading}
@@ -478,6 +531,13 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
               >
                 Leer
               </Button>
+              <button
+                type="button"
+                onClick={() => setDisableWeight(!disableWeight)}
+                className={`create-btn ${!disableWeight ? "!bg-red-400 !text-black font-bold" : ""}`}
+              >
+                Habilitar Peso
+              </button>
             </div>
           </div>
 

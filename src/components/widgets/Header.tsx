@@ -18,32 +18,32 @@ type Props = {
 }
 
 const Header = ({ refreshEntries }: Props) => {
-  
+
   const [, credentials] = useAuth()
   const [showModal, setModal] = useState<boolean>(false)
-  
+
   const navList: NavbarListItem[] = [
     {
       title: "Procesar Entrada de Vehículo",
       Icon: FaFilePen,
-      handleClick: () =>{
+      handleClick: () => {
         setModal(true)
       }
     },
     {
       title: "Procesar Salida de Vehículo",
       Icon: FaQuestion,
-      handleClick: () =>{}
+      handleClick: () => { }
     },
     {
       title: "Procesar Entrada de Vehículo",
       Icon: LiaListAlt,
-      handleClick: () =>{}
+      handleClick: () => { }
     },
     {
       title: "Procesar Entrada de Vehículo",
       Icon: FaTruck,
-      handleClick: () =>{}
+      handleClick: () => { }
     },
     {
       title: "Recargar entradas en planta",
@@ -51,9 +51,9 @@ const Header = ({ refreshEntries }: Props) => {
       handleClick: refreshEntries,
     },
   ]
-  
+
   const { nombre } = credentials.user
-  
+
   return (
     <>
       <header className="Header">
@@ -66,17 +66,14 @@ const Header = ({ refreshEntries }: Props) => {
             )}
           </ul>
           <div className="User">
-            <img src="https://media-iad3-2.cdn.whatsapp.net/v/t61.24694-24/267691681_405490171214648_7716399763638213971_n.jpg?ccb=11-4&oh=01_AdR8trXJHM7UVF-vAIlZGgurc9IdQpMSZn9QMmnA5elnQA&oe=65ED80DC&_nc_sid=e6ed6c&_nc_cat=105" alt="" />
+            <img src="https://cdn.icon-icons.com/icons2/1508/PNG/512/systemusers_104569.png" alt="" />
             <span>Bienvenido <span className="font-bold text-sky-500">{nombre.split(" ")[1]}</span></span>
           </div>
         </nav>
       </header>
-      
-      {
-        showModal &&
-        <VehiculesEntrance {...{ showModal, setModal, refreshEntries }}/>
-      }
-      
+
+      <VehiculesEntrance {...{ showModal, setModal, refreshEntries }} />
+
     </>
   )
 }

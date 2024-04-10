@@ -18,6 +18,8 @@ import { DESTINATIONS } from '@/pages/api/destinations'
 import CreateVehiculeModal from './CreateVehiculeModal'
 import CreateDriverModal from './CreateDriverModal'
 import ConfirmModal from '../widgets/ConfirmModal'
+import defaultNewEntry from '@/utils/defaultValues/newEntry'
+import readWeightFromBalance from "@/utils/index"
 
 type Props = {
   showModal: boolean,
@@ -44,12 +46,13 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
 
   const [alert, handleAlert] = useNotification()
   const [confirm, handleConfirm] = useNotification()
-  
+
   const [loading, setLoading] = useState<boolean>(false)
 
   const [showVehiculeModal, setVehiculeModal] = useState<boolean>(false)
   const [showDriverModal, setDriverModal] = useState<boolean>(false)
 
+  const [disableWeight, setDisableWeight] = useState<boolean>(true)
   const [disableDriver, setDisableDriver] = useState<boolean>(true)
   const [enableInvoice, setEnableInvoice] = useState<boolean>(false)
 
@@ -58,15 +61,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
   const [driver, setDriver] = useState<Driver>()
   const [vehicule, setVehicule] = useState<Vehicule>()
 
-  const [newEntry, setNewEntry] = useState<NewEntryDto>({
-    destination: "",
-    operation: "",
-    invoice: "",
-    origin: "",
-    truckWeight: 0,
-    details: "",
-    aboutToLeave: false,
-  })
+  const [newEntry, setNewEntry] = useState<NewEntryDto>(defaultNewEntry)
 
   useEffect(() => {
     (async () => {
@@ -126,34 +121,27 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
     })()
   }, [])
 
-  const handleCreateVehicule = async () => {
-    setVehiculeModal(true)
-  }
+  const search = {
+    vehicule: async (vehiculePlate: string) => {
 
-  const handleCreateDriver = async () => {
-    setDriverModal(true)
-  }
+      // Antes de la busqueda se vuelve undefined para borrar los datos almacenados en el estado
+      setVehicule(undefined)
+      setDriver(undefined)
 
-  const searchVehicule = async (vehiculePlate: string) => {
+      const vehicule = await getVehicule(vehiculePlate)
+      setVehicule(vehicule)
 
-    // Antes de la busqueda se vuelve undefined para borrar los datos almacenados en el estado
-    setVehicule(undefined)
-    setDriver(undefined)
+      const driver = await getDriverFromVehicule(vehicule.id)
+      setDriver(driver)
+    },
+    driver: async (driverID: string) => {
 
-    const vehicule = await getVehicule(vehiculePlate)
-    setVehicule(vehicule)
+      // Antes de la busqueda se vuelve undefined para borrar los datos almacenados en el estado
+      setDriver(undefined)
 
-    const driver = await getDriverFromVehicule(vehicule.id)
-    setDriver(driver)
-  }
-
-  const searchDriver = async (driverID: string) => {
-
-    // Antes de la busqueda se vuelve undefined para borrar los datos almacenados en el estado
-    setDriver(undefined)
-
-    const driver = await getDriver(driverID, "CON_CED")
-    setDriver(driver)
+      const driver = await getDriver(driverID, "CON_CED")
+      setDriver(driver)
+    },
   }
 
   const handleSubmit = async () => {
@@ -167,7 +155,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
       const { DES_COD, OPE_COD }: DestinationSelectValue = JSON.parse(form.get("destination") as string)
 
       let exits = await getEntriesInPlant()
-      exits = exits.filter(({ aboutToLeave }) => aboutToLeave)
+      // exits = exits.filter(({ aboutToLeave }) => aboutToLeave)
 
       if (truckWeight) {
 
@@ -263,7 +251,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
             console.log('entryByDestination', entryByDestination)
 
             const data = await createNewEntry({ entry, entryByDestination })
-            console.log('data', data)
+            // console.log('data', data)
 
             handleAlert.open(({
               type: "success",
@@ -273,6 +261,13 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
 
             await refreshEntries()
 
+            // Resets the modal
+            setVehicule(undefined)
+            setDriver(undefined)
+            setNewEntry(defaultNewEntry)
+            setDisableWeight(true)
+
+            setLoading(false)
             setModal(false)
 
           } else {
@@ -348,14 +343,30 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
     })
   }
 
-  const handleWeightReading = () => {
-    setNewEntry({
-      ...newEntry,
-      truckWeight: 3910,
-    })
+  const handleWeightReading = async () => {
+    try {
+
+      const truckWeight = await readWeightFromBalance()
+
+      if (truckWeight === undefined) {
+        throw Error("La lectura del peso es undefined")
+      }
+
+      setNewEntry({
+        ...newEntry,
+        truckWeight: truckWeight ? truckWeight : 0,
+      })
+
+    } catch (error) {
+      handleAlert.open(({
+        type: "warning",
+        title: "Lectura de peso",
+        message: "Hay un problema leyendo el peso de la balanza, intentelo de nuevo",
+      }))
+    }
   }
-  
-  const handleOpenModal: FormEventHandler<HTMLFormElement> = (event) =>{
+
+  const handleOpenModal: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault()
     handleConfirm.open({
       type: "warning",
@@ -383,8 +394,8 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
               title="Placa del Vehículo"
               placeholder="A7371V"
               createButton="Crear Vehículo"
-              handleCreateButton={handleCreateVehicule}
-              searchInfo={searchVehicule}
+              handleCreateButton={() => setVehiculeModal(true)}
+              searchInfo={search.vehicule}
             />
             {
               <span className="self-end pb-4 text-secondary">
@@ -403,9 +414,9 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
               title="Cédula del Chofer"
               placeholder="27313279"
               createButton="Crear Chofer"
-              handleCreateButton={handleCreateDriver}
+              handleCreateButton={() => setDriverModal(true)}
               disabled={disableDriver}
-              searchInfo={searchDriver}
+              searchInfo={search.driver}
             />
             {
               <span className="self-end pb-4 text-secondary">
@@ -425,7 +436,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
             placeholder="VALENCIA"
             onChange={handleChange}
           />
-          
+
           <Select
             name="destination"
             title="Destino"
@@ -434,16 +445,16 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
             onChange={handleChange}
           />
 
-          <div className="grid grid-cols-[1fr_auto] items-end">
+          <div className="grid grid-cols-[1fr_auto] items-end relative">
             <Input
               id="truckWeight"
               value={truckWeight}
               type='number'
               className="w-full !rounded-r-none"
-              title="Peso Tara"
+              title="Peso Tara (kg)"
               placeholder="0.00"
               min={1}
-              disabled={true}
+              disabled={disableWeight}
               onChange={handleChange}
             />
             <Button
@@ -453,6 +464,13 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
             >
               Leer Peso
             </Button>
+            <button
+              type="button"
+              onClick={() => setDisableWeight(!disableWeight)}
+              className={`create-btn ${!disableWeight ? "!bg-red-400 !text-black font-bold" : ""}`}
+            >
+              Habilitar Peso
+            </button>
           </div>
 
           <div className="pt-12 flex justify-center items-center gap-5">
@@ -493,7 +511,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
               <span>Devolución</span>
             </label>
           </div>
-          
+
           {
             enableInvoice &&
             <Input

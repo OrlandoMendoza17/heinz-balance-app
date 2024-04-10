@@ -32,10 +32,15 @@ const Despacho = () => {
         setLoading(true)
 
         const entries = await getFormattedDistEntries(ENTRIES_TYPE)
-        setEntries(entries)
+        setEntries(entries.map(({ entryDate, ...rest }) => (
+          {
+            ...rest,
+            entryDate: entryDate.replace("T", " ").replace("Z", "")
+          }
+        )))
 
         setLoading(false)
-        
+
       } catch (error) {
         setLoading(false)
         console.log(error)
@@ -58,20 +63,23 @@ const Despacho = () => {
           loading ?
             <Spinner size="normal" />
             :
-            <TableDistribution ENTRIES_TYPE={ENTRIES_TYPE}>
-              {
-                entries.map((entry, i) =>
-                  <TRDistEntries
-                    key={i}
-                    setModal={setModal}
-                    setSelectedEntry={setSelectedEntry}
-                    entry={entry}
-                    ENTRIES_TYPE={ENTRIES_TYPE}
-                    setEditEntries={setEditEntries}
-                  />
-                )
-              }
-            </TableDistribution>
+            <section className="pt-7">
+              <h1 className="text-2xl font-bold">Vehículos en Despacho</h1>
+              <TableDistribution ENTRIES_TYPE={ENTRIES_TYPE}>
+                {
+                  entries.map((entry, i) =>
+                    <TRDistEntries
+                      key={i}
+                      setModal={setModal}
+                      setSelectedEntry={setSelectedEntry}
+                      entry={entry}
+                      ENTRIES_TYPE={ENTRIES_TYPE}
+                      setEditEntries={setEditEntries}
+                    />
+                  )
+                }
+              </TableDistribution>
+            </section>
         }
       </main>
       <DistributionDetails {...{

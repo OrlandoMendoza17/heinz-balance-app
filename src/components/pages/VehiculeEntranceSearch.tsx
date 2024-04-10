@@ -12,7 +12,7 @@ type Props = {
   title: string,
   placeholder: string,
   createButton: string,
-  handleCreateButton: () => Promise<void>,
+  handleCreateButton: () => void,
   searchInfo: (searchValue: string) => Promise<void>,
   disabled?: boolean,
 }

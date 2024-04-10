@@ -35,14 +35,14 @@ const DEPARTMENT_AREAS = {
 const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEntries = false, handleAlert, setEntries }: Props) => {
 
   const router = useRouter()
-  
-  const [confirm, handleConfirm]= useNotification()
+
+  const [confirm, handleConfirm] = useNotification()
   const [loading, setLoading] = useState<boolean>(false)
-  
+
   const [selectedEntry, setSelectedEntry] = useState<DistributionEntry>(distributionEntry)
-  
+
   const [entryDif, setEntryDif] = useState<EntryDif>()
-  
+
   useEffect(() => {
     (async () => {
       setSelectedEntry(entry)
@@ -138,7 +138,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
         title: "Actualización de entrada",
         message: `Se ha guardados los datos de la entrada exitosamente y se ha mandado a "${DEPARTMENT_AREAS[ENTRIES_TYPE]}"`,
       }))
-      
+
       setLoading(false)
       setModal(false)
 
@@ -161,19 +161,19 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
       [target.name]: target.value
     })
   }
-  
 
-  const handleOpenModal: FormEventHandler<HTMLFormElement> = (event) =>{
+
+  const handleOpenModal: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault()
     type routes = "vehiculos" | "despacho"
-    
+
     const name = router.pathname.replace("/distribucion/", "") as routes
-    
+
     const direction = {
       vehiculos: "Despacho",
       despacho: "Por salir",
     }
-    
+
     console.log('router', router)
     handleConfirm.open({
       type: "warning",
@@ -181,7 +181,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
       message: `¿Estás seguro de que quieres mandar el transporte a "${direction[name]}"?`
     })
   }
-  
+
   return (
     <>
       <Modal className="py-10 !items-baseline overflow-auto !grid-cols-[minmax(auto,_950px)]" {...{ showModal, setModal }}>
@@ -191,11 +191,11 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
           {
             returned &&
             <div className="bg-red-300 border-red-500 text-red-700 font-bold border-2 p-7 rounded-2xl flex gap-3 content-center">
-              <IoWarning size={20} className="fill-red-700"/>
-              <p>El Vehículo fue devuelto debido a una diferencia en el peso {entryDif ? `de ${entryDif.weightDifference} KG`: ""}  </p>
+              <IoWarning size={20} className="fill-red-700" />
+              <p>El Vehículo fue devuelto debido a una diferencia en el peso {entryDif ? `de ${entryDif.weightDifference} KG` : ""}  </p>
             </div>
           }
-          
+
           Datos Básicos
 
           <ul className="grid grid-cols-3 gap-5">
@@ -239,32 +239,16 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
 
           Entrada a Distribución
 
+
           <ul className="grid grid-cols-3 gap-5">
             <li className="bg-sky-50 p-2">
-              <span className="font-semibold">Cantidad de Paletas: </span>
-              {
-                DESPATCH_ENABLED_EDIT ?
-                  <Input type="number" onChange={handleChange} className="block" id="palletsQuatity" value={selectedEntry.palletsQuatity || 0} />
-                  :
-                  <p>{selectedEntry.palletsQuatity}</p>
-              }
+              <span className="font-semibold">Nota de Despacho: </span>
+              <p>{selectedEntry.dispatchNote}</p>
             </li>
 
             <li className="bg-sky-50 p-2">
-              <span className="font-semibold">Control de Paleta: </span>
-              {
-                DESPATCH_ENABLED_EDIT ?
-                  <Input
-                    type="text"
-                    onChange={handleChange}
-                    className="block"
-                    id="palletChargePlan"
-                    value={selectedEntry.palletChargePlan || ""}
-                    required={false}
-                  />
-                  :
-                  <p>{selectedEntry.palletChargePlan}</p>
-              }
+              <span className="font-semibold">Número de Guía: </span>
+              <p>{selectedEntry.guideNumber}</p>
             </li>
 
             <li className="bg-sky-50 p-2">
@@ -283,24 +267,48 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
                   <p>{selectedEntry.chargePlan}</p>
               }
             </li>
-
+            
             <li className="bg-sky-50 p-2">
-              <span className="font-semibold">Nota de Despacho: </span>
-              <p>{selectedEntry.dispatchNote}</p>
-            </li>
-
-            <li className="bg-sky-50 p-2">
-              <span className="font-semibold">Número de Guía: </span>
-              <p>{selectedEntry.guideNumber}</p>
-            </li>
-
-            <li className="bg-sky-50 p-2">
-              <span className="font-semibold">Peso Neto Calculado: </span>
+              <span className="font-semibold">Control de Paleta: </span>
               {
                 DESPATCH_ENABLED_EDIT ?
-                  <Input type="number" onChange={handleChange} className="block" id="calculatedNetWeight" value={selectedEntry.calculatedNetWeight || 0} />
+                  <Input
+                    type="text"
+                    onChange={handleChange}
+                    className="block"
+                    id="palletChargePlan"
+                    value={selectedEntry.palletChargePlan || ""}
+                    required={false}
+                  />
                   :
-                  <p>{selectedEntry.calculatedNetWeight}</p>
+                  <p>{selectedEntry.palletChargePlan}</p>
+              }
+            </li>
+            
+            <li className="bg-sky-50 p-2">
+              <span className="font-semibold">Cantidad de Paletas: </span>
+              {
+                DESPATCH_ENABLED_EDIT ?
+                  <Input type="number" onChange={handleChange} className="block" id="palletsQuatity" value={selectedEntry.palletsQuatity || 0} />
+                  :
+                  <p>{selectedEntry.palletsQuatity}</p>
+              }
+            </li>
+  
+            <li className="bg-sky-50 p-2">
+              <span className="font-semibold">Autorización de Salida:</span>
+              {
+                DESPATCH_ENABLED_EDIT ?
+                  <Input
+                    type="text"
+                    id="exitAuthorization"
+                    onChange={handleChange}
+                    className="block"
+                    value={selectedEntry.exitAuthorization || ""}
+                    required={false}
+                  />
+                  :
+                  <p>{selectedEntry.exitAuthorization}</p>
               }
             </li>
 
@@ -325,25 +333,18 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
             </li>
 
             <li className="bg-sky-50 p-2">
-              <span className="font-semibold">Destino de Carga: </span>
-              <p>{selectedEntry.chargeDestination}</p>
+              <span className="font-semibold">Peso Neto Calculado: </span>
+              {
+                DESPATCH_ENABLED_EDIT ?
+                  <Input type="number" onChange={handleChange} className="block" id="calculatedNetWeight" value={selectedEntry.calculatedNetWeight || 0} />
+                  :
+                  <p>{selectedEntry.calculatedNetWeight}</p>
+              }
             </li>
 
             <li className="bg-sky-50 p-2">
-              <span className="font-semibold">Autorización de Salida:</span>
-              {
-                DESPATCH_ENABLED_EDIT ?
-                  <Input
-                    type="text"
-                    id="exitAuthorization"
-                    onChange={handleChange}
-                    className="block"
-                    value={selectedEntry.exitAuthorization || ""}
-                    required={false}
-                  />
-                  :
-                  <p>{selectedEntry.exitAuthorization}</p>
-              }
+              <span className="font-semibold">Destino de Carga: </span>
+              <p>{selectedEntry.chargeDestination}</p>
             </li>
 
             <li className="bg-sky-50 p-2">

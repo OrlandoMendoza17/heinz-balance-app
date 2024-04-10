@@ -51,6 +51,9 @@ type Exit = {
   entryDetails: string,
   exitDetails: string,
   weightDifference: number,
+  palletWeight: P_ENT_DI["ENT_DI_PPA"],
+  palletsQuatity: P_ENT_DI["ENT_DI_CPA"],
+  aditionalWeight: P_ENT_DI["ENT_DI_PAD"],
   aboutToLeave: boolean,
 }
 

@@ -45,6 +45,9 @@ const Romana = () => {
     entryDetails: "",
     exitDetails: "",
     invoice: "",
+    palletWeight: 0,
+    palletsQuatity: 0,
+    aditionalWeight: 0,
     aboutToLeave: false,
   })
 
@@ -65,7 +68,6 @@ const Romana = () => {
             entryDate: entryDate.replace("T", " ").replace("Z", "")
           }
         ))
-          .filter(({ aboutToLeave }) => aboutToLeave)
       )
       // setEntries(entries)
 
@@ -81,15 +83,17 @@ const Romana = () => {
       }))
     }
   }
+  
+  const leavingExits = exits.filter(({ aboutToLeave }) => aboutToLeave)
 
   return (
     <>
       <Header refreshEntries={getEntries} />
       <main className="Romana">
         {
-          (!exits.length && !loading) &&
+          (!leavingExits.length && !loading) &&
           <NoEntries
-            message='En estos momentos no hay níngun camión registrado en la planta'
+            message='En estos momentos no hay níngun camión por salir en la planta'
           />
         }
         {
@@ -111,7 +115,7 @@ const Romana = () => {
               </thead>
               <tbody>
                 {
-                  exits.map((exit, i) =>
+                  leavingExits.map((exit, i) =>
                     <TableVehicules
                       key={i}
                       setModal={setModal}
