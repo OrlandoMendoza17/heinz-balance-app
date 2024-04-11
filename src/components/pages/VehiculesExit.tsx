@@ -41,7 +41,7 @@ type TABLE_VALUES = {
 type ChargeTypes = "KG" | "LTS"
 type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
 
-const { CARGA } = ACTION
+const { CARGA, TICKET_DE_SALIDA, DEVOLUCION } = ACTION
 
 const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
@@ -142,9 +142,9 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
   const { truckWeight, grossWeight, netWeight, calculatedNetWeight, exitDetails, entryDetails } = selectedExit
 
   const allPalletWeight = (palletWeight ? (palletWeight * palletsQuatity) : 0)
-  
+
   const expectedWeight = calculatedNetWeight + allPalletWeight + aditionalWeight
-  
+
   const handleOpenModal: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault()
 
@@ -373,7 +373,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
       setWeightRead(true)
       setIsDifference(false)
 
-      debugger
+      const { action } = selectedExit
 
       let DIFFERENCE = 0
       // const READ_WEIGHT = 37302
@@ -389,6 +389,8 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
       debugger
       if (
         destination === "D01" &&
+        action !== DEVOLUCION &&
+        action !== TICKET_DE_SALIDA &&
         (READ_WEIGHT < MINIMUM_TOLERABLE_WEIGHT || READ_WEIGHT > MAXIMUM_TOLERABLE_WEIGHT)
       ) {
 
@@ -437,7 +439,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
       }))
     }
   }
-  
+
   console.log('entryDate', entryDate)
   console.log('entryDate', getCuteFullDate(entryDate))
 
@@ -485,6 +487,8 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
             </li>
             {
               destination === "D01" &&
+              action !== DEVOLUCION &&
+              action !== TICKET_DE_SALIDA &&
               <li className={`${isDifference ? "bg-yellow-300" : "bg-emerald-300"} p-2`}>
                 <span className="font-bold block">Peso Estimado de Carga:</span>
                 {expectedWeight}

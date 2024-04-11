@@ -4,6 +4,7 @@ import Button from '../widgets/Button'
 import { getFormattedDistEntries } from '@/services/entries'
 import { SelectOptions } from '../widgets/Select'
 import { HandleNotification } from '@/hooks/useNotification'
+import { ACTION } from '@/lib/enums'
 
 type Props = {
   exit: Exit,
@@ -36,17 +37,23 @@ const VehiculeExitDetails = (props: Props) => {
 
           const entries = await getFormattedDistEntries("aboutToLeave")
           const distEntry = entries.find(({ entryNumber }) => exit.entryNumber === entryNumber)
-
+          
           if (distEntry) {
             const { chargePlan, calculatedNetWeight, chargeDestination } = distEntry
 
             // Si no están alguno de estos es por es para devolución
             if (chargePlan && calculatedNetWeight && chargeDestination) {
-              
+
               exitDetails = `PLAN DE CARGA: ${chargePlan}\nPESO DE CARGA: ${calculatedNetWeight}\nDESTINO DE CARGA: ${chargeDestination}`
 
-            } else {
+            } else if (exit.action === ACTION.DEVOLUCION) {
+              
               exitDetails = "TIKET DE SALIDA: PARA DEVOLUCION."
+              
+            } else if (exit.action === ACTION.TICKET_DE_SALIDA) {
+              
+              exitDetails = "TIKET DE SALIDA: SIN CARGA."
+              
             }
           }
         },

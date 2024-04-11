@@ -86,15 +86,18 @@ const Vehiculos = () => {
             </section>
         }
       </main>
-      <DistributionDetails {...{
-        showModal,
-        setModal,
-        entry: selectedEntry,
-        ENTRIES_TYPE,
-        editEntries,
-        handleAlert,
-        setEntries,
-      }} />
+      {
+        showModal &&
+        <DistributionDetails {...{
+          showModal,
+          setModal,
+          entry: selectedEntry,
+          ENTRIES_TYPE,
+          editEntries,
+          handleAlert,
+          setEntries,
+        }} />
+      }
       <NotificationModal alertProps={[alert, handleAlert]} />
     </div>
   )

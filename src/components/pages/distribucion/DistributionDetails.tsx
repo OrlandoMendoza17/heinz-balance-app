@@ -5,6 +5,7 @@ import Input from '@/components/widgets/Input'
 import Modal from '@/components/widgets/Modal'
 import Textarea from '@/components/widgets/Textarea'
 import useNotification, { HandleNotification } from '@/hooks/useNotification'
+import { ACTION } from '@/lib/enums'
 import { getChargePlan } from '@/services/chargePlan'
 import { EntriesType, getEntry, getEntryDifference, updateDistEntry, updateEntry } from '@/services/entries'
 import { getMaterials } from '@/services/materials'
@@ -39,6 +40,8 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
   const [confirm, handleConfirm] = useNotification()
   const [loading, setLoading] = useState<boolean>(false)
 
+  const [exitTicketEnabled, setExitTicketEnabled] = useState<boolean>(false)
+
   const [selectedEntry, setSelectedEntry] = useState<DistributionEntry>(distributionEntry)
 
   const [entryDif, setEntryDif] = useState<EntryDif>()
@@ -56,6 +59,8 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
   }, [entry])
 
   const BOTH_ENABLED_EDIT = ((ENTRIES_TYPE === "initial" || ENTRIES_TYPE === "dispatch") && editEntries)
+
+  const INITIAL_ENABLED_EDIT = (ENTRIES_TYPE === "initial" && editEntries)
   const DESPATCH_ENABLED_EDIT = (ENTRIES_TYPE === "dispatch" && editEntries)
 
   const handleSubmit = async () => {
@@ -92,7 +97,9 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
         ENT_DI_REV: false,                                           // 1 | 0 (Aparentemente siempre es 0)
       }
 
-      if (BOTH_ENABLED_EDIT) {
+      const { ENT_NUM, ...rest } = await getEntry(entryNumber)
+      
+      if (BOTH_ENABLED_EDIT && !exitTicketEnabled) {
         const chargePlanInfo = await getChargePlan(chargePlan as string)
 
         const chargePlanNumber = chargePlanInfo.number.toString()
@@ -113,9 +120,18 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
           distEntry.ENT_DI_PAL = chargePlanNumber;
         }
       }
+      
+      if(INITIAL_ENABLED_EDIT && exitTicketEnabled){
+        const udpatedEntry: UpdateP_ENT = {
+          ...rest,
+          ENT_FLW: 2, // La asignación de este valor indica que lo manda a "por salir"
+          ENT_FLW_ACC: ACTION.TICKET_DE_SALIDA, // La asignación de TICKET_DE_SALIDA
+        }
 
+        await updateEntry(entryNumber, udpatedEntry)
+      }
+      
       if (DESPATCH_ENABLED_EDIT) {
-        const { ENT_NUM, ...rest } = await getEntry(entryNumber)
 
         const udpatedEntry: UpdateP_ENT = {
           ...rest,
@@ -126,7 +142,6 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
       }
 
       console.log('distEntry', distEntry)
-      debugger
       await updateDistEntry(distEntry)
 
       setEntries((entries) =>
@@ -155,13 +170,20 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
 
   const { entryNumber, vehicule, driver, entryDate, entryDetails, origin, truckWeight, returned } = selectedEntry
 
-  const handleChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = ({ target }) => {
-    setSelectedEntry({
-      ...selectedEntry,
-      [target.name]: target.value
-    })
-  }
+  const handleChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = ({ target, currentTarget }) => {
+    debugger
+    if (target.name === "exit-ticket") {
+      
+      const checkbox = target as HTMLInputElement
+      setExitTicketEnabled(checkbox.checked)
 
+    } else {
+      setSelectedEntry({
+        ...selectedEntry,
+        [target.name]: target.value
+      })
+    }
+  }
 
   const handleOpenModal: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault()
@@ -239,7 +261,6 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
 
           Entrada a Distribución
 
-
           <ul className="grid grid-cols-3 gap-5">
             <li className="bg-sky-50 p-2">
               <span className="font-semibold">Nota de Despacho: </span>
@@ -262,12 +283,13 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
                     className="block"
                     id="chargePlan"
                     value={selectedEntry.chargePlan || ""}
+                    required={!exitTicketEnabled}
                   />
                   :
                   <p>{selectedEntry.chargePlan}</p>
               }
             </li>
-            
+
             <li className="bg-sky-50 p-2">
               <span className="font-semibold">Control de Paleta: </span>
               {
@@ -284,7 +306,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
                   <p>{selectedEntry.palletChargePlan}</p>
               }
             </li>
-            
+
             <li className="bg-sky-50 p-2">
               <span className="font-semibold">Cantidad de Paletas: </span>
               {
@@ -294,7 +316,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
                   <p>{selectedEntry.palletsQuatity}</p>
               }
             </li>
-  
+
             <li className="bg-sky-50 p-2">
               <span className="font-semibold">Autorización de Salida:</span>
               {
@@ -368,7 +390,17 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
               }
             </li>
 
+            {
+              INITIAL_ENABLED_EDIT &&
+              <li className="col-start-3 pr-10 cursor-pointer">
+                <label htmlFor="exit-ticket" className="flex items-center gap-4">
+                  <input id="exit-ticket" name="exit-ticket" type="checkbox" checked={exitTicketEnabled} onChange={handleChange}/>
+                  <span className="font-bold">Emitir Ticket de Salida</span>
+                </label>
+              </li>
+            }
           </ul>
+
           {
             editEntries &&
             <Button className="bg-secondary" type="submit" loading={loading}>

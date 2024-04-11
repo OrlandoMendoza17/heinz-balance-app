@@ -28,6 +28,7 @@ const TRDistEntries = ({ setModal, setSelectedEntry, entry, ENTRIES_TYPE, setEdi
 
   const { entryNumber, driver, vehicule, origin, entryDate, returned } = entry
   console.log('entry', entry)
+  
   return (
     <tr onClick={handleClick} className={`${returned ? "bg-red-400 hover:bg-red-500" : ""}`}>
       <td>{entryNumber}</td>

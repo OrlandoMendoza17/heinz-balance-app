@@ -2,7 +2,9 @@ const readWeightFromBalance = async () => {
 
   let failedAccessWithoutAskPermission = false
   // Solicita permiso al usuario para acceder a los puertos COM.
-
+  
+  let port
+  
   try {
 
     const ports = await navigator.serial.getPorts();
