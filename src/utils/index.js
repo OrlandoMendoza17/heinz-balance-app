@@ -1,25 +1,35 @@
 const readWeightFromBalance = async () => {
 
+  let failedAccessWithoutAskPermission = false
   // Solicita permiso al usuario para acceder a los puertos COM.
 
-  // const port = await navigator.serial.requestPort();
+  try {
 
-  // Enumera los puertos COM disponibles.
+    const ports = await navigator.serial.getPorts();
+    port = ports[0]
 
-  const ports = await navigator.serial.getPorts();
+    // Si no se encuentra ningún puerto COM, muestra un mensaje de error.
 
-  const port = ports[0]
+    if (!ports.length) {
+      console.error('No se encontraron puertos COM disponibles.');
+      return;
+    }
 
-  // Si no se encuentra ningún puerto COM, muestra un mensaje de error.
+    // Abre el puerto COM que deseas usar.
+    await port.open({ baudRate: 9600 });
 
-  if (!ports.length) {
-    console.error('No se encontraron puertos COM disponibles.');
-    return;
+  } catch (error) {
+    console.log('error', error)
+    failedAccessWithoutAskPermission = true
   }
 
-  // Abre el puerto COM que deseas usar.
+  if (failedAccessWithoutAskPermission) {
+    // Enumera los puertos COM disponibles.
+    port = await navigator.serial.requestPort();
 
-  await port.open({ baudRate: 9600 });
+    // Abre el puerto COM que deseas usar.
+    await port.open({ baudRate: 9600 });
+  }
 
   const textDecoder = new TextDecoderStream();
   const readableStreamClosed = port.readable.pipeTo(textDecoder.writable);
