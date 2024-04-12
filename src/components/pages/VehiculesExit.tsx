@@ -1,24 +1,23 @@
-import React, { ChangeEvent, ChangeEventHandler, Dispatch, FormEventHandler, MouseEventHandler, SetStateAction, useEffect, useRef, useState } from 'react'
+import React, { ChangeEventHandler, Dispatch, FormEventHandler, MouseEventHandler, SetStateAction, lazy, useEffect, useRef, useState } from 'react'
 import Select, { SelectOptions } from '../widgets/Select'
-import { getDestination } from '@/services/destination'
 import Modal from '../widgets/Modal'
 import Button from '../widgets/Button'
 import Input from '../widgets/Input'
-import Textarea from '../widgets/Textarea'
 import { getCuteFullDate, getDateTime, shortDate } from '@/utils/parseDate'
 import { ACTION, DESTINATION_BY_CODE } from '@/lib/enums'
 import useNotification from '@/hooks/useNotification'
 import NotificationModal from '../widgets/NotificationModal'
 import { createNewExit } from '@/services/exits'
-import { format } from 'date-fns'
 import Form from '../widgets/Form'
 import { getMaterials } from '@/services/materials'
 import { getDensity } from '@/services/density'
 import { createNewEntryDifference, getDistEntries, getEntriesInPlant, getEntry, getFormattedDistEntries, updateDistEntry, updateEntry } from '@/services/entries'
 import VehiculeExitDetails from './VehiculeExitDetails'
-import PDFRender from '../widgets/PDF'
+import { PDFRenderType } from '../widgets/PDFRender/types/PDFRendeType'
 import ConfirmModal from '../widgets/ConfirmModal'
 import readWeightFromBalance from '@/utils'
+
+const PDFRender = lazy(() => import("../widgets/PDFRender"))
 
 type Props = {
   showModal: boolean,
@@ -44,6 +43,8 @@ type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
 const { CARGA, TICKET_DE_SALIDA, DEVOLUCION } = ACTION
 
 const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
+
+  const [ImportedComponent, setImportedComponent] = useState<PDFRenderType>()
 
   const [authCheck, setAuthCheck] = useState<boolean>(true)
 
@@ -136,6 +137,19 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
       }
     })()
   }, [exit])
+
+
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       const module = await import("../widgets/PDFRender")
+  //       const PDF = module.default
+  //       setImportedComponent(PDF)
+  //     } catch (error) {
+  //       console.log('error', error)
+  //     }
+  //   })()
+  // }, [])
 
   const { palletWeight, palletsQuatity, aditionalWeight } = selectedExit
   const { entryNumber, vehicule, driver, entryDate, destination, origin, action } = selectedExit
@@ -634,6 +648,12 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
       />
     </>
   )
+}
+
+function wait(time: number){
+  return new Promise((resolve)=>{
+    setTimeout(resolve, time)
+  })
 }
 
 export default VehiclesExit

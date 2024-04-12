@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
-import { Document, Text, Page, StyleSheet, Image, View, PDFDownloadLink } from '@react-pdf/renderer'
+import { Document, Text, Page, StyleSheet, View, PDFDownloadLink } from '@react-pdf/renderer'
 import { getCuteFullDate } from '@/utils/parseDate'
+import { PDFProps } from './types/PDFRendeType'
 
 const utils = {
   flexGrow2: {
@@ -131,12 +132,7 @@ const styles = StyleSheet.create({
 
 const { header, dates, weights, details, signatures } = classes
 
-
-type Props = {
-  exit: Exit
-}
-
-const PDF = ({ exit }: Props) => {
+const PDF = ({ exit }: PDFProps) => {
 
   const { entryNumber, vehicule, driver, entryDate, exitDate} = exit
   const { truckWeight, netWeight, grossWeight, entryDetails, exitDetails } = exit
@@ -234,28 +230,4 @@ const PDF = ({ exit }: Props) => {
   )
 }
 
-const PDFUrl = ({ url }: { url: string | null }) => {
-
-  useEffect(() => {
-    if (url)
-      window.open(url, '_blank')
-  }, [])
-
-  return <></>
-}
-
-const PDFRender = ({ exit }: Props) => {
-  return (
-    <PDFDownloadLink document={<PDF {...{ exit }} />} fileName="invoice-heinz.pdf">
-      {
-        ({ loading, url, error, blob }) =>
-          loading ?
-            "Loading..."
-            :
-            <PDFUrl url={url} />
-      }
-    </PDFDownloadLink>
-  )
-}
-
-export default PDFRender
+export default PDF;
