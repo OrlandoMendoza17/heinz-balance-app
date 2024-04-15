@@ -22,21 +22,31 @@ export type Set2FactorAuth = {
 }
 
 class AuthService {
-  login = async (body: LoginRequest) => {
+  login = async (body: User) => {
     const { data } = await axios.post<AuthCredentials>("/api/auth/login", body)
     return data;
   }
-  
+
   getAuthQRCode = async (email: string, token: string) => {
     const config = authorizationConfig(token)
     const { data } = await axios.post<AuthQRCodeResponse>("/api/auth/qrcode", { email }, config)
     return data;
   }
-  
+
   verifyAuthOTP = async (body: VerifyAuthOTP) => {
     debugger
     const { data } = await axios.post<{ verified: boolean }>("/api/auth/verifyAuthOTP", body)
     return data.verified;
+  }
+
+  getUsers = async (email: string = "") => {
+    const { data } = await axios.post<User[]>("/api/auth/users", { email })
+    return email ? data[0] : data
+  }
+  
+  getRol = async (userRolID: S_USU["ROL_COD"]) => {
+    const { data } = await axios.post<S_ROL>("/api/auth/rols", { userRolID })
+    return data.ROL_DES
   }
 }
 

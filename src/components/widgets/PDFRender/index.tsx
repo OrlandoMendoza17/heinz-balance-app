@@ -21,7 +21,7 @@ const PDFRender: PDFRenderType = ({ exit }) => {
 
   return (
     exit &&
-    <PDFDownloadLink document={<PDF {...{ exit }} />} fileName="invoice-heinz.pdf">
+    <PDFDownloadLink document={<PDF {...{ exit }} />} fileName="invoice-heinz.pdf" style={{display: "none"}}>
       {
         ({ loading, url, error, blob }) =>
           loading ?

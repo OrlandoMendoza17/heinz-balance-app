@@ -60,16 +60,24 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
       const vehicule = vehicules.find((vehicule) => vehicule.VEH_ID === VEH_ID)
       const driver = drivers.find((driver) => driver.CON_COD === CON_COD)
 
+      // Trae la información de los transportes de los vehículos
+      const transportQuery = `
+      SELECT * FROM H025_T_TRA 
+      WHERE TRA_COD = ${vehicule?.TRA_COD}
+    `
+
+      const [transports] = await sequelize.query(transportQuery) as [T_TRA[], unknown]
+
       const destinationQuery = getDestinationEntryQuery(DES_COD, ENT_NUM)
 
       const [data] = await sequelize.query(destinationQuery) as [any[], unknown]
 
       const entry = data.find((entry) => entry.ENT_NUM === ENT_NUM)
-      
+
       const ENT_ENTRY = entries.find(({ ENT_NUM }) => entry.ENT_NUM === ENT_NUM)
-      
+
       console.log('ENT_OBS', ENT_ENTRY?.ENT_OBS)
-      
+
       exits.push({
         entryNumber: ENT_NUM,
         driver: {
@@ -83,7 +91,7 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
           model: vehicule?.VEH_MOD || "",
           type: vehicule?.VEH_TIP || "",
           capacity: vehicule?.VEH_CAP || 0,
-          company: vehicule?.TRA_COD || "",
+          company: transports[0].TRA_NOM || "",
         },
         action: ENT_FLW_ACC,
         destination: DES_COD,
@@ -95,15 +103,17 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
         calculatedNetWeight: (entry.ENT_DI_PNC === null) ? 0 : entry.ENT_DI_PNC,
         netWeight: 0,
         operation: OPE_COD,
-        invoice: null,
+        invoice: entry?.ENT_MP_FAC || entry?.ENT_SG_FAC || entry?.ENT_ALM_FAC || null,
         entryDetails: ENT_ENTRY?.ENT_OBS || "",
-        exitDetails:  "",
+        exitDetails: "",
         weightDifference: 0,
         palletWeight: entry.ENT_DI_PPA,
         palletsQuatity: entry.ENT_DI_CPA,
         aditionalWeight: entry.ENT_DI_PAD,
         aboutToLeave: Boolean(ENT_FLW === 2),
       })
+      
+      
     }
 
     response.json(exits)

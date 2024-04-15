@@ -22,7 +22,7 @@ const Button = (props: Props) => {
 
   const { color, loading = false, type = "button", noSpinner = false, className, children, ...buttonProps } = props
 
-  const spinner = noSpinner ? children : <Spinner text size="small" />
+  const spinner = noSpinner ? "Cargando..." : <Spinner text size="small" />
 
   return (
     <button

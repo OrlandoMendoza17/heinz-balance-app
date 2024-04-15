@@ -56,22 +56,36 @@ const Home = () => {
 
       const { name, username } = data.account
 
-      const user = {
+      const foundUser = await auth.getUsers(username) as User
+
+      const user: User = {
+        ...foundUser,
         nombre: name || "",
-        email: username,
-        ficha: "",
       }
 
       const credentials = await auth.login(user)
-      setCookie("login", credentials, 1)
-
+      setCookie("login", credentials, 10)
+     
       handleStatus.open(({
         type: "success",
         title: "Inicio de Sesión",
         message: `Has iniciado sesión exitosamente"`,
       }))
+     
+      if (user.rol === "01" || user.rol === "02" || user.rol === "03") {
+        
+        router.push("/romana")
+        
+      } else if(user.rol === "04") {
+        
+        router.push("/transporte")
+        
+      } else if(user.rol === "05" || user.rol === "06") {
+        
+        router.push("/distribucion/entradas")
+        
+      }
 
-      router.push("/romana")
 
       setLoading(false)
 
@@ -85,12 +99,11 @@ const Home = () => {
       }))
     }
   }
-  
+
   const handleChange: ChangeEventHandler<HTMLInputElement> = ({ currentTarget }) => {
     const { value } = currentTarget
     setEmail(value.trim())
   }
-
 
   return (
     <main className={`LoginForm`}>

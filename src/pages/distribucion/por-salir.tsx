@@ -9,6 +9,7 @@ import Spinner from '@/components/widgets/Spinner';
 import TableDistribution from '@/components/pages/distribucion/TableDistribution';
 import DistributionDetails from '@/components/pages/distribucion/DistributionDetails';
 import distributionEntry from '@/utils/defaultValues/distributionEntry';
+import DistribucionHeader from '@/components/widgets/Header/DistribucionHeader';
 
 const ENTRIES_TYPE: EntriesType = "aboutToLeave"
 
@@ -55,49 +56,52 @@ const PorSalir = () => {
 
 
   return (
-    <div className="Distribucion">
-      <DistributionAside />
-      <main className="grid justify-center">
-        {
-          (!entries.length && !loading) &&
-          <NoEntries
-            message='En estos momentos no hay níngun camión registrado que se encuentre por salir del área de distribución'
-          />
-        }
-        {
-          loading ?
-            <Spinner size="normal" />
-            :
-            <section className="pt-7">
-              <h1 className="text-2xl font-bold">Vehículos por salir</h1>
-              <TableDistribution ENTRIES_TYPE={ENTRIES_TYPE}>
-                {
-                  entries.map((entry, i) =>
-                    <TRDistEntries
-                      key={i}
-                      setModal={setModal}
-                      setSelectedEntry={setSelectedEntry}
-                      entry={entry}
-                      ENTRIES_TYPE={ENTRIES_TYPE}
-                      setEditEntries={setEditEntries}
-                    />
-                  )
-                }
-              </TableDistribution>
-            </section>
-        }
-      </main>
-      <DistributionDetails {...{
-        showModal,
-        setModal,
-        entry: selectedEntry,
-        ENTRIES_TYPE,
-        editEntries,
-        handleAlert,
-        setEntries,
-      }} />
-      <NotificationModal alertProps={[alert, handleAlert]} />
-    </div>
+    <>
+      <DistribucionHeader/>
+      <div className="Distribucion">
+        <DistributionAside />
+        <main className="grid justify-center">
+          {
+            (!entries.length && !loading) &&
+            <NoEntries
+              message='En estos momentos no hay níngun camión registrado que se encuentre por salir del área de distribución'
+            />
+          }
+          {
+            loading ?
+              <Spinner size="normal" />
+              :
+              <section className="pt-10">
+                <h1 className="text-2xl font-bold">Vehículos por salir</h1>
+                <TableDistribution ENTRIES_TYPE={ENTRIES_TYPE}>
+                  {
+                    entries.map((entry, i) =>
+                      <TRDistEntries
+                        key={i}
+                        setModal={setModal}
+                        setSelectedEntry={setSelectedEntry}
+                        entry={entry}
+                        ENTRIES_TYPE={ENTRIES_TYPE}
+                        setEditEntries={setEditEntries}
+                      />
+                    )
+                  }
+                </TableDistribution>
+              </section>
+          }
+        </main>
+        <DistributionDetails {...{
+          showModal,
+          setModal,
+          entry: selectedEntry,
+          ENTRIES_TYPE,
+          editEntries,
+          handleAlert,
+          setEntries,
+        }} />
+        <NotificationModal alertProps={[alert, handleAlert]} />
+      </div>
+    </>
   )
 }
 

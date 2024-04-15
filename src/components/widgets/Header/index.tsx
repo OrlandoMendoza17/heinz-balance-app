@@ -1,13 +1,12 @@
 import React, { MouseEventHandler, useState } from 'react'
-import { FaFilePen, FaTruck } from "react-icons/fa6";
-import { FaQuestion } from "react-icons/fa";
-import { LiaListAlt } from "react-icons/lia";
+import { FaFilePen, FaTruck, FaDoorOpen } from "react-icons/fa6";
 import { RiRefreshLine } from "react-icons/ri";
 import { IconType } from 'react-icons';
-import VehiculesEntrance from '../pages/VehiculesEntrance';
-import useAuth from '@/hooks/useAuth';
+import VehiculesEntrance from '../../pages/VehiculesEntrance';
+import SearchButton from '../../pages/romana/Header/SearchButton';
+import User from './User';
 
-type NavbarListItem = {
+export type NavbarListItem = {
   title: string;
   Icon: IconType;
   handleClick: MouseEventHandler<HTMLLIElement>;
@@ -19,8 +18,9 @@ type Props = {
 
 const Header = ({ refreshEntries }: Props) => {
 
-  const [, credentials] = useAuth()
   const [showModal, setModal] = useState<boolean>(false)
+
+  const [showDropBtn, setShowDropBtn] = useState<boolean>(false)
 
   const navList: NavbarListItem[] = [
     {
@@ -31,44 +31,43 @@ const Header = ({ refreshEntries }: Props) => {
       }
     },
     {
-      title: "Procesar Salida de Vehículo",
-      Icon: FaQuestion,
-      handleClick: () => { }
-    },
-    {
-      title: "Procesar Entrada de Vehículo",
-      Icon: LiaListAlt,
-      handleClick: () => { }
-    },
-    {
-      title: "Procesar Entrada de Vehículo",
+      title: "Vehículos en planta",
       Icon: FaTruck,
       handleClick: () => { }
     },
+    // {
+    //   title: "Buscar",
+    //   Icon: BiSearchAlt,
+    //   handleClick: () => { }
+    // },
+    // {
+    //   title: "Procesar Entrada de Vehículo",
+    //   Icon: LiaListAlt,
+    //   handleClick: () => { }
+    // },
+
     {
       title: "Recargar entradas en planta",
       Icon: RiRefreshLine,
       handleClick: refreshEntries,
     },
   ]
-
-  const { nombre } = credentials.user
-
+  
   return (
     <>
       <header className="Header">
         <nav>
           <ul>
             {navList.map(({ title, Icon, handleClick }, i) =>
-              <li key={i} onClick={handleClick} {...{ title }}>
+              <li key={i} className={showDropBtn ? "z-10 relative" : ""} onClick={handleClick} {...{ title }}>
                 <Icon size={25} />
               </li>
             )}
+            <SearchButton handleDropBtn={[showDropBtn, setShowDropBtn]} />
           </ul>
-          <div className="User">
-            <img src="https://cdn.icon-icons.com/icons2/1508/PNG/512/systemusers_104569.png" alt="" />
-            <span>Bienvenido <span className="font-bold text-sky-500">{nombre.split(" ")[1]}</span></span>
-          </div>
+
+          <User />
+
         </nav>
       </header>
 

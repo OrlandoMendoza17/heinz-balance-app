@@ -58,7 +58,7 @@ const VehiculeExitDetails = (props: Props) => {
           }
         },
         "D02": () => { // Materia Prima
-
+          debugger
           const getDensity = () => {
             const density = document.getElementById("density") as HTMLSelectElement | undefined
             const densityValue = densityOptions.find(({ value }) => value === parseFloat(density?.value || ""))

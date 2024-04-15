@@ -113,11 +113,13 @@ type ChargePlanInfo = {
 }
 
 type User = {
-  nombre: string,
-  email: string,
-  ficha: string,
-  // is_admin: boolean,
-  // password_login_available: boolean,
+  nombre: S_USU["USU_NOM"],
+  email: S_USU["USU_MAI"],
+  ficha: S_USU["USU_FIC"],
+  cedula: S_USU["USU_CED"],
+  rol: S_USU["ROL_COD"],
+  accountName: S_USU["USU_LOG"],
+  status: boolean,
 }
 
 type AuthCredentials = {

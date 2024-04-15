@@ -2,14 +2,14 @@ import { getCookie } from "@/utils/cookies"
 import { useRouter } from "next/router"
 import { useEffect, useState } from "react"
 
-const initializedUser = {
-  id: 0,
+const initializedUser: User = {
   nombre: "",
-  email: "@kraftheinz.com",
-  ficha: "",
-  // password_login_available: false,
-  // password: "",
-  // is_admin: false,
+  email: "",
+  ficha: 0,
+  cedula: "",
+  rol: "",
+  accountName: "",
+  status: Boolean(0),
 }
 
 const useAuth = (): [boolean, AuthCredentials] => {
@@ -24,6 +24,7 @@ const useAuth = (): [boolean, AuthCredentials] => {
 
   useEffect(() => {
     const credentials = getCookie<AuthCredentials>("login")
+    debugger
     if (credentials) {
       
       const { user } = credentials

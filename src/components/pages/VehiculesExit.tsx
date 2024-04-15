@@ -16,6 +16,7 @@ import VehiculeExitDetails from './VehiculeExitDetails'
 import { PDFRenderType } from '../widgets/PDFRender/types/PDFRendeType'
 import ConfirmModal from '../widgets/ConfirmModal'
 import readWeightFromBalance from '@/utils'
+import useAuth from '@/hooks/useAuth'
 
 const PDFRender = lazy(() => import("../widgets/PDFRender"))
 
@@ -44,7 +45,8 @@ const { CARGA, TICKET_DE_SALIDA, DEVOLUCION } = ACTION
 
 const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
-  const [ImportedComponent, setImportedComponent] = useState<PDFRenderType>()
+  const [, credentials] = useAuth()
+  const { user } = credentials
 
   const [authCheck, setAuthCheck] = useState<boolean>(true)
 
@@ -549,13 +551,16 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
               >
                 Leer
               </Button>
-              <button
-                type="button"
-                onClick={() => setDisableWeight(!disableWeight)}
-                className={`create-btn ${!disableWeight ? "!bg-red-400 !text-black font-bold" : ""}`}
-              >
-                Habilitar Peso
-              </button>
+              {
+                user.rol === "01" &&
+                <button
+                  type="button"
+                  onClick={() => setDisableWeight(!disableWeight)}
+                  className={`create-btn ${!disableWeight ? "!bg-red-400 !text-black font-bold" : ""}`}
+                >
+                  Habilitar Peso
+                </button>
+              }
             </div>
           </div>
 
@@ -650,8 +655,8 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
   )
 }
 
-function wait(time: number){
-  return new Promise((resolve)=>{
+function wait(time: number) {
+  return new Promise((resolve) => {
     setTimeout(resolve, time)
   })
 }

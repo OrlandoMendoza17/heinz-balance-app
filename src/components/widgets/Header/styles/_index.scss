@@ -1,0 +1,173 @@
+.Header {
+  @apply p-5 pl-[2rem] bg-slate-200;
+  width: 100%;
+  
+  nav {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    
+    & > ul {
+      display: grid;
+      grid-auto-flow: column;
+      justify-content: left;
+      align-items: center;
+      gap: 1rem;
+      
+      li{
+        cursor: pointer;
+        &:hover svg {
+          @apply fill-secondary;
+        }        
+        svg {
+          @apply fill-white;
+          fill: rgba($color: #000000, $alpha: .5);
+        }
+      }
+    }
+  }
+  
+  .User{
+    @apply grid grid-cols-[auto_auto_1fr] items-center gap-5;
+    position: relative;
+    cursor: pointer;
+    
+    img{
+      $image-size: 40px;
+      width: $image-size;
+      height: $image-size;
+      border-radius: 50%
+    }
+    
+    ul{
+      display: none;
+      
+      a{
+        cursor: pointer;
+      }
+    }
+    
+    &:hover ul{
+      @apply rounded-b-xl bg-slate-300 text-sm;
+      overflow: hidden;
+      position: absolute;
+      top: calc(100% + 12.5px);
+      right: 0;
+      width: 180px;
+      display: block;
+      
+      a, span{
+        @apply p-5 hover:bg-slate-400 gap-5;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+      }
+    }
+    
+    &::after{
+      content: "";
+      display: block;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      height: 12.5px;
+    }
+  }
+  
+  .Search{
+    // @apply bg-cyan-500;
+    @apply col-start-3 relative;
+    .drop-buttons{
+      @apply absolute grid overflow-hidden bg-cyan-500 text-white rounded-xl;
+      
+      top: 40px;
+      
+      li{
+        @apply hover:bg-cyan-700 pl-3 pr-6 py-3 font-bold;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      
+      svg{
+        @apply fill-white;
+      }
+    }
+    
+    .overlay{
+      @apply fixed top-0 right-0 w-full h-full bg-opacity-50 bg-black;
+    }
+    
+    &:hover::after{
+      position: absolute;
+      display: block;
+      content: "";
+      width: 350%;
+      height: 25px;
+      // background-color: #000000;
+    }
+  }
+
+}
+
+.SearchExitModal {
+  
+  @apply pt-10 items-start grid-cols-[minmax(auto,_1050px)];
+  
+  form{
+    @apply grid gap-5;
+    grid-template-columns: repeat(3, 2fr) repeat(2, 3fr) 2fr
+  }
+  
+  label, input, span{
+    @apply text-xs;
+  }
+  
+  section{
+    @apply mt-10 overflow-auto h-[350px] bg-slate-300;
+    
+    .SearchTable{
+      overflow: hidden;
+      @apply text-xs w-full rounded-none;
+      @apply border-secondary border;
+      
+      thead{
+        th{
+          @apply bg-slate-500 border-secondary border-r;
+        }
+      }
+      tbody{
+        
+        tr{
+          @apply bg-white hover:bg-secondary hover:text-white;
+        }
+        td {
+          padding: 0 5px;
+          @apply border-secondary border;
+          
+          span{
+            display: -webkit-box;
+            text-overflow: ellipsis;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+          }
+        }
+      }
+    }
+    
+    .Loading-Slot{
+      @apply flex justify-center items-center bg-slate-200 h-full;
+    }
+    
+    @media screen and (min-height: 720px){
+      @apply h-[500px];
+    }
+  }
+  
+  button{
+    @apply text-xs;
+  }
+}
+

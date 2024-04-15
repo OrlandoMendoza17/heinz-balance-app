@@ -20,6 +20,7 @@ import CreateDriverModal from './CreateDriverModal'
 import ConfirmModal from '../widgets/ConfirmModal'
 import defaultNewEntry from '@/utils/defaultValues/newEntry'
 import readWeightFromBalance from "@/utils/index"
+import useAuth from '@/hooks/useAuth'
 
 type Props = {
   showModal: boolean,
@@ -43,6 +44,9 @@ type TABLE_VALUES = {
 const { CARGA, DESCARGA, DEVOLUCION } = ACTION
 
 const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
+
+  const [, credentials] = useAuth()
+  const { user } = credentials
 
   const [alert, handleAlert] = useNotification()
   const [confirm, handleConfirm] = useNotification()
@@ -378,6 +382,8 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
   const { origin, invoice, destination, truckWeight, details } = newEntry
   const DES_COD = destination.slice(12, 15)
 
+  console.log('user.rol', user.rol)
+
   return (
     <>
       <Modal className='py-10 !items-baseline overflow-auto !grid-cols-[minmax(auto,_750px)]' {...{ showModal, setModal }}>
@@ -464,13 +470,16 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
             >
               Leer Peso
             </Button>
-            <button
-              type="button"
-              onClick={() => setDisableWeight(!disableWeight)}
-              className={`create-btn ${!disableWeight ? "!bg-red-400 !text-black font-bold" : ""}`}
-            >
-              Habilitar Peso
-            </button>
+            {
+              user.rol === "01" &&
+              <button
+                type="button"
+                onClick={() => setDisableWeight(!disableWeight)}
+                className={`create-btn ${!disableWeight ? "!bg-red-400 !text-black font-bold" : ""}`}
+              >
+                Habilitar Peso
+              </button>
+            }
           </div>
 
           <div className="pt-12 flex justify-center items-center gap-5">

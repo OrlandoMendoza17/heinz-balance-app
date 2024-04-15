@@ -4,12 +4,18 @@ import Header from '@/components/widgets/Header'
 import NoEntries from '@/components/widgets/NoEntries';
 import NotificationModal from '@/components/widgets/NotificationModal';
 import Spinner from '@/components/widgets/Spinner';
+import useAuth from '@/hooks/useAuth';
 import useNotification from '@/hooks/useNotification';
 import { getEntriesInPlant } from '@/services/entries';
+import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react'
 
 const Romana = () => {
+  
+  const [renderPage, credentials] = useAuth()
 
+  const router = useRouter()
+  
   const [showModal, setModal] = useState<boolean>(false)
   const [exits, setExits] = useState<Exit[]>([])
 
@@ -52,8 +58,17 @@ const Romana = () => {
   })
 
   useEffect(() => {
-    getEntries()
-  }, [])
+    debugger
+    const { user } = credentials
+    if(renderPage){
+      if(user.rol === "01" || user.rol === "02" || user.rol === "03"){
+        
+        getEntries()
+      }else{
+        router.push("/distribucion/entradas")
+      }
+    }
+  }, [renderPage])
 
   const getEntries = async () => {
     try {
@@ -83,10 +98,11 @@ const Romana = () => {
       }))
     }
   }
-  
+
   const leavingExits = exits.filter(({ aboutToLeave }) => aboutToLeave)
 
   return (
+    renderPage &&
     <>
       <Header refreshEntries={getEntries} />
       <main className="Romana">
@@ -98,34 +114,39 @@ const Romana = () => {
         }
         {
           loading ?
-            <Spinner size="normal" />
+            <div className="flex items-center justify-center h-full">
+              <Spinner size="normal" />
+            </div>
             :
-            <table className="Entries self-start">
-              <thead>
-                <tr>
-                  <th>N° de Entrada</th>
-                  <th>Nombre</th>
-                  <th>Cedula</th>
-                  <th>Placa</th>
-                  <th>Procedencia</th>
-                  <th>Destino</th>
-                  <th>Acción</th>
-                  <th>Fecha de Entrada</th>
-                </tr>
-              </thead>
-              <tbody>
-                {
-                  leavingExits.map((exit, i) =>
-                    <TableVehicules
-                      key={i}
-                      setModal={setModal}
-                      setSelectedExit={setSelectedExit}
-                      exit={exit}
-                    />
-                  )
-                }
-              </tbody>
-            </table>
+            <section>
+              <h1>Vehículos por salir</h1>
+              <table className="Entries self-start">
+                <thead>
+                  <tr>
+                    <th>N° de Entrada</th>
+                    <th>Nombre</th>
+                    <th>Cedula</th>
+                    <th>Placa</th>
+                    <th>Procedencia</th>
+                    <th>Destino</th>
+                    <th>Acción</th>
+                    <th>Fecha de Entrada</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {
+                    leavingExits.map((exit, i) =>
+                      <TableVehicules
+                        key={i}
+                        setModal={setModal}
+                        setSelectedExit={setSelectedExit}
+                        exit={exit}
+                      />
+                    )
+                  }
+                </tbody>
+              </table>
+            </section>
         }
         {
           showModal &&
