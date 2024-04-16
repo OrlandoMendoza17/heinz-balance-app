@@ -3,17 +3,20 @@ import { ACTION_BY_NAME, DESTINATION_BY_CODE } from '@/lib/enums'
 import { getCuteFullDate, shortDate } from '@/utils/parseDate'
 
 type Props = {
+  showDistEntries: boolean,
   setModal: (value: SetStateAction<boolean>) => void,
   setSelectedExit: (value: SetStateAction<Exit>) => void,
   exit: Exit
 }
 
-const TableVehicules = ({ setModal, setSelectedExit, exit }: Props) => {
+const TableVehicules = ({ setModal, showDistEntries, setSelectedExit, exit }: Props) => {
 
   const handleClick: MouseEventHandler<HTMLTableRowElement> = () => {
     // alert("Hello! I'm the radio demon! 👹")
-    setModal(true)
-    setSelectedExit(exit)
+    if(!showDistEntries){
+      setModal(true)
+      setSelectedExit(exit)
+    }
   }
 
   const { entryNumber, driver, vehicule, action, destination, entryDate, origin } = exit

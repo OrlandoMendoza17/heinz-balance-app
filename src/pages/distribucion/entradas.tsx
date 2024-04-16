@@ -11,7 +11,7 @@ import distributionEntry from '@/utils/defaultValues/distributionEntry';
 import DistributionDetails from '@/components/pages/distribucion/DistributionDetails';
 import useAuth from '@/hooks/useAuth';
 import { useRouter } from 'next/router';
-import DistribucionHeader from '@/components/widgets/Header/DistribucionHeader';
+import Header from '@/components/widgets/Header';
 
 const ENTRIES_TYPE: EntriesType = "entry"
 
@@ -57,12 +57,7 @@ const Entradas = () => {
         setLoading(true)
 
         const entries = await getFormattedDistEntries(ENTRIES_TYPE)
-        setEntries(entries.map(({ entryDate, ...rest }) => (
-          {
-            ...rest,
-            entryDate: entryDate.replace("T", " ").replace("Z", "")
-          }
-        )))
+        setEntries(entries)
 
         setLoading(false)
 
@@ -81,7 +76,7 @@ const Entradas = () => {
   return (
     renderPage &&
     <>
-      <DistribucionHeader/>
+      <Header />
       <div className="Distribucion">
         <DistributionAside />
         <main className="grid justify-center">

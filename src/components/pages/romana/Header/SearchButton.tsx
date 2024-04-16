@@ -31,27 +31,15 @@ const SearchButton = ({ handleDropBtn }: Props) => {
   return (
     <>
       <li
-        className="Search"
-        onClick={() => console.log("Hola")}
-        onMouseEnter={() => setShowDropBtn(true)}
-        onMouseLeave={() => setShowDropBtn(false)}
+        className="SearchButton"
+        onClick={handleExitsModal}
       >
         <BiSearchAlt size={25} />
-        {
-          showDropBtn &&
-          <>
-            <ul className="drop-buttons">
-              <li onClick={handleEntriesModal}><RiLoginBoxLine size={17} className="rotate-180" /> Entrada</li>
-              <li onClick={handleExitsModal}><RiLogoutBoxLine size={17} className="rotate-180" /> Salida</li>
-            </ul>
-            {/* <div className="overlay"></div> */}
-          </>
-        }
       </li>
 
       <SearchEntriesModal handleModal={[showEntriesModal, setEntriesModal]} />
       <SearchExitsModal handleModal={[showExitsModal, setExitsModal]} />
-      
+
     </>
   )
 }

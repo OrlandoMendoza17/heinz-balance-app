@@ -1,6 +1,6 @@
 import Button from '@/components/widgets/Button';
 import Form from '@/components/widgets/Form';
-import DistribucionHeader from '@/components/widgets/Header/DistribucionHeader';
+import Header from '@/components/widgets/Header';
 import Input from '@/components/widgets/Input';
 import useNotification from '@/hooks/useNotification';
 import { getDriver, getDriverFromVehicule, getVehicule } from '@/services/transportInfo';
@@ -105,7 +105,7 @@ const Transport = () => {
 
   return (
     <>
-      <DistribucionHeader />
+      <Header />
       <main className="p-10">
         <h1 className="text-2xl font-bold pb-20">Busqueda coincidencia de Transporte</h1>
         <div className="flex flex-col items-start gap-5">

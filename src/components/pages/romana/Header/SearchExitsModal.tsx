@@ -8,6 +8,8 @@ import Button from '../../../widgets/Button'
 import TRExits from './TRExits'
 import Spinner from '../../../widgets/Spinner'
 import { GetExitsBodyProps } from '@/pages/api/exits'
+import useNotification from '@/hooks/useNotification'
+import NotificationModal from '@/components/widgets/NotificationModal'
 
 type Props = {
   handleModal: [
@@ -16,18 +18,22 @@ type Props = {
   ]
 }
 
+const initialSearchValue = {
+  dateFrom: "",
+  dateTo: "",
+  cedula: "",
+  plate: "",
+  entryNumber: "",
+}
+
 const SearchExitsModal = ({ handleModal }: Props) => {
 
   const [loading, setLoading] = useState<boolean>(false)
   const [showModal, setModal] = handleModal
 
-  const [searchBy, setSearchBy] = useState<GetExitsBodyProps>({
-    dateFrom: "",
-    dateTo: "",
-    cedula: "",
-    plate: "",
-    entryNumber: "",
-  })
+  const [alert, handleAlert] = useNotification()
+  
+  const [searchBy, setSearchBy] = useState<GetExitsBodyProps>(initialSearchValue)
 
   const [exits, setExits] = useState<Exit[]>([])
 
@@ -36,7 +42,17 @@ const SearchExitsModal = ({ handleModal }: Props) => {
     try {
       setLoading(true)
       setExits([])
+      
+      const SECONDS = 10
       const { dateFrom, dateTo } = searchBy
+      
+      const timeID = setTimeout(()=>{
+        handleAlert.open(({
+          type: "warning",
+          title: "⚠️Búsqueda pesada⚠️",
+          message: "Es posible que la búsqueda tarde más de lo esperado...",
+        }))
+      }, SECONDS * 1000)
 
       const body = {
         ...searchBy,
@@ -47,19 +63,20 @@ const SearchExitsModal = ({ handleModal }: Props) => {
       console.log('body', body)
 
       const exits = await getExits(body)
-      setExits(exits.map(({ exitDate, entryDate, ...rest }) => (
-        {
-          ...rest,
-          entryDate: entryDate.replace("T", " ").replace("Z", ""),
-          exitDate: exitDate.replace("T", " ").replace("Z", ""),
-        }
-      )))
-
+      setExits(exits)
+      
+      clearTimeout(timeID)
+      
       setLoading(false)
 
     } catch (error) {
       setLoading(false)
       console.log('error', error)
+      handleAlert.open(({
+        type: "danger",
+        title: "Error ❌",
+        message: "Ha habido un error buscando las salidas",
+      }))
     }
   }
 
@@ -73,16 +90,23 @@ const SearchExitsModal = ({ handleModal }: Props) => {
     })
   }
 
-  const { dateFrom, dateTo } = searchBy
+  const { entryNumber, plate, cedula, dateFrom, dateTo } = searchBy
 
   return (
     <Modal className="SearchExitModal" {...{ showModal, setModal }}>
-      <h2 className="font-bold pb-10">Buscar Salidas de Vehículos</h2>
+      <div className="flex gap-4">
+        <h2 className="font-bold pb-10">Buscar Salidas de Vehículos</h2>
+        <button
+          onClick={() => setSearchBy(initialSearchValue)}
+          className="text-white bg-slate-400 hover:bg-slate-500 py-2 px-4 self-start font-bold rounded-lg uppercase">
+          Reiniciar Filtros
+        </button>
+      </div>
       <Form onSubmit={handleSubmit}>
         <Input
           id="entryNumber"
           type="text"
-          // value={dateFrom}
+          value={entryNumber}
           className="w-full"
           title="Número de entrada:"
           placeholder="95216"
@@ -92,7 +116,7 @@ const SearchExitsModal = ({ handleModal }: Props) => {
         <Input
           id="plate"
           type="text"
-          // value={dateFrom}
+          value={plate}
           className="w-full"
           title="Placa:"
           placeholder="A7371V"
@@ -102,7 +126,7 @@ const SearchExitsModal = ({ handleModal }: Props) => {
         <Input
           id="cedula"
           type="text"
-          // value={dateFrom}
+          value={cedula}
           className="w-full"
           title="Cedula:"
           placeholder="27313279"
@@ -133,7 +157,7 @@ const SearchExitsModal = ({ handleModal }: Props) => {
       </Form>
       <section className="">
         {
-          exits.length &&
+          Boolean(exits.length) &&
           <span className="!text-base">Resultados: {exits.length}</span>
         }
         {
@@ -166,12 +190,12 @@ const SearchExitsModal = ({ handleModal }: Props) => {
           <div className="Loading-Slot">
             {
               loading ?
-                <Spinner size="normal" />
-                :
-                "No se ha encontrado ningúna salida"
+                <Spinner size="normal" /> : "No se ha encontrado ningúna salida"
             }
           </div>
         }
+        
+        <NotificationModal alertProps={[alert, handleAlert]} />
       </section>
     </Modal>
   )

@@ -7,7 +7,7 @@ const testHandler = async (request: NextApiRequest, response: NextApiResponse,) 
   try {
     
     const queryString = `
-      SELECT * FROM [HDTA025].[dbo].[H025_S_USU]
+      SELECT * FROM HCRM01.dbo.employees WHERE AIHOLD = ''
     `
     
     // const sequelize = await getSequelize()

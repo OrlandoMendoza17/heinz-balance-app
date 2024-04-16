@@ -1,5 +1,6 @@
 import TableVehicules from '@/components/pages/TableVehicules';
 import VehiclesExit from '@/components/pages/VehiculesExit';
+import Button from '@/components/widgets/Button';
 import Header from '@/components/widgets/Header'
 import NoEntries from '@/components/widgets/NoEntries';
 import NotificationModal from '@/components/widgets/NotificationModal';
@@ -9,13 +10,17 @@ import useNotification from '@/hooks/useNotification';
 import { getEntriesInPlant } from '@/services/entries';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react'
+import { FaTruck } from 'react-icons/fa6';
+import { PiPackageFill } from 'react-icons/pi';
 
 const Romana = () => {
-  
+
   const [renderPage, credentials] = useAuth()
 
   const router = useRouter()
-  
+
+  const [showDistEntries, setShowDistEntries] = useState<boolean>(false)
+
   const [showModal, setModal] = useState<boolean>(false)
   const [exits, setExits] = useState<Exit[]>([])
 
@@ -60,11 +65,12 @@ const Romana = () => {
   useEffect(() => {
     debugger
     const { user } = credentials
-    if(renderPage){
-      if(user.rol === "01" || user.rol === "02" || user.rol === "03"){
-        
+    if (renderPage) {
+      if (user.rol === "01" || user.rol === "02" || user.rol === "03") {
+
         getEntries()
-      }else{
+        
+      } else {
         router.push("/distribucion/entradas")
       }
     }
@@ -75,16 +81,7 @@ const Romana = () => {
       setLoading(true)
 
       const exits = await getEntriesInPlant()
-
-      setExits(
-        exits.map(({ entryDate, ...rest }) => (
-          {
-            ...rest,
-            entryDate: entryDate.replace("T", " ").replace("Z", "")
-          }
-        ))
-      )
-      // setEntries(entries)
+      setExits(exits)
 
       setLoading(false)
 
@@ -99,27 +96,43 @@ const Romana = () => {
     }
   }
 
+  const handleSwitch = () => {
+    setShowDistEntries(!showDistEntries)
+  }
+
+  const distEntries = exits;
   const leavingExits = exits.filter(({ aboutToLeave }) => aboutToLeave)
+
+  const displayExits = !showDistEntries ? leavingExits : distEntries
+  // const displayExits = exits
 
   return (
     renderPage &&
     <>
       <Header refreshEntries={getEntries} />
       <main className="Romana">
-        {
-          (!leavingExits.length && !loading) &&
-          <NoEntries
-            message='En estos momentos no hay níngun camión por salir en la planta'
-          />
-        }
+
         {
           loading ?
-            <div className="flex items-center justify-center h-full">
+            <div className="flex items-center justify-center fullscreen">
               <Spinner size="normal" />
             </div>
             :
             <section>
-              <h1>Vehículos por salir</h1>
+              <div className="flex items-center h-[50px] gap-5">
+                <Button
+                  onClick={handleSwitch}
+                  className={`Switch-button ${showDistEntries ? "active" : ""}`}
+                >
+                  <PiPackageFill className="fill-white" size={25} />
+                </Button>
+                {
+                  !showDistEntries ?
+                    <h1>Vehículos por salir</h1>
+                    :
+                    <h1>Vehículos en Distribución</h1>
+                }
+              </div>
               <table className="Entries self-start">
                 <thead>
                   <tr>
@@ -135,9 +148,10 @@ const Romana = () => {
                 </thead>
                 <tbody>
                   {
-                    leavingExits.map((exit, i) =>
+                    displayExits.map((exit, i) =>
                       <TableVehicules
                         key={i}
+                        showDistEntries={showDistEntries}
                         setModal={setModal}
                         setSelectedExit={setSelectedExit}
                         exit={exit}
@@ -146,6 +160,20 @@ const Romana = () => {
                   }
                 </tbody>
               </table>
+              {
+                (!leavingExits.length && !showDistEntries && !loading) &&
+                <NoEntries
+                  className="pt-60 pb-0"
+                  message='En estos momentos no hay níngun camión por salir en la planta'
+                />
+              }
+              {
+                (!distEntries.length && showDistEntries && !loading) &&
+                <NoEntries
+                  className="pt-60 pb-0"
+                  message='En estos momentos no hay níngun camión en proceso de Distribución'
+                />
+              }
             </section>
         }
         {

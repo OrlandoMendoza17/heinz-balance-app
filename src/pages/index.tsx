@@ -11,6 +11,7 @@ import AuthService from "@/services/auth";
 import useNotification from "@/hooks/useNotification";
 import NotificationModal from "@/components/widgets/NotificationModal";
 import getDestinationEntryQuery from "@/utils/api/aboutToLeave";
+import { AxiosError } from "axios";
 
 const auth = new AuthService()
 
@@ -45,7 +46,10 @@ const Home = () => {
     setLoading(true)
 
     try {
-
+      
+      // Busca el rol en la base de datos local
+      const foundUser = await auth.getUsers(email) as User
+      
       const data = await instance.loginPopup({
         scopes: ["user.read"],
         prompt: "create",
@@ -54,49 +58,56 @@ const Home = () => {
 
       console.log(data)
 
-      const { name, username } = data.account
-
-      const foundUser = await auth.getUsers(username) as User
-
       const user: User = {
         ...foundUser,
-        nombre: name || "",
+        nombre: data.account.name || "",
       }
 
       const credentials = await auth.login(user)
       setCookie("login", credentials, 10)
-     
+
       handleStatus.open(({
         type: "success",
         title: "Inicio de Sesión",
         message: `Has iniciado sesión exitosamente"`,
       }))
-     
+
       if (user.rol === "01" || user.rol === "02" || user.rol === "03") {
-        
+
         router.push("/romana")
-        
-      } else if(user.rol === "04") {
-        
+
+      } else if (user.rol === "04") {
+
         router.push("/transporte")
-        
-      } else if(user.rol === "05" || user.rol === "06") {
-        
+
+      } else if (user.rol === "05" || user.rol === "06") {
+
         router.push("/distribucion/entradas")
-        
+
       }
 
-
       setLoading(false)
 
-    } catch (error) {
+    } catch (error: unknown) {
       setLoading(false)
       console.log(error)
-      handleStatus.open(({
-        type: "danger",
-        title: "Error",
-        message: "Ha habido un error con el inicio de sesión",
-      }))
+        
+      if (error instanceof AxiosError && error.response?.status) {
+
+        handleStatus.open(({
+          type: "danger",
+          title: "Inicio de Sesión inválido❗",
+          message: error.response.data.message,
+        }))
+        
+      } else {
+
+        handleStatus.open(({
+          type: "danger",
+          title: "Error",
+          message: "Ha habido un error con el inicio de sesión",
+        }))
+      }
     }
   }
 
@@ -126,7 +137,6 @@ const Home = () => {
             Iniciar Sesión <TbLogin2 size={20} />
           </Button>
 
-          <NotificationModal alertProps={[status, handleStatus]} />
         </Form>
       </UnauthenticatedTemplate>
 
@@ -135,9 +145,10 @@ const Home = () => {
         <div className="p-10">
           <Spinner size="small" />
         </div>
-        <button onClick={() => instance.logout()}>Sign out</button>
+        {/* <button onClick={() => instance.logout()}>Sign out</button> */}
       </AuthenticatedTemplate>
 
+      <NotificationModal alertProps={[status, handleStatus]} />
     </main>
   );
 }

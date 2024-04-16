@@ -6,7 +6,7 @@ import { PiPackageFill } from "react-icons/pi";
 import useAuth from '@/hooks/useAuth';
 
 const DistribucionHeader = () => {
-  
+
   const navList = [
     {
       title: "Distribucion",
@@ -26,15 +26,17 @@ const DistribucionHeader = () => {
     <header className="Header">
       <nav>
         <ul>
-          {navList.map(({ title, Icon, link, handleClick }, i) =>
-            <li key={i} onClick={handleClick} {...{ title }}>
-              <Link href={link} className="flex gap-4 justify-start" >
-                <Icon size={25} />{title}
-              </Link>
-            </li>
-          )}
+          {
+            navList.map(({ title, Icon, link, handleClick }, i) =>
+              <li key={i} onClick={handleClick} {...{ title }}>
+                <Link href={link} className="flex gap-4 justify-start" >
+                  <Icon size={25} />{title}
+                </Link>
+              </li>
+            )
+          }
         </ul>
-          
+
         <User />
 
       </nav>

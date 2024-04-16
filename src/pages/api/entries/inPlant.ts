@@ -62,9 +62,9 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
 
       // Trae la información de los transportes de los vehículos
       const transportQuery = `
-      SELECT * FROM H025_T_TRA 
-      WHERE TRA_COD = ${vehicule?.TRA_COD}
-    `
+        SELECT * FROM H025_T_TRA 
+        WHERE TRA_COD = ${vehicule?.TRA_COD}
+      `
 
       const [transports] = await sequelize.query(transportQuery) as [T_TRA[], unknown]
 
@@ -112,7 +112,6 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
         aditionalWeight: entry.ENT_DI_PAD,
         aboutToLeave: Boolean(ENT_FLW === 2),
       })
-      
       
     }
 

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { Document, Text, Page, StyleSheet, View, PDFDownloadLink } from '@react-pdf/renderer'
-import { getCuteFullDate } from '@/utils/parseDate'
+import { getCuteFullDate, shortDate, shortTime } from '@/utils/parseDate'
 import { PDFProps } from './types/PDFRendeType'
 
 const utils = {
@@ -37,7 +37,16 @@ const classes = {
       paddingBottom: "5px",
       marginBottom: "5px"
     },
-    ...utils.flexGrow3
+    left: {
+      flexGrow: 5,
+    },
+    middle: {
+      flexGrow: 3,
+    },
+    right: {
+      flexGrow: 1,
+      marginLeft: "20px"
+    }
   }),
 
   dates: StyleSheet.create({
@@ -66,7 +75,7 @@ const classes = {
       display: "flex",
       flexDirection: "row",
     },
-    text:{
+    text: {
       flexGrow: 1,
       display: "flex",
       gap: "5px"
@@ -98,7 +107,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: "14px",
-    fontWeight: "extrabold"
+    fontWeight: "extrabold",
+    textAlign: "center",
   },
   container: {
     display: "flex",
@@ -134,9 +144,9 @@ const { header, dates, weights, details, signatures } = classes
 
 const PDF = ({ exit }: PDFProps) => {
 
-  const { entryNumber, vehicule, driver, entryDate, exitDate} = exit
+  const { entryNumber, vehicule, driver, entryDate, exitDate } = exit
   const { truckWeight, netWeight, grossWeight, entryDetails, exitDetails } = exit
-  
+
   return (
     <Document>
       <Page>
@@ -153,8 +163,8 @@ const PDF = ({ exit }: PDFProps) => {
             </View>
 
             <View style={header.right}>
-              <Text style={styles.small}>Fecha:</Text>
-              <Text style={styles.small}>Hora:</Text>
+              <Text style={styles.small}>Fecha: {shortDate(exitDate)}</Text>
+              <Text style={styles.small}>Hora: {shortTime(exitDate)}</Text>
             </View>
           </View>
 

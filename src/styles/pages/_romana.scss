@@ -1,7 +1,15 @@
 .Romana {
   @apply p-10;
-  height: calc(100vh - 65px);
+  .fullscreen{
+    height: calc(100vh - 115px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
   overflow: auto;
+  flex-direction: column;
+  display: flex;
+  align-items: center;
   
   h1{
     @apply font-bold text-2xl;
@@ -10,6 +18,25 @@
   section{
     display: grid;
     align-content: start;
-    justify-content: center;
+    max-width: 1300px;
+    width: 100%;
+    // justify-content: center;
+  }
+  
+  .Switch-button {
+    @apply bg-slate-300 text-white px-6 border-slate-400 relative;
+    border-bottom-width: 4px;
+    cursor: pointer;
+    transition: 0;
+    // height: 49px;
+    align-self: flex-end;
+    box-shadow: 0px 4px 5px 0px rgba(0, 0, 0, 0.2);
+    
+    &.active{
+      @apply bg-secondary border-0 shadow-none;
+      // height: 45px;
+      bottom: -0px;
+      box-shadow: none;
+    }
   }
 }

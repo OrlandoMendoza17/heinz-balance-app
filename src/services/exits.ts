@@ -10,14 +10,13 @@ export const createNewExit = async (body: NewExitParams) => {
 }
 
 export const getExits = async (body: GetExitsBodyProps) => {
-  const { data } = await axios.post<Exit[]>("/api/exits", body)
-  return data;
+  let { data: exits } = await axios.post<Exit[]>("/api/exits", body)
+  exits = exits.map(({ exitDate, entryDate, ...rest }) => (
+    {
+      ...rest,
+      entryDate: entryDate.replace("T", " ").replace("Z", ""),
+      exitDate: exitDate.replace("T", " ").replace("Z", ""),
+    }
+  ))
+  return exits;
 }
-
-`
-SELECT *
-FROM H025_P_ENT AS ent
-INNER JOIN H025_P_SAL AS sal ON ent.ENT_NUM = sal.ENT_NUM
-WHERE   AND ent.ENT_NUM = '94641'  AND VEH_ID = '1694'
-ORDER BY SAL_FEC DESC;
-`

@@ -128,7 +128,19 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
           ENT_FLW_ACC: ACTION.TICKET_DE_SALIDA, // La asignación de TICKET_DE_SALIDA
         }
 
+        const exitTicketDistEntry: P_ENT_DI = {
+          ...distEntry,
+          ENT_DI_PLA: "0",
+          ENT_DI_GUI: "0",
+          ENT_DI_PNC: 0,
+          ENT_DI_DES: "SIN CARGA",
+          ENT_DI_PAD: 0,
+          ENT_DI_DPA: null,
+          ENT_DI_NDE: "0",
+        }
+        
         await updateEntry(entryNumber, udpatedEntry)
+        await updateDistEntry(exitTicketDistEntry)
       }
       
       if (DESPATCH_ENABLED_EDIT) {

@@ -11,11 +11,12 @@ interface Props extends SelectHTMLAttributes<HTMLSelectElement> {
   className?: string,
   options: SelectOptions[],
   defaultOption: string,
+  objectString?: boolean,
 }
 
 const Select = (props: Props) => {
 
-  const { title = "", titleStyle = "", className = "", options, name = "", defaultOption = "", required = true, ...rest } = props
+  const { title = "", titleStyle = "", className = "", options, name = "", defaultOption = "", required = true, defaultValue, objectString = false, ...rest } = props
 
   const selectsOptions = [...options]
 
@@ -32,11 +33,14 @@ const Select = (props: Props) => {
           {defaultOption}
         </option>
         {
-          selectsOptions.map(({ name, value }, i) =>
-            <option value={value} key={`name-${i}`}>
-              {name}
-            </option>
-          )
+          selectsOptions.map(({ name, value }, i) => {
+            const selected = objectString ? (defaultValue === (value as string).slice(12, 15)) : (defaultValue === value)
+            return (
+              <option selected={selected} value={value} key={`name-${i}`}>
+                {name}
+              </option>
+            )
+          })
         }
       </select>
     </label>

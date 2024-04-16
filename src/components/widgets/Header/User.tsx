@@ -42,14 +42,11 @@ const User = () => {
   return (
     <div className="User">
       <span className="text-xs">{rol}</span>
-      <img src="https://cdn.icon-icons.com/icons2/1508/PNG/512/systemusers_104569.png" alt="" />
+      <img src="https://i.imgur.com/btkuvS5.png" alt="" />
       <span>
         Bienvenido <span className="font-bold text-sky-500">{nombre?.split(" ")[1]}</span>
       </span>
       <ul>
-        <li className="px-5 py-2">
-
-        </li>
         <li>
           <Link href="/romana">
             <IoDocumentTextSharp size={20} />

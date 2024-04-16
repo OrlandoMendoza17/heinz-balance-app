@@ -34,8 +34,14 @@ export const updateEntry = async (entryNumber: P_ENT["ENT_NUM"], entry: UpdateP_
 }
 
 export const getEntriesInPlant = async () => {
-  const { data } = await axios.get<Exit[]>("/api/entries/inPlant")
-  return data;
+  let { data: exits } = await axios.get<Exit[]>("/api/entries/inPlant")
+  exits = exits.map(({ entryDate, ...rest }) => (
+    {
+      ...rest,
+      entryDate: entryDate.replace("T", " ").replace("Z", "")
+    }
+  ))
+  return exits;
 }
 
 export const getNextEntryNumber = async () => {
@@ -49,8 +55,14 @@ export const getDistEntries = async (entriesType: EntriesType) => {
 }
 
 export const getFormattedDistEntries = async (entriesType: EntriesType) => {
-  const { data } = await axios.post<DistributionEntry[]>("/api/entries/distribution", { entriesType, formatted: true })
-  return data;
+  let { data: entries } = await axios.post<DistributionEntry[]>("/api/entries/distribution", { entriesType, formatted: true })
+  entries = entries.map(({ entryDate, ...rest }) => (
+    {
+      ...rest,
+      entryDate: entryDate.replace("T", " ").replace("Z", "")
+    }
+  ))
+  return entries;
 }
 
 

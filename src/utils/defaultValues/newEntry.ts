@@ -1,5 +1,5 @@
 const defaultNewEntry: NewEntryDto = {
-  destination: "",
+  destination: '{"DES_COD":"D01","OPE_COD":"OO9"}',
   operation: "",
   invoice: "",
   origin: "",

@@ -4,7 +4,7 @@ import Modal from '../widgets/Modal'
 import Button from '../widgets/Button'
 import Input from '../widgets/Input'
 import { getCuteFullDate, getDateTime, shortDate } from '@/utils/parseDate'
-import { ACTION, DESTINATION_BY_CODE } from '@/lib/enums'
+import { ACTION, ACTION_BY_NAME, DESTINATION_BY_CODE } from '@/lib/enums'
 import useNotification from '@/hooks/useNotification'
 import NotificationModal from '../widgets/NotificationModal'
 import { createNewExit } from '@/services/exits'
@@ -41,7 +41,7 @@ type TABLE_VALUES = {
 type ChargeTypes = "KG" | "LTS"
 type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
 
-const { CARGA, TICKET_DE_SALIDA, DEVOLUCION } = ACTION
+const { CARGA, DESCARGA, TICKET_DE_SALIDA, DEVOLUCION } = ACTION
 
 const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
@@ -186,7 +186,36 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
   }
 
   const handleSubmit = async () => {
-    if (!isDifference) {
+
+    let validWeight = false;
+    let invalidWeightMessage = "";
+    debugger
+    // El vehículo sale con más peso que con el que entró
+    if (action === CARGA) {
+      if (grossWeight >= truckWeight) {
+
+        validWeight = true
+
+      } else {
+        invalidWeightMessage = "Si el vehículo vino a cargar, no es posible que salga con un peso menor al que entró"
+      }
+    }
+
+    // El vehículo sale con más peso que con el que entró
+    if (action !== CARGA) {
+      if (grossWeight <= truckWeight) {
+        
+        validWeight = true
+        
+      } else {
+        invalidWeightMessage = "Si el vehículo vino a (descargar, devolución o fue devuelto con ticket de salida), no es posible que salga con un peso mayor al que entró"
+      }
+    }
+
+    // const validWeight = (action === CARGA) ? (grossWeight >= truckWeight) : (grossWeight <= truckWeight)
+
+    if (!isDifference && validWeight) {
+
       try {
         setLoading(true)
         const form = new FormData(document.getElementsByTagName("form")[0])
@@ -282,10 +311,15 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
       }
 
     } else {
+
+      const differenceMessage = "No es posible darle salida al vehículo si existe una diferencia"
+
+      const message = isDifference ? differenceMessage : invalidWeightMessage
+
       handleAlert.open(({
         type: "warning",
         title: "Salida de Vehículo - Rechazada ❌",
-        message: `No es posible darle salida al vehpiculo si existe una diferencia"`,
+        message,
       }))
     }
   }
@@ -421,11 +455,23 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         }))
       }
 
+      let netWeight = 0;
+
+      // El vehículo sale con más peso que con el que entró
+      if ((action === CARGA) && (READ_WEIGHT >= truckWeight)) {
+        netWeight = READ_WEIGHT - truckWeight
+      }
+
+      // El vehículo sale con más peso que con el que entró
+      if ((action !== CARGA) && (READ_WEIGHT <= truckWeight)) {
+        netWeight = truckWeight - READ_WEIGHT
+      }
+
       setSelectedExit({
         ...selectedExit,
         weightDifference: DIFFERENCE,
         grossWeight: READ_WEIGHT,
-        netWeight: Math.abs(READ_WEIGHT - truckWeight)
+        netWeight,
       })
 
     } else {
@@ -524,13 +570,16 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
             <span className="pb-3 text-lg">
               {action === CARGA ? "+" : "-"}
             </span>
+
             <div className="grid gap-[7px] self-end items-center">
-              <span className="font-semibold block">Peso Neto (Carga):</span>
+              <span className="font-semibold block">Peso Neto ({ACTION_BY_NAME[action as Action]}):</span>
               <span className={`h-[41px] flex items-center border px-5 ${isDifference ? "!bg-red-500 !text-white !border-red-800" : ""}`}>
                 {netWeight}
               </span>
             </div>
+
             <span className="pb-3 text-lg">=</span>
+
             <div className="grid grid-cols-[17rem_6rem] items-end mt-5 relative">
               <Input
                 id="grossWeight"
@@ -541,7 +590,6 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
                 placeholder="0.00"
                 disabled={disableWeight}
                 onChange={({ currentTarget }) => {
-                  debugger
                   heightReading(parseFloat(currentTarget.value))
                 }}
               />
@@ -552,7 +600,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
                 Leer
               </Button>
               {
-                user.rol === "01" &&
+                (user.rol === "01" || user.rol === "02") &&
                 <button
                   type="button"
                   onClick={() => setDisableWeight(!disableWeight)}
@@ -572,11 +620,11 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
                 <span className="font-semibold">Tipo de Carga:</span>
                 <div className="flex gap-4 pt-4">
                   <label htmlFor="kilos" className="flex gap-2">
-                    <input type="radio" name="chargeType" onChange={handleChange} id="kilos" value="KG" />
+                    <input type="radio" name="chargeType" onChange={handleChange} id="kilos" value="KG" required/>
                     <span>kilos</span>
                   </label>
                   <label htmlFor="litros" className="flex gap-2">
-                    <input type="radio" name="chargeType" onChange={handleChange} id="litros" value="LTS" />
+                    <input type="radio" name="chargeType" onChange={handleChange} id="litros" value="LTS" required/>
                     <span>Litros</span>
                   </label>
                 </div>

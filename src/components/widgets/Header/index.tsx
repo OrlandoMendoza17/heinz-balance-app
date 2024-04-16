@@ -5,6 +5,11 @@ import { IconType } from 'react-icons';
 import VehiculesEntrance from '../../pages/VehiculesEntrance';
 import SearchButton from '../../pages/romana/Header/SearchButton';
 import User from './User';
+import { PiPackageFill } from 'react-icons/pi';
+import Link from 'next/link';
+import useAuth from '@/hooks/useAuth';
+import { useRouter } from 'next/router';
+import { MdEmojiTransportation } from "react-icons/md";
 
 export type NavbarListItem = {
   title: string;
@@ -13,10 +18,14 @@ export type NavbarListItem = {
 }
 
 type Props = {
-  refreshEntries: () => Promise<void>;
+  refreshEntries?: () => Promise<void>;
 }
 
-const Header = ({ refreshEntries }: Props) => {
+const Header = ({ refreshEntries = async () => { } }: Props) => {
+
+  const router = useRouter()
+  const [, credentials] = useAuth()
+  const { user } = credentials
 
   const [showModal, setModal] = useState<boolean>(false)
 
@@ -31,10 +40,15 @@ const Header = ({ refreshEntries }: Props) => {
       }
     },
     {
-      title: "Vehículos en planta",
-      Icon: FaTruck,
-      handleClick: () => { }
+      title: "Recargar entradas en planta",
+      Icon: RiRefreshLine,
+      handleClick: refreshEntries,
     },
+    // {
+    //   title: "Vehículos en planta",
+    //   Icon: FaTruck,
+    //   handleClick: () => { }
+    // },
     // {
     //   title: "Buscar",
     //   Icon: BiSearchAlt,
@@ -45,35 +59,72 @@ const Header = ({ refreshEntries }: Props) => {
     //   Icon: LiaListAlt,
     //   handleClick: () => { }
     // },
+  ]
 
+  const navListDistribution = [
     {
-      title: "Recargar entradas en planta",
-      Icon: RiRefreshLine,
-      handleClick: refreshEntries,
+      title: "Distribucion",
+      Icon: PiPackageFill,
+      link: "/distribucion/entradas",
+    },
+    {
+      title: "Transporte",
+      Icon: MdEmojiTransportation,
+      link: "/transporte",
     },
   ]
-  
+
+  const goToRomana = {
+    title: "Romana",
+    Icon: FaTruck,
+    link: "/romana",
+  }
+
+  if (router.pathname !== "/romana")
+    navListDistribution.unshift(goToRomana)
+
   return (
-    <>
-      <header className="Header">
-        <nav>
-          <ul>
-            {navList.map(({ title, Icon, handleClick }, i) =>
-              <li key={i} className={showDropBtn ? "z-10 relative" : ""} onClick={handleClick} {...{ title }}>
-                <Icon size={25} />
-              </li>
-            )}
-            <SearchButton handleDropBtn={[showDropBtn, setShowDropBtn]} />
-          </ul>
+    <header className="Header">
+      <nav>
+        <ul className="list">
+          {
+            router.pathname === "/romana" &&
+            <>
+              {
+                navList.map(({ title, Icon, handleClick }, i) =>
+                  <li key={i} className={showDropBtn ? "z-10 relative" : ""} onClick={handleClick} {...{ title }}>
+                    <Icon size={25} />
+                  </li>
+                )
+              }
+              <SearchButton handleDropBtn={[showDropBtn, setShowDropBtn]} />
+              <VehiculesEntrance {...{ showModal, setModal, refreshEntries }} />
+            </>
+          }
 
-          <User />
+          {
+            (user.rol === "01" || user.rol === "05" || user.rol === "06") &&
+            <>
+              {
+                router.pathname === "/romana" && "||"
+              }
+              {
+                navListDistribution.map(({ title, Icon, link }, i) =>
+                  <li key={i} {...{ title }}>
+                    <Link href={link} className="flex gap-4 justify-start" >
+                      <Icon size={25} />{title}
+                    </Link>
+                  </li>
+                )
+              }
+            </>
+          }
+        </ul>
 
-        </nav>
-      </header>
+        <User />
 
-      <VehiculesEntrance {...{ showModal, setModal, refreshEntries }} />
-
-    </>
+      </nav>
+    </header>
   )
 }
 

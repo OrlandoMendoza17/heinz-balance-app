@@ -7,7 +7,7 @@
     grid-template-columns: 1fr auto;
     gap: 1rem;
     
-    & > ul {
+    & .list {
       display: grid;
       grid-auto-flow: column;
       justify-content: left;
@@ -75,9 +75,13 @@
     }
   }
   
-  .Search{
+  .SearchButton{
     // @apply bg-cyan-500;
-    @apply col-start-3 relative;
+    @apply col-start-2 relative;
+    
+    display: flex;
+    align-items: center;
+    
     .drop-buttons{
       @apply absolute grid overflow-hidden bg-cyan-500 text-white rounded-xl;
       

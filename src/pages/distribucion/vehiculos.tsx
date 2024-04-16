@@ -1,4 +1,4 @@
-import React, { ChangeEventHandler, MouseEventHandler, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import TRDistEntries from '@/components/pages/distribucion/TRDistEntries';
 import { EntriesType, getFormattedDistEntries } from '@/services/entries';
 import useNotification from '@/hooks/useNotification';
@@ -11,12 +11,11 @@ import distributionEntry from '@/utils/defaultValues/distributionEntry';
 import DistributionDetails from '@/components/pages/distribucion/DistributionDetails';
 import useAuth from '@/hooks/useAuth';
 import { useRouter } from 'next/router';
-import DistribucionHeader from '@/components/widgets/Header/DistribucionHeader';
+import Header from '@/components/widgets/Header';
 
 const ENTRIES_TYPE: EntriesType = "initial"
 
 const Vehiculos = () => {
-
   
   const router = useRouter()
   const [renderPage, credentials] = useAuth()
@@ -58,12 +57,7 @@ const Vehiculos = () => {
         setLoading(true)
 
         const entries = await getFormattedDistEntries(ENTRIES_TYPE)
-        setEntries(entries.map(({ entryDate, ...rest }) => (
-          {
-            ...rest,
-            entryDate: entryDate.replace("T", " ").replace("Z", "")
-          }
-        )))
+        setEntries(entries)
 
         setLoading(false)
 
@@ -81,7 +75,7 @@ const Vehiculos = () => {
 
   return (
     <>
-      <DistribucionHeader/>
+      <Header />
       <div className="Distribucion">
         <DistributionAside />
         <main className="grid justify-center">

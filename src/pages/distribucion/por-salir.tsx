@@ -9,7 +9,7 @@ import Spinner from '@/components/widgets/Spinner';
 import TableDistribution from '@/components/pages/distribucion/TableDistribution';
 import DistributionDetails from '@/components/pages/distribucion/DistributionDetails';
 import distributionEntry from '@/utils/defaultValues/distributionEntry';
-import DistribucionHeader from '@/components/widgets/Header/DistribucionHeader';
+import Header from '@/components/widgets/Header';
 
 const ENTRIES_TYPE: EntriesType = "aboutToLeave"
 
@@ -33,12 +33,7 @@ const PorSalir = () => {
         setLoading(true)
 
         const entries = await getFormattedDistEntries(ENTRIES_TYPE)
-        setEntries(entries.map(({ entryDate, ...rest }) => (
-          {
-            ...rest,
-            entryDate: entryDate.replace("T", " ").replace("Z", "")
-          }
-        )))
+        setEntries(entries)
 
         setLoading(false)
 
@@ -57,7 +52,7 @@ const PorSalir = () => {
 
   return (
     <>
-      <DistribucionHeader/>
+      <Header />
       <div className="Distribucion">
         <DistributionAside />
         <main className="grid justify-center">

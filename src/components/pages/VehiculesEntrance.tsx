@@ -57,7 +57,6 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
   const [showDriverModal, setDriverModal] = useState<boolean>(false)
 
   const [disableWeight, setDisableWeight] = useState<boolean>(true)
-  const [disableDriver, setDisableDriver] = useState<boolean>(true)
   const [enableInvoice, setEnableInvoice] = useState<boolean>(false)
 
   const [destinations, setDestinations] = useState<SelectOptions[]>([])
@@ -70,7 +69,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
   useEffect(() => {
     (async () => {
       try {
-
+        
         const destinations: DESTINATIONS[] = [
           {
             DES_COD: 'D01',
@@ -123,7 +122,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
         console.log(error)
       }
     })()
-  }, [])
+  }, [showModal])
 
   const search = {
     vehicule: async (vehiculePlate: string) => {
@@ -332,7 +331,6 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
 
       invoice = REQUIRES_INVOICE ? newEntry.invoice : null
 
-      setDisableDriver(DES_COD === "D01")
       setDriver(DES_COD === "D01" ? undefined : driver)
 
       // Esto lo que hace es resetear los radio buttons
@@ -380,10 +378,14 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
   }
 
   const { origin, invoice, destination, truckWeight, details } = newEntry
+  debugger
   const DES_COD = destination.slice(12, 15)
 
-  console.log('user.rol', user.rol)
-
+  console.log('DES_COD', DES_COD)
+  console.log('destination', destination)
+  const disableDriver = (DES_COD === "D01")
+  console.log('disableDriver', disableDriver)
+  
   return (
     <>
       <Modal className='py-10 !items-baseline overflow-auto !grid-cols-[minmax(auto,_750px)]' {...{ showModal, setModal }}>
@@ -444,11 +446,13 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
           />
 
           <Select
+            defaultValue={DES_COD}
             name="destination"
             title="Destino"
             defaultOption="Destino"
             options={destinations}
             onChange={handleChange}
+            objectString
           />
 
           <div className="grid grid-cols-[1fr_auto] items-end relative">
@@ -471,7 +475,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
               Leer Peso
             </Button>
             {
-              user.rol === "01" &&
+              (user.rol === "01" || user.rol === "02") &&
               <button
                 type="button"
                 onClick={() => setDisableWeight(!disableWeight)}
