@@ -105,7 +105,7 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
         operation: OPE_COD,
         invoice: entry?.ENT_MP_FAC || entry?.ENT_SG_FAC || entry?.ENT_ALM_FAC || null,
         entryDetails: ENT_ENTRY?.ENT_OBS || "",
-        distDetails: entry?.ENT_DI_OBS,
+        distDetails: entry?.ENT_DI_OBS || "",
         exitDetails: "",
         weightDifference: 0,
         palletWeight: entry.ENT_DI_PPA,

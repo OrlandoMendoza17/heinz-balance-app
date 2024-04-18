@@ -163,6 +163,7 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
           operation: OPE_COD,
           invoice: null,
           entryDetails: ENT_ENTRY?.ENT_OBS || "",
+          distDetails: entry?.ENT_DI_OBS || "",
           exitDetails: exit?.SAL_OBS || "",
           weightDifference: 0,
           palletWeight: entry.ENT_DI_PPA,

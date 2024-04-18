@@ -54,6 +54,7 @@ const Romana = () => {
     calculatedNetWeight: 0,
     netWeight: 0,
     entryDetails: "",
+    distDetails: "",
     exitDetails: "",
     invoice: "",
     palletWeight: 0,

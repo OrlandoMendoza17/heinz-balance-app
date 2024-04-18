@@ -36,7 +36,7 @@ const CheckAction = ({ handleChange, DES_COD, action }: Props) => {
     <div className="pt-12 flex justify-center items-center gap-5">
       {
         actions.map(({ id, title, value, disabled }) =>
-          <label htmlFor={id}>
+          <label htmlFor={id} key={id}>
             <input
               name="action"
               type="radio"
