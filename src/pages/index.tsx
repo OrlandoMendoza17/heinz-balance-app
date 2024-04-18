@@ -33,6 +33,9 @@ const Home = () => {
       localStorage.clear()
       document.cookie = ""
 
+    }else{
+      credentials.user
+      redirectUser(credentials.user)
     }
   }, [])
 
@@ -72,20 +75,8 @@ const Home = () => {
         message: `Has iniciado sesión exitosamente"`,
       }))
 
-      if (user.rol === "01" || user.rol === "02" || user.rol === "03") {
-
-        router.push("/romana")
-
-      } else if (user.rol === "04") {
-
-        router.push("/transporte")
-
-      } else if (user.rol === "05" || user.rol === "06") {
-
-        router.push("/distribucion/entradas")
-
-      }
-
+      redirectUser(credentials.user)
+      
       setLoading(false)
 
     } catch (error: unknown) {
@@ -114,6 +105,22 @@ const Home = () => {
   const handleChange: ChangeEventHandler<HTMLInputElement> = ({ currentTarget }) => {
     const { value } = currentTarget
     setEmail(value.trim())
+  }
+  
+  const redirectUser = (user: User) => {
+    if (user.rol === "01" || user.rol === "02" || user.rol === "03") {
+
+      router.push("/romana")
+
+    } else if (user.rol === "04") {
+
+      router.push("/transporte")
+
+    } else if (user.rol === "05" || user.rol === "06") {
+
+      router.push("/distribucion/entradas")
+
+    }
   }
 
   return (

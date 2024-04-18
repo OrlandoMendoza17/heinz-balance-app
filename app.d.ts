@@ -49,6 +49,7 @@ type Exit = {
   calculatedNetWeight: number,
   netWeight: number,
   entryDetails: string,
+  distDetails: string,
   exitDetails: string,
   weightDifference: number,
   palletWeight: P_ENT_DI["ENT_DI_PPA"],

@@ -31,8 +31,8 @@ const DistributionAside = () => {
       <nav>
         <ul className="grid gap-6">
           {
-            links.map(({ title, href }) =>
-              <li>
+            links.map(({ title, href }, i) =>
+              <li key={i}>
                 <Link href={href} className={`${href === router.pathname ? "active" : ""}`}>
                   {title}
                 </Link>

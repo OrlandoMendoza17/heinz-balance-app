@@ -80,7 +80,7 @@ const Header = ({ refreshEntries = async () => { } }: Props) => {
     link: "/romana",
   }
 
-  if (router.pathname !== "/romana")
+  if (user.rol === "01" && router.pathname !== "/romana")
     navListDistribution.unshift(goToRomana)
 
   return (

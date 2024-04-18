@@ -23,13 +23,15 @@ const VehiculeExitDetails = (props: Props) => {
   const { exit, exitDetails, OS_AUTHORIZATION, densityOptions, materialsOptions } = props
 
   const [loading, setLoading] = useState<boolean>(false)
-
+  
+  const MAX_CHARS = 200
+  
   const getDetails = (async () => {
     try {
       setLoading(true)
 
       const { invoice, destination } = exit
-
+      
       let exitDetails = ""
 
       const departments = {
@@ -89,8 +91,10 @@ const VehiculeExitDetails = (props: Props) => {
           exitDetails = `${OS_AUTHORIZATION ? `AUTORIZACION SALIDA: ${OS_AUTHORIZATION}` : ""}`
         },
       }
-
+      
       await departments[destination]()
+      
+      exitDetails = `${exitDetails}${exit.distDetails ? `\n\n${exit.distDetails}` : ""}`.slice(0, MAX_CHARS)
 
       if (exitDetails === "") {
         handleAlert.open({
@@ -114,6 +118,7 @@ const VehiculeExitDetails = (props: Props) => {
     <div className="VehiculeExitDetails">
       <Button loading={loading} onClick={getDetails}>Generar Observaciones</Button>
       <Textarea
+        maxLength={MAX_CHARS}
         id="exitDetails"
         value={exitDetails}
         title="Observaciones de salida"

@@ -4,7 +4,7 @@ import Modal from '../widgets/Modal'
 import Button from '../widgets/Button'
 import Input from '../widgets/Input'
 import { getCuteFullDate, getDateTime, shortDate } from '@/utils/parseDate'
-import { ACTION, ACTION_BY_NAME, DESTINATION_BY_CODE } from '@/lib/enums'
+import { ACTION, ACTION_BY_NAME, DESTINATION_BY_CODE, INVOICE_BY_CODE } from '@/lib/enums'
 import useNotification from '@/hooks/useNotification'
 import NotificationModal from '../widgets/NotificationModal'
 import { createNewExit } from '@/services/exits'
@@ -31,9 +31,9 @@ export type NewExit = P_SAL
 
 type TABLE_VALUES = {
   D01: undefined,
-  D02: undefined,
-  D03: undefined,
-  D04: undefined,
+  D02: P_ENT_MP,
+  D03: P_ENT_SG,
+  D04: P_ENT_ALM,
   D05: P_ENT_MAT,
   D07: P_ENT_OS,
 }
@@ -93,6 +93,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
     netWeight: 0,
     invoice: null,
     entryDetails: "",
+    distDetails: "",
     exitDetails: "",
     palletWeight: 0,
     palletsQuatity: 0,
@@ -153,7 +154,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
   //   })()
   // }, [])
 
-  const { palletWeight, palletsQuatity, aditionalWeight } = selectedExit
+  const { palletWeight, palletsQuatity, aditionalWeight, invoice } = selectedExit
   const { entryNumber, vehicule, driver, entryDate, destination, origin, action } = selectedExit
   const { truckWeight, grossWeight, netWeight, calculatedNetWeight, exitDetails, entryDetails } = selectedExit
 
@@ -204,9 +205,9 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
     // El vehículo sale con más peso que con el que entró
     if (action !== CARGA) {
       if (grossWeight <= truckWeight) {
-        
+
         validWeight = true
-        
+
       } else {
         invalidWeightMessage = "Si el vehículo vino a (descargar, devolución o fue devuelto con ticket de salida), no es posible que salga con un peso mayor al que entró"
       }
@@ -242,7 +243,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
         const leavingEntry: NewExit = {
           ENT_NUM,
-          USU_LOG: 'USR9509C',
+          USU_LOG: user.accountName,
           SAL_FEC: exitDate,
           ENT_PES_TAR: truckWeight,
           ENT_PES_NET: netWeight,
@@ -254,9 +255,26 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
         const table_values: TABLE_VALUES = {
           "D01": undefined, // Distribución
-          "D02": undefined, // Materia Prima
-          "D03": undefined, // Servicios Generales
-          "D04": undefined, // Almacén
+          "D02": { // Materia Prima
+            ENT_NUM,
+            ENT_MP_PRO: origin,
+            ENT_MP_FAC: (invoice) ? invoice : null,
+            ENT_MP_NOT: null, // SIEMPRE NULL
+            ENT_MP_PAL: null, // SIEMPRE NULL
+          },
+          "D03": { // Servicios Generales
+            ENT_NUM,
+            ENT_SG_PRO: origin,
+            ENT_SG_FAC: (invoice) ? invoice : null,
+            ENT_SG_NOT: null,
+            ENT_SG_AUT: null,
+            ENT_SG_NDE: null,
+          },
+          "D04": { // Almacén
+            ENT_NUM,
+            ENT_ALM_PRO: origin,
+            ENT_ALM_FAC: (invoice) ? invoice : null,
+          },
           "D05": {          // Materiales
             ENT_NUM,
             ENT_PRO: origin,
@@ -359,7 +377,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
           ENT_DI_PPA: distEntry.ENT_DI_PPA, // Peso de las paletas 
           SAL_PES_BRU: grossWeight,         // Peso bruto de la salida 
           DIF_PES: weightDifference,        // diferencia de peso 
-          USU_LOG: "USR9509C",              // Usuario que la registro
+          USU_LOG: user.accountName,              // Usuario que la registro
         }
 
         // Actualizando la entrada en ambas tablas y creando la entrada en la tabla de diferencias
@@ -510,9 +528,14 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
   // console.log('exitDate', getCuteFullDate("2024-04-08T17:32:59.805Z"))
 
+  const REQUIRES_INVOICE = Boolean(INVOICE_BY_CODE[destination])
+  
   return (
     <>
-      <Modal className="py-10 !items-baseline overflow-auto !grid-cols-[minmax(auto,_750px)]" {...{ showModal, setModal }}>
+      <Modal
+        {...{ showModal, setModal }}
+        className="py-10 !items-baseline overflow-auto !grid-cols-[minmax(auto,_750px)]"
+      >
         <h1 className="font-semibold pb-10">Procesar Salida de Vehículo</h1>
         <Form
           className='grid gap-x-5 gap-y-8'
@@ -620,11 +643,11 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
                 <span className="font-semibold">Tipo de Carga:</span>
                 <div className="flex gap-4 pt-4">
                   <label htmlFor="kilos" className="flex gap-2">
-                    <input type="radio" name="chargeType" onChange={handleChange} id="kilos" value="KG" required/>
+                    <input type="radio" name="chargeType" onChange={handleChange} id="kilos" value="KG" required />
                     <span>kilos</span>
                   </label>
                   <label htmlFor="litros" className="flex gap-2">
-                    <input type="radio" name="chargeType" onChange={handleChange} id="litros" value="LTS" required/>
+                    <input type="radio" name="chargeType" onChange={handleChange} id="litros" value="LTS" required />
                     <span>Litros</span>
                   </label>
                 </div>
@@ -671,9 +694,20 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
               />
             </div>
           }
-
+          {
+            (REQUIRES_INVOICE && action === ACTION.DESCARGA) &&
+            <Input
+              id="invoice"
+              value={invoice || ""}
+              className="w-full"
+              title="Factura"
+              placeholder=""
+              onChange={handleChange}
+              required={false}
+            />
+          }
           <VehiculeExitDetails
-            exit={exit}
+            exit={selectedExit}
             exitDetails={exitDetails}
             densityOptions={density}
             materialsOptions={materials}
@@ -699,6 +733,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         acceptAction={!isDifference ? handleSubmit : handleReturnVehicule}
         confirmProps={[confirm, handleConfirm]}
       />
+      
     </>
   )
 }

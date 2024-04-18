@@ -11,14 +11,19 @@ type Props = {
   children: ReactNode,
   targetModal?: string,
   className?: string,
+  closeOnClickOutside?: boolean,
 }
 
-const Modal = ({ showModal, setModal, closeButton = true, transparent = false, className = "", targetModal = "modal", children }: Props) => {
+const Modal = (props: Props) => {
+  const { showModal, setModal, children , closeButton = true } = props
+  const { transparent = false, className = "", targetModal = "modal", closeOnClickOutside = true  } = props
 
   const handleClick: MouseEventHandler<HTMLDivElement> = ({ target }) => {
-    const clickedOutModal = getDataAttribute(target as TargetProps, targetModal.toLowerCase())
-    if (clickedOutModal) {
-      setModal(false)
+    if(closeOnClickOutside){
+      const clickedOutModal = getDataAttribute(target as TargetProps, targetModal.toLowerCase())
+      if (clickedOutModal) {
+        setModal(false)
+      }
     }
   }
 

@@ -4,6 +4,7 @@ import Form from '@/components/widgets/Form'
 import Input from '@/components/widgets/Input'
 import Modal from '@/components/widgets/Modal'
 import Textarea from '@/components/widgets/Textarea'
+import useAuth from '@/hooks/useAuth'
 import useNotification, { HandleNotification } from '@/hooks/useNotification'
 import { ACTION } from '@/lib/enums'
 import { getChargePlan } from '@/services/chargePlan'
@@ -11,6 +12,8 @@ import { EntriesType, getEntry, getEntryDifference, updateDistEntry, updateEntry
 import { getMaterials } from '@/services/materials'
 import distributionEntry from '@/utils/defaultValues/distributionEntry'
 import { getCuteFullDate, getDateTime } from '@/utils/parseDate'
+import getErrorMessage from '@/utils/services/errorMessages'
+import { AxiosError } from 'axios'
 import { useRouter } from 'next/router'
 import React, { ChangeEventHandler, Dispatch, FormEventHandler, SetStateAction, useEffect, useState } from 'react'
 import { IoWarning } from "react-icons/io5";
@@ -35,6 +38,9 @@ const DEPARTMENT_AREAS = {
 
 const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEntries = false, handleAlert, setEntries }: Props) => {
 
+
+  const [, credentials] = useAuth()
+  const { user } = credentials
   const router = useRouter()
 
   const [confirm, handleConfirm] = useNotification()
@@ -77,7 +83,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
 
       const distEntry: P_ENT_DI = {
         ENT_NUM: entryNumber,                                        // ✅ Número de entrada                  | SIEMPRE 
-        USU_LOG: "yherrera",                                         // ✅ Usuario que modificó la entrada    | SIEMPRE
+        USU_LOG: user.accountName,                                         // ✅ Usuario que modificó la entrada    | SIEMPRE
         ENT_DI_FEC: getDateTime(),                                   // ✅ Fecha de edición de la entrada     | SIEMPRE
         ENT_DI_PRO: origin,                                          // ✅ Procedencia                        | SIEMPRE
         ENT_DI_GUI: chargePlan,                                      // ✅ Número de Guía     (Plan de carga) | SIEMPRE
@@ -98,7 +104,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
       }
 
       const { ENT_NUM, ...rest } = await getEntry(entryNumber)
-      
+
       if (BOTH_ENABLED_EDIT && !exitTicketEnabled) {
         const chargePlanInfo = await getChargePlan(chargePlan as string)
 
@@ -120,8 +126,8 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
           distEntry.ENT_DI_PAL = chargePlanNumber;
         }
       }
-      
-      if(INITIAL_ENABLED_EDIT && exitTicketEnabled){
+
+      if (INITIAL_ENABLED_EDIT && exitTicketEnabled) {
         const udpatedEntry: UpdateP_ENT = {
           ...rest,
           ENT_FLW: 2, // La asignación de este valor indica que lo manda a "por salir"
@@ -138,11 +144,11 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
           ENT_DI_DPA: null,
           ENT_DI_NDE: "0",
         }
-        
+
         await updateEntry(entryNumber, udpatedEntry)
         await updateDistEntry(exitTicketDistEntry)
       }
-      
+
       if (DESPATCH_ENABLED_EDIT) {
 
         const udpatedEntry: UpdateP_ENT = {
@@ -172,10 +178,19 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
     } catch (error) {
       setLoading(false)
       console.log(error)
+
+      let message = "Ha habido un error en la consulta"
+
+      if (error instanceof AxiosError) {
+        debugger
+        const errorMessage = error.response?.data.message
+        message = getErrorMessage(errorMessage)
+      }
+
       handleAlert.open(({
         type: "danger",
         title: "Error ❌",
-        message: "Ha habido un error guardando los datos, por favor intentelo de nuevo",
+        message,
       }))
     }
   }
@@ -185,7 +200,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
   const handleChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = ({ target, currentTarget }) => {
     debugger
     if (target.name === "exit-ticket") {
-      
+
       const checkbox = target as HTMLInputElement
       setExitTicketEnabled(checkbox.checked)
 
@@ -295,6 +310,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
                     className="block"
                     id="chargePlan"
                     value={selectedEntry.chargePlan || ""}
+                    maxLength={8}
                     required={!exitTicketEnabled}
                   />
                   :
@@ -392,6 +408,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
                 BOTH_ENABLED_EDIT ?
                   <Textarea
                     className="block"
+                    maxLength={100}
                     onChange={handleChange}
                     id="distDetails"
                     value={selectedEntry.distDetails || ""}
@@ -406,7 +423,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
               INITIAL_ENABLED_EDIT &&
               <li className="col-start-3 pr-10 cursor-pointer">
                 <label htmlFor="exit-ticket" className="flex items-center gap-4">
-                  <input id="exit-ticket" name="exit-ticket" type="checkbox" checked={exitTicketEnabled} onChange={handleChange}/>
+                  <input id="exit-ticket" name="exit-ticket" type="checkbox" checked={exitTicketEnabled} onChange={handleChange} />
                   <span className="font-bold">Emitir Ticket de Salida</span>
                 </label>
               </li>

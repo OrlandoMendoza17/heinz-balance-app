@@ -21,6 +21,7 @@ import ConfirmModal from '../widgets/ConfirmModal'
 import defaultNewEntry from '@/utils/defaultValues/newEntry'
 import readWeightFromBalance from "@/utils/index"
 import useAuth from '@/hooks/useAuth'
+import CheckAction from './CheckAction'
 
 type Props = {
   showModal: boolean,
@@ -28,9 +29,9 @@ type Props = {
   refreshEntries: () => Promise<void>,
 }
 
-type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
 type DestinationSelectValue = { DES_COD: DES_COD, OPE_COD: string }
 export type NewEntry = Omit<P_ENT, "ENT_NUM">
+export type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
 
 type TABLE_VALUES = {
   D01: P_ENT_DI,
@@ -64,12 +65,14 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
   const [driver, setDriver] = useState<Driver>()
   const [vehicule, setVehicule] = useState<Vehicule>()
 
+  const [action, setAction] = useState<Action>()
+  
   const [newEntry, setNewEntry] = useState<NewEntryDto>(defaultNewEntry)
 
   useEffect(() => {
     (async () => {
       try {
-        
+
         const destinations: DESTINATIONS[] = [
           {
             DES_COD: 'D01',
@@ -152,7 +155,6 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
       setLoading(true)
       const form = new FormData(document.getElementsByTagName("form")[0])
       debugger
-      const action = parseInt(form.get("action") as string) as ACTION
       const { truckWeight, details, origin, invoice } = newEntry; // Destiny code
 
       const { DES_COD, OPE_COD }: DestinationSelectValue = JSON.parse(form.get("destination") as string)
@@ -181,7 +183,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
             const entry: NewEntry = {
               // ENT_NUM: "", // Esto es auto incremental
               ENT_FEC: getDateTime(),
-              USU_LOG: "USR9509C",
+              USU_LOG: user.accountName,
               VEH_ID: vehicule.id,
               CON_COD: driver.code,
               DES_COD,
@@ -197,7 +199,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
             const table_values: TABLE_VALUES = {
               "D01": { // Distribución
                 ENT_NUM,
-                USU_LOG: "USR9509C",
+                USU_LOG: user.accountName,
                 ENT_DI_FEC: getDateTime(),
                 ENT_DI_PRO: origin,
                 ENT_DI_GUI: null,    // (Distribución) - Plan de carga
@@ -267,6 +269,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
             // Resets the modal
             setVehicule(undefined)
             setDriver(undefined)
+            setEnableInvoice(false)
             setNewEntry(defaultNewEntry)
             setDisableWeight(true)
 
@@ -313,7 +316,6 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
         message: "Ha habido un error procesando la entrada del vehículo, intentelo de nuevo",
       }))
     }
-
   }
 
   const handleChange: ChangeHandler = async ({ target }) => {
@@ -321,21 +323,28 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
 
     const { name, value } = target
 
+    let actionInput = action
+    
+    if (target.name === "action") {
+      actionInput = parseInt(target.value) as Action
+      setAction(actionInput)
+    }
+    
     let invoice = newEntry.invoice
 
+    const destinationSelect = document.getElementById("destination") as HTMLSelectElement
+    const { DES_COD }: DESTINATION_VALUES = JSON.parse(destinationSelect.value)
+
+    const REQUIRES_INVOICE = Boolean(INVOICE_BY_CODE[DES_COD])
+    setEnableInvoice(REQUIRES_INVOICE && actionInput === ACTION.DESCARGA)
+    
+    invoice = REQUIRES_INVOICE ? newEntry.invoice : null
+
     if (target.name === "destination") {
-      const { DES_COD }: DESTINATION_VALUES = JSON.parse(target.value)
-
-      const REQUIRES_INVOICE = Boolean(INVOICE_BY_CODE[DES_COD])
-      setEnableInvoice(REQUIRES_INVOICE)
-
-      invoice = REQUIRES_INVOICE ? newEntry.invoice : null
-
       setDriver(DES_COD === "D01" ? undefined : driver)
 
       // Esto lo que hace es resetear los radio buttons
-      const radios: NodeListOf<HTMLInputElement> = document.querySelectorAll('input[type="radio"]')
-      radios.forEach((input) => input.checked = false)
+      setAction(undefined)
     }
 
     setNewEntry({
@@ -385,10 +394,13 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
   console.log('destination', destination)
   const disableDriver = (DES_COD === "D01")
   console.log('disableDriver', disableDriver)
-  
+
   return (
     <>
-      <Modal className='py-10 !items-baseline overflow-auto !grid-cols-[minmax(auto,_750px)]' {...{ showModal, setModal }}>
+      <Modal
+        {...{ showModal, setModal, closeOnClickOutside: false }}
+        className='py-10 !items-baseline overflow-auto !grid-cols-[minmax(auto,_750px)]'
+      >
         <h1 className="font-semibold pb-10">Procesar Entrada de Vehículo</h1>
         <Form
           onSubmit={handleOpenModal}
@@ -486,44 +498,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
             }
           </div>
 
-          <div className="pt-12 flex justify-center items-center gap-5">
-            <label htmlFor="carga">
-              <input
-                id="carga"
-                name="action"
-                type="radio"
-                className="mr-2"
-                value="1"
-                required
-              />
-              <span>Carga</span>
-            </label>
-
-            <label htmlFor="descarga">
-              <input
-                id="descarga"
-                name="action"
-                type="radio"
-                className="mr-2"
-                value="2"
-                disabled={!(DES_COD === "D02" || DES_COD === "D03" || DES_COD === "D04" || DES_COD === "D07")}
-                required
-              />
-              <span>Descarga</span>
-            </label>
-
-            <label htmlFor="devolucion">
-              <input
-                id="devolucion"
-                name="action"
-                type="radio"
-                className="mr-2"
-                value="3" disabled={!(DES_COD === "D01")}
-                required
-              />
-              <span>Devolución</span>
-            </label>
-          </div>
+          <CheckAction {...{ handleChange, DES_COD, action }} />
 
           {
             enableInvoice &&

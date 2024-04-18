@@ -32,50 +32,60 @@ const SearchExitsModal = ({ handleModal }: Props) => {
   const [showModal, setModal] = handleModal
 
   const [alert, handleAlert] = useNotification()
-  
+
   const [searchBy, setSearchBy] = useState<GetExitsBodyProps>(initialSearchValue)
 
   const [exits, setExits] = useState<Exit[]>([])
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
     event.preventDefault()
-    try {
-      setLoading(true)
-      setExits([])
-      
-      const SECONDS = 10
-      const { dateFrom, dateTo } = searchBy
-      
-      const timeID = setTimeout(()=>{
+    debugger
+    const filters = Object.values(searchBy).filter((value) => Boolean(value)).length
+    if (filters) {
+      try {
+        setLoading(true)
+        setExits([])
+
+        const SECONDS = 10
+        const { dateFrom, dateTo } = searchBy
+
+        const timeID = setTimeout(() => {
+          handleAlert.open(({
+            type: "warning",
+            title: "⚠️Búsqueda pesada⚠️",
+            message: "Es posible que la búsqueda tarde más de lo esperado...",
+          }))
+        }, SECONDS * 1000)
+
+        const body = {
+          ...searchBy,
+          dateFrom: dateFrom ? getDateTime(new Date(dateFrom).toISOString()) : "",
+          dateTo: dateTo ? getDateTime(new Date(dateTo).toISOString()) : "",
+        }
+
+        console.log('body', body)
+
+        const exits = await getExits(body)
+        setExits(exits)
+
+        clearTimeout(timeID)
+
+        setLoading(false)
+
+      } catch (error) {
+        setLoading(false)
+        console.log('error', error)
         handleAlert.open(({
-          type: "warning",
-          title: "⚠️Búsqueda pesada⚠️",
-          message: "Es posible que la búsqueda tarde más de lo esperado...",
+          type: "danger",
+          title: "Error ❌",
+          message: "Ha habido un error buscando las salidas",
         }))
-      }, SECONDS * 1000)
-
-      const body = {
-        ...searchBy,
-        dateFrom: dateFrom ? getDateTime(new Date(dateFrom).toISOString()) : "",
-        dateTo: dateTo ? getDateTime(new Date(dateTo).toISOString()) : "",
       }
-
-      console.log('body', body)
-
-      const exits = await getExits(body)
-      setExits(exits)
-      
-      clearTimeout(timeID)
-      
-      setLoading(false)
-
-    } catch (error) {
-      setLoading(false)
-      console.log('error', error)
+    } else {
       handleAlert.open(({
-        type: "danger",
-        title: "Error ❌",
-        message: "Ha habido un error buscando las salidas",
+        type: "warning",
+        title: "Filtros Vacíos ⚠️",
+        message: "Debes colocar al menos un filtro para hacer la búsqueda",
       }))
     }
   }
@@ -178,8 +188,8 @@ const SearchExitsModal = ({ handleModal }: Props) => {
             </thead>
             <tbody>
               {
-                exits.map((exit) =>
-                  <TRExits exit={exit} />
+                exits.map((exit, i) =>
+                  <TRExits key={i} exit={exit} />
                 )
               }
             </tbody>
@@ -194,7 +204,7 @@ const SearchExitsModal = ({ handleModal }: Props) => {
             }
           </div>
         }
-        
+
         <NotificationModal alertProps={[alert, handleAlert]} />
       </section>
     </Modal>
