@@ -77,7 +77,7 @@ type DistributionEntry = {
   chargeDestination: P_ENT_DI["ENT_DI_DES"],
   vehiculeStatus: P_ENT_DI["ENT_DI_STA"],
   distDetails: P_ENT_DI["ENT_DI_OBS"],
-  palletsQuatity: P_ENT_DI["ENT_DI_CPA"],
+  palletsQuatity: P_ENT_DI["ENT_DI_CPA"] | string,
   palletChargePlan: P_ENT_DI["ENT_DI_PAL"],
   guideNumber: P_ENT_DI["ENT_DI_GUI"],
   chargePlan: P_ENT_DI["ENT_DI_PLA"],

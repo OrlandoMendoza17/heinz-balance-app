@@ -1,5 +1,5 @@
 import axios from "axios"
-import { NewEntry } from "@/components/pages/VehiculesEntrance"
+import { NewEntry } from "@/utils/getTableValues"
 
 type NewEntryParams = {
   entry: NewEntry,

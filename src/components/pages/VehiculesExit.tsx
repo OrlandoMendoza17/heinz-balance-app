@@ -11,12 +11,13 @@ import { createNewExit } from '@/services/exits'
 import Form from '../widgets/Form'
 import { getMaterials } from '@/services/materials'
 import { getDensity } from '@/services/density'
-import { createNewEntryDifference, getDistEntries, getEntriesInPlant, getEntry, getFormattedDistEntries, updateDistEntry, updateEntry } from '@/services/entries'
+import { createNewEntry, createNewEntryDifference, getDistEntries, getEntriesInPlant, getEntry, getFormattedDistEntries, updateDistEntry, updateEntry } from '@/services/entries'
 import VehiculeExitDetails from './VehiculeExitDetails'
 import { PDFRenderType } from '../widgets/PDFRender/types/PDFRendeType'
 import ConfirmModal from '../widgets/ConfirmModal'
 import readWeightFromBalance from '@/utils'
 import useAuth from '@/hooks/useAuth'
+import { getInsertExit, getUpdateValue } from '@/utils/getTableValues'
 
 const PDFRender = lazy(() => import("../widgets/PDFRender"))
 
@@ -221,11 +222,12 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         setLoading(true)
         const form = new FormData(document.getElementsByTagName("form")[0])
 
-        const material = form.get("materials")
+        const material = form.get("materials") as string
         const density = parseFloat(form.get("density") as string)
 
         console.log('material', material)
         console.log('density', density)
+
         const { entryNumber: ENT_NUM, invoice, truckWeight, exitDetails, netWeight, destination, operation } = selectedExit
 
         // Si es Descarga o es Devoluación
@@ -241,59 +243,29 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
         const exitDate = getDateTime()
 
-        const leavingEntry: NewExit = {
+        const params = {
+          user,
           ENT_NUM,
-          USU_LOG: user.accountName,
-          SAL_FEC: exitDate,
-          ENT_PES_TAR: truckWeight,
-          ENT_PES_NET: netWeight,
-          SAL_PES_BRU: grossWeight,
-          DEN_COD: null,        // Siempre es NULL
-          SAL_DEN_LIT: density ? densityLts : null,
-          SAL_OBS: (exitDetails !== "") ? exitDetails : null,
+          DES_COD: destination,
+          OPE_COD: operation,
+          material,
+          selectedExit,
+          OS_AUTHORIZATION,
+          authCheck,
+          density,
+          densityLts,
+          exitDate,
         }
 
-        const table_values: TABLE_VALUES = {
-          "D01": undefined, // Distribución
-          "D02": { // Materia Prima
-            ENT_NUM,
-            ENT_MP_PRO: origin,
-            ENT_MP_FAC: (invoice) ? invoice : null,
-            ENT_MP_NOT: null, // SIEMPRE NULL
-            ENT_MP_PAL: null, // SIEMPRE NULL
-          },
-          "D03": { // Servicios Generales
-            ENT_NUM,
-            ENT_SG_PRO: origin,
-            ENT_SG_FAC: (invoice) ? invoice : null,
-            ENT_SG_NOT: null,
-            ENT_SG_AUT: null,
-            ENT_SG_NDE: null,
-          },
-          "D04": { // Almacén
-            ENT_NUM,
-            ENT_ALM_PRO: origin,
-            ENT_ALM_FAC: (invoice) ? invoice : null,
-          },
-          "D05": {          // Materiales
-            ENT_NUM,
-            ENT_PRO: origin,
-            OPE_COD: operation,
-            MAT_COD: material as string,       // Este codigo se pone en la salida pero aquí se manda en null
-          },
-          "D07": {          // Otros Servicios
-            ENT_NUM,
-            ENT_OS_PRO: origin,
-            ENT_OS_AUT: !authCheck ? (OS_AUTHORIZATION || null) : null
-          },
-        }
+        // Creando objeto de Salida de vehículo
+        const leavingEntry = getInsertExit(params)
 
-        // Dependiendo si es undefined o si trae un valor es porque sí se actualiza o no
-        const updateEntryByDestination = table_values[destination]
+        // Actualiza la entrada dependiendo del departamento
+        const updateEntryByDestination = getUpdateValue(params)
 
         console.log('leavingEntry', leavingEntry)
         console.log('updateEntryByDestination', updateEntryByDestination)
-
+        
         await createNewExit({ leavingEntry, updateEntryByDestination, destination })
 
         // Saca al vehículo de las entradas por salir que está en el cliente
@@ -308,6 +280,46 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         setSelectedExit(() => ({
           ...selectedExit, exitDate
         }))
+
+
+        try {
+
+          const { vehicule, driver } = selectedExit
+          
+          // const params = { 
+          //   vehicule, 
+          //   driver, 
+          //   action, 
+          //   ENT_NUM, 
+          //   DES_COD: destination,
+          //   OPE_COD: operation,
+          //   user, 
+          //   newEntry: {
+          //     ...defaultNewEntry,
+          //     details: selectedExit.details,
+          //     truckWeight: selectedExit.truckWeight,
+          //     invoice,: selectedExit.invoice 
+          //     origin: selectedExit.origin,
+          //   }
+          // }
+          
+          // const entry = getInsertNewEntry(params)
+          // const entryByDestination = getInsertValue(params) as object
+
+          // console.log('entry', entry)
+          // console.log('entryByDestination', entryByDestination)
+
+          // await createNewEntry({ entry, entryByDestination })
+
+        } catch (error) {
+          console.log(error)
+          setLoading(false)
+          handleAlert.open(({
+            type: "danger",
+            title: "Error ❌",
+            message: "Ha habido un error creando la entrada automática del vehículo",
+          }))
+        }
 
         setTimeout(() => {
           setRendered(true)
@@ -324,7 +336,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         handleAlert.open(({
           type: "danger",
           title: "Error ❌",
-          message: "Ha habido un error procesando la entrada del vehículo, intentelo de nuevo",
+          message: "Ha habido un error procesando la salida del vehículo, intentelo de nuevo",
         }))
       }
 
@@ -434,7 +446,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
   }
 
-  const heightReading = (READ_WEIGHT: number) => {
+  const weightReading = (READ_WEIGHT: number) => {
 
     if (!Number.isNaN(READ_WEIGHT)) {
 
@@ -509,9 +521,10 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         throw Error("La lectura del peso es undefined")
       }
 
-      heightReading(truckWeight ? truckWeight : 0)
+      weightReading(truckWeight ? truckWeight : 0)
 
     } catch (error) {
+      console.log('error', error)
       handleAlert.open(({
         type: "warning",
         title: "Lectura de peso",
@@ -529,7 +542,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
   // console.log('exitDate', getCuteFullDate("2024-04-08T17:32:59.805Z"))
 
   const REQUIRES_INVOICE = Boolean(INVOICE_BY_CODE[destination])
-  
+
   return (
     <>
       <Modal
@@ -613,7 +626,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
                 placeholder="0.00"
                 disabled={disableWeight}
                 onChange={({ currentTarget }) => {
-                  heightReading(parseFloat(currentTarget.value))
+                  weightReading(parseFloat(currentTarget.value))
                 }}
               />
               <Button
@@ -635,77 +648,80 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
             </div>
           </div>
 
-          {
-            // Materia Prima
-            destination === "D02" &&
-            <div className="flex gap-10 py-5">
-              <div>
-                <span className="font-semibold">Tipo de Carga:</span>
-                <div className="flex gap-4 pt-4">
-                  <label htmlFor="kilos" className="flex gap-2">
-                    <input type="radio" name="chargeType" onChange={handleChange} id="kilos" value="KG" required />
-                    <span>kilos</span>
-                  </label>
-                  <label htmlFor="litros" className="flex gap-2">
-                    <input type="radio" name="chargeType" onChange={handleChange} id="litros" value="LTS" required />
-                    <span>Litros</span>
-                  </label>
+          <div className="">
+            {
+              // Materia Prima
+              destination === "D02" &&
+              <div className="flex gap-10 py-5">
+                <div>
+                  <span className="font-semibold">Tipo de Carga:</span>
+                  <div className="flex gap-4 pt-4">
+                    <label htmlFor="kilos" className="flex gap-2">
+                      <input type="radio" name="chargeType" onChange={handleChange} id="kilos" value="KG" required />
+                      <span>kilos</span>
+                    </label>
+                    <label htmlFor="litros" className="flex gap-2">
+                      <input type="radio" name="chargeType" onChange={handleChange} id="litros" value="LTS" required />
+                      <span>Litros</span>
+                    </label>
+                  </div>
                 </div>
+                {
+                  chargeType === "LTS" &&
+                  <Select
+                    name="density"
+                    title="Densidad:"
+                    className="font-semibold"
+                    defaultOption=""
+                    options={density}
+                    onChange={() => { }}
+                  />
+                }
               </div>
-              {
-                chargeType === "LTS" &&
-                <Select
-                  name="density"
-                  title="Densidad:"
-                  className="font-semibold"
-                  defaultOption=""
-                  options={density}
-                  onChange={() => { }}
-                />
-              }
-            </div>
-          }
-          {
-            // Materiales
-            destination === "D05" &&
-            <Select
-              name="materials"
-              title="Tipo de Material"
-              defaultOption="Material"
-              options={materials}
-              onChange={() => { }}
-            />
-          }
-          {
-            // Otros Servicios
-            destination === "D07" &&
-            <div>
-              <div className="flex gap-4 justify-start pb-4">
-                <input type="checkbox" name="auth-check" id="auth-check" checked={authCheck} onChange={handleChange} />
-                <label htmlFor="auth-check" className="cursor-pointer">Sin autorización de salida</label>
-              </div>
-              <Input
-                id="authorization"
-                value={OS_AUTHORIZATION}
-                type="text"
-                className="w-full !rounded-r-none"
-                disabled={authCheck}
-                onChange={handleChange}
+            }
+            {
+              // Materiales
+              destination === "D05" &&
+              <Select
+                name="materials"
+                title="Tipo de Material"
+                defaultOption="Material"
+                options={materials}
+                onChange={() => { }}
               />
-            </div>
-          }
-          {
-            (REQUIRES_INVOICE && action === ACTION.DESCARGA) &&
-            <Input
-              id="invoice"
-              value={invoice || ""}
-              className="w-full"
-              title="Factura"
-              placeholder=""
-              onChange={handleChange}
-              required={false}
-            />
-          }
+            }
+            {
+              // Otros Servicios
+              destination === "D07" &&
+              <div>
+                <div className="flex gap-4 justify-start pb-4">
+                  <input type="checkbox" name="auth-check" id="auth-check" checked={authCheck} onChange={handleChange} />
+                  <label htmlFor="auth-check" className="cursor-pointer">Sin autorización de salida</label>
+                </div>
+                <Input
+                  id="authorization"
+                  value={OS_AUTHORIZATION}
+                  type="text"
+                  className="w-full !rounded-r-none"
+                  disabled={authCheck}
+                  onChange={handleChange}
+                />
+              </div>
+            }
+            {
+              (REQUIRES_INVOICE && action === ACTION.DESCARGA) &&
+              <Input
+                id="invoice"
+                value={invoice || ""}
+                className="w-full"
+                title="Factura"
+                placeholder=""
+                onChange={handleChange}
+                required={false}
+              />
+            }
+          </div>
+
           <VehiculeExitDetails
             exit={selectedExit}
             exitDetails={exitDetails}
@@ -716,6 +732,11 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
             handleChange={handleChange}
             setSelectedExit={setSelectedExit}
           />
+
+          <label htmlFor="automically-entry" className="flex justify-self-end self-center gap-4 cursor-pointer">
+            <input type="checkbox" name="" id="automically-entry" />
+            <span className="block select-none">Crear entrada automáticamente</span>
+          </label>
 
           {
             rendered &&
@@ -733,7 +754,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         acceptAction={!isDifference ? handleSubmit : handleReturnVehicule}
         confirmProps={[confirm, handleConfirm]}
       />
-      
+
     </>
   )
 }

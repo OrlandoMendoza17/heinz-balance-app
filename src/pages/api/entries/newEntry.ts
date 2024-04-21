@@ -1,7 +1,7 @@
-import { NewEntry } from "@/components/pages/VehiculesEntrance";
-import { DESTINATION_TABLES, ORIGIN_BY_DESTINATION } from "@/lib/enums";
 // import getSequelize from "@/lib/mssql";
+import { DESTINATION_TABLES, ORIGIN_BY_DESTINATION } from "@/lib/enums";
 import sequelize from "@/lib/mssql";
+import { NewEntry } from "@/utils/getTableValues";
 import { NextApiRequest, NextApiResponse } from "next";
 
 type BodyProps = {

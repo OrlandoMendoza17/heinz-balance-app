@@ -2,7 +2,6 @@
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { distEntriesExamples, entriesExamples } from "@/utils/examples";
 
 type BodyProps = {
   entriesType: "entry" | "initial" | "dispatch" | "aboutToLeave" | "all";
@@ -71,7 +70,6 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
       `
 
       const [entries] = await sequelize.query(queryString2) as [P_ENT_DI[], unknown]
-      // const entries = distEntriesExamples
 
       const distribution = {
         entry:

@@ -77,7 +77,9 @@
   
   .SearchButton{
     // @apply bg-cyan-500;
-    @apply col-start-2 relative;
+    &.romana{
+      @apply col-start-2 relative;
+    }
     
     display: flex;
     align-items: center;
@@ -103,14 +105,14 @@
       @apply fixed top-0 right-0 w-full h-full bg-opacity-50 bg-black;
     }
     
-    &:hover::after{
-      position: absolute;
-      display: block;
-      content: "";
-      width: 350%;
-      height: 25px;
-      // background-color: #000000;
-    }
+    // &:hover::after{
+    //   position: absolute;
+    //   display: block;
+    //   content: "";
+    //   width: 350%;
+    //   height: 25px;
+    //   background-color: #000000;
+    // }
   }
 
 }

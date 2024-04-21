@@ -33,9 +33,9 @@ const Modal = (props: Props) => {
         <div
           onClick={handleClick}
           {...{ [`data-${targetModal}`]: true }}
-          className={`Modal ${className}`}
+          className={`Modal snap-y ${className}`}
         >
-          <div className={`Modal_container ${transparent && "transparent"}`}>
+          <div className={`Modal_container scroll-pb-11 ${transparent && "transparent"}`}>
             {
               closeButton &&
               <button className="close_btn" onClick={() => setModal(false)}>

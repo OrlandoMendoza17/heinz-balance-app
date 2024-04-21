@@ -1,4 +1,3 @@
-import { NewEntry } from "@/components/pages/VehiculesEntrance";
 import { NewExit } from "@/components/pages/VehiculesExit";
 import { DESTINATION_TABLES, ORIGIN_BY_DESTINATION } from "@/lib/enums";
 // import getSequelize from "@/lib/mssql";

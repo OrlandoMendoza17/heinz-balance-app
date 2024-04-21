@@ -22,7 +22,7 @@ const distributionEntry: DistributionEntry = {
   chargeDestination: "",
   vehiculeStatus: null,
   distDetails: "",
-  palletsQuatity: 0,
+  palletsQuatity: 0 || "",
   palletChargePlan: "",
   guideNumber: "",
   chargePlan: "",

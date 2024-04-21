@@ -1,8 +1,8 @@
-export const VEHICULE_NOT_FOUND = "Vehicule Not Found"
-export const VEHICULE_COMPANY_NOT_FOUND = "Vehicule Company Not Found"
-export const DRIVER_NOT_FOUND = "Driver Not Found"
-export const DRIVER_VEHICULE_RELATION_NOT_FOUND = "Driver-Vehicule Relation Not Found"
-export const CHARGE_PLAN_NOT_FOUND = "CHARGE_PLAN_NOT_FOUND"
+export const VEHICULE_NOT_FOUND = "vehicule-not-found"
+export const VEHICULE_COMPANY_NOT_FOUND = "vehicule-company-not-found"
+export const DRIVER_NOT_FOUND = "driver-not-found"
+export const DRIVER_VEHICULE_RELATION_NOT_FOUND = "driver-vehicule-relation-not-found"
+export const CHARGE_PLAN_NOT_FOUND = "charge-plan-not-found"
 
 const errorMessages = {
   [VEHICULE_NOT_FOUND]: "No se ha podido encontrar el vehículo",

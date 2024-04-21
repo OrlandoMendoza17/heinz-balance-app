@@ -101,7 +101,7 @@ const Romana = () => {
     setShowDistEntries(!showDistEntries)
   }
 
-  const distEntries = exits;
+  const distEntries = exits.filter(({ aboutToLeave }) => !aboutToLeave);
   const leavingExits = exits.filter(({ aboutToLeave }) => aboutToLeave)
 
   const displayExits = !showDistEntries ? leavingExits : distEntries

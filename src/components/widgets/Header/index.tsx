@@ -97,7 +97,7 @@ const Header = ({ refreshEntries = async () => { } }: Props) => {
                   </li>
                 )
               }
-              <SearchButton handleDropBtn={[showDropBtn, setShowDropBtn]} />
+              <SearchButton className="romana" handleDropBtn={[showDropBtn, setShowDropBtn]} />
               <VehiculesEntrance {...{ showModal, setModal, refreshEntries }} />
             </>
           }
@@ -106,7 +106,8 @@ const Header = ({ refreshEntries = async () => { } }: Props) => {
             (user.rol === "01" || user.rol === "05" || user.rol === "06") &&
             <>
               {
-                router.pathname === "/romana" && "||"
+                router.pathname === "/romana" &&
+                <span className="text-base">||</span>
               }
               {
                 navListDistribution.map(({ title, Icon, link }, i) =>
@@ -119,6 +120,11 @@ const Header = ({ refreshEntries = async () => { } }: Props) => {
               }
             </>
           }
+          {
+            router.pathname !== "/romana" &&
+            <SearchButton handleDropBtn={[showDropBtn, setShowDropBtn]} />
+          }
+
         </ul>
 
         <User />

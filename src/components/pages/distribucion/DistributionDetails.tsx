@@ -76,31 +76,30 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
       const { entryNumber, origin, guideNumber, calculatedNetWeight, palletsQuatity, palletWeight } = selectedEntry
       const { chargePlan, chargeDestination, aditionalWeight, aditionalWeightDescription, vehiculeStatus } = selectedEntry
       const { exitAuthorization, dispatchNote, palletChargePlan, distDetails } = selectedEntry
-
+      debugger
       const PALLET_DEFAULT_WEIGHT = 30
 
       const ENT_DI_DPA = aditionalWeight ? (aditionalWeightDescription || null) : null
 
       const distEntry: P_ENT_DI = {
-        ENT_NUM: entryNumber,                                        // ✅ Número de entrada                  | SIEMPRE 
-        USU_LOG: user.accountName,                                         // ✅ Usuario que modificó la entrada    | SIEMPRE
-        ENT_DI_FEC: getDateTime(),                                   // ✅ Fecha de edición de la entrada     | SIEMPRE
-        ENT_DI_PRO: origin,                                          // ✅ Procedencia                        | SIEMPRE
-        ENT_DI_GUI: chargePlan,                                      // ✅ Número de Guía     (Plan de carga) | SIEMPRE
-        ENT_DI_PNC: calculatedNetWeight,                             // ✅ Peso Neto Calculado                | SIEMPRE - SE COLOCA ABAJO CON LA INFO DEL PLAN DE CARGA
-        ENT_DI_CPA: palletChargePlan ? palletsQuatity : 0,           // ✅ Cantidad de Paletas                |         - Se manda en 0    si no se coloca cantidad de paletas ni control de paleta
-        ENT_DI_PPA: palletChargePlan ?
-          palletWeight : PALLET_DEFAULT_WEIGHT,        // ✅ Peso de las paletas                |         - Se manda en null si no se coloca cantidad de paletas ni control de paleta
-        ENT_DI_PLA: chargePlan,                                      // ✅ Plan de carga                      | SIEMPRE
-        ENT_DI_DES: chargeDestination,                               // ✅ Destino de carga                   | SIEMPRE - SE COLOCA ABAJO CON LA INFO DEL PLAN DE CARGA
-        ENT_DI_PAD: aditionalWeight || 0,                            // ✅ Peso adicional corregido           |         - Se manda en 0 si no hay diferencia de peso
-        ENT_DI_DPA,                                                  // ✅ Descripción del Peso Adicional     |         - Se manda en null si no hay peso adicional (DEBE COLOCARSE COMO OBLIGLATORIO CUANDO HAY DIFERENCIA DE PESO)
-        ENT_DI_STA: 1,                                               // ✅ Estatus del Vehículo               |         - En distribución siempre es 1
-        ENT_DI_AUT: exitAuthorization || null,                       // ✅ Autorización de Salida             |         - Se manda en null si es string vacío
-        ENT_DI_NDE: chargePlan,                                      // ✅ Nota de despacho   (Plan de carga) | SIEMPRE
-        ENT_DI_PAL: palletsQuatity ? palletChargePlan : null,        // ✅ Control de paletas (Plan de carga) |         - Si hay cantidad de paletas, se debe mandar, sino es null
-        ENT_DI_OBS: distDetails || null,                             // ✅ Observaciones (Este)
-        ENT_DI_REV: false,                                           // 1 | 0 (Aparentemente siempre es 0)
+        ENT_NUM: entryNumber,                                               // ✅ Número de entrada                  | SIEMPRE 
+        USU_LOG: user.accountName,                                          // ✅ Usuario que modificó la entrada    | SIEMPRE
+        ENT_DI_FEC: getDateTime(),                                          // ✅ Fecha de edición de la entrada     | SIEMPRE
+        ENT_DI_PRO: origin,                                                 // ✅ Procedencia                        | SIEMPRE
+        ENT_DI_GUI: chargePlan,                                             // ✅ Número de Guía     (Plan de carga) | SIEMPRE
+        ENT_DI_PNC: calculatedNetWeight,                                    // ✅ Peso Neto Calculado                | SIEMPRE - SE COLOCA ABAJO CON LA INFO DEL PLAN DE CARGA
+        ENT_DI_CPA: palletsQuatity ? (palletsQuatity as number) : 0,        // ✅ Cantidad de Paletas                |         - Se manda en 0    si no se coloca cantidad de paletas ni control de paleta
+        ENT_DI_PPA: palletsQuatity ? palletWeight : PALLET_DEFAULT_WEIGHT,  // ✅ Peso de las paletas                |         - Se manda en null si no se coloca cantidad de paletas ni control de paleta
+        ENT_DI_PLA: chargePlan,                                             // ✅ Plan de carga                      | SIEMPRE
+        ENT_DI_DES: chargeDestination,                                      // ✅ Destino de carga                   | SIEMPRE - SE COLOCA ABAJO CON LA INFO DEL PLAN DE CARGA
+        ENT_DI_PAD: aditionalWeight || 0,                                   // ✅ Peso adicional corregido           |         - Se manda en 0 si no hay diferencia de peso
+        ENT_DI_DPA,                                                         // ✅ Descripción del Peso Adicional     |         - Se manda en null si no hay peso adicional (DEBE COLOCARSE COMO OBLIGLATORIO CUANDO HAY DIFERENCIA DE PESO)
+        ENT_DI_STA: 1,                                                      // ✅ Estatus del Vehículo               |         - En distribución siempre es 1
+        ENT_DI_AUT: exitAuthorization || null,                              // ✅ Autorización de Salida             |         - Se manda en null si es string vacío
+        ENT_DI_NDE: chargePlan,                                             // ✅ Nota de despacho   (Plan de carga) | SIEMPRE
+        ENT_DI_PAL: palletsQuatity ? palletChargePlan : null,               // ✅ Control de paletas (Plan de carga) |         - Si hay cantidad de paletas, se debe mandar, sino es null
+        ENT_DI_OBS: distDetails || null,                                    // ✅ Observaciones (Este)
+        ENT_DI_REV: false,                                                  // 1 | 0 (Aparentemente siempre es 0)
       }
 
       const { ENT_NUM, ...rest } = await getEntry(entryNumber)
@@ -166,10 +165,12 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
         entries.filter(({ entryNumber }) => entryNumber !== distEntry.ENT_NUM)
       )
 
+      const area = exitTicketEnabled ? DEPARTMENT_AREAS.aboutToLeave : DEPARTMENT_AREAS[ENTRIES_TYPE]
+      
       handleAlert.open(({
         type: "success",
         title: "Actualización de entrada",
-        message: `Se ha guardados los datos de la entrada exitosamente y se ha mandado a "${DEPARTMENT_AREAS[ENTRIES_TYPE]}"`,
+        message: `Se ha guardados los datos de la entrada exitosamente y se ha mandado a "${area}"`,
       }))
 
       setLoading(false)
@@ -199,15 +200,21 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
 
   const handleChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement> = ({ target, currentTarget }) => {
     debugger
-    if (target.name === "exit-ticket") {
+    const { name, value } = target
+    if (name === "exit-ticket") {
 
       const checkbox = target as HTMLInputElement
       setExitTicketEnabled(checkbox.checked)
 
+    } else if (name === "palletsQuatity") {
+      setSelectedEntry({
+        ...selectedEntry,
+        [name]: value === "" ? value : parseInt(value)
+      })
     } else {
       setSelectedEntry({
         ...selectedEntry,
-        [target.name]: target.value
+        [name]: target.value
       })
     }
   }
@@ -248,39 +255,39 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
           Datos Básicos
 
           <ul className="grid grid-cols-3 gap-5">
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Número de Entrada: </span>
               <p>{entryNumber}</p>
             </li>
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Fecha de Entrada: </span>
               <p>{getCuteFullDate(entryDate)}</p>
             </li>
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Nombre del Chofer: </span>
               <p>{driver.name}</p>
             </li>
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Cédula del Chofer: </span>
               <p>{driver.cedula}</p>
             </li>
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Placa del Vehículo: </span>
               <p>{vehicule.plate}</p>
             </li>
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Tranporte: </span>
               <p>{vehicule.company}</p>
             </li>
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Peso Tara: </span>
               <p>{truckWeight}</p>
             </li>
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Procedencia: </span>
               <p>{origin}</p>
             </li>
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Observaciones en Entrada: </span>
               <p>{entryDetails}</p>
             </li>
@@ -289,17 +296,17 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
           Entrada a Distribución
 
           <ul className="grid grid-cols-3 gap-5">
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Nota de Despacho: </span>
               <p>{selectedEntry.dispatchNote}</p>
             </li>
 
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Número de Guía: </span>
               <p>{selectedEntry.guideNumber}</p>
             </li>
 
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Plan de Carga: </span>
               {
                 BOTH_ENABLED_EDIT ?
@@ -318,34 +325,69 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
               }
             </li>
 
-            <li className="bg-sky-50 p-2">
-              <span className="font-semibold">Control de Paleta: </span>
+            <li className="bg-sky-100 p-2">
+              <span className="font-semibold">Destino de Carga: </span>
+              <p>{selectedEntry.chargeDestination}</p>
+            </li>
+
+            <li className="bg-sky-100 p-2">
+              <span className="font-semibold">Estatus de Vehículo: </span>
+              <p>{selectedEntry.vehiculeStatus}</p>
+            </li>
+
+            {
+              INITIAL_ENABLED_EDIT ?
+              <li className="col-start-3 pr-10 cursor-pointer content-center">
+                <label htmlFor="exit-ticket" className="flex items-center gap-4">
+                  <input id="exit-ticket" name="exit-ticket" type="checkbox" checked={exitTicketEnabled} onChange={handleChange} />
+                  <span className="font-bold">Emitir Ticket de Salida</span>
+                </label>
+              </li>
+              :
+              <li></li>
+            }
+
+            <li className="bg-sky-100 p-2">
+              <span className="font-semibold">Peso de Paletas: </span>
               {
                 DESPATCH_ENABLED_EDIT ?
-                  <Input
-                    type="text"
-                    onChange={handleChange}
-                    className="block"
-                    id="palletChargePlan"
-                    value={selectedEntry.palletChargePlan || ""}
-                    required={false}
-                  />
+                  <Input type="number" onChange={handleChange} className="block" id="palletWeight" value={selectedEntry.palletWeight || 30} />
                   :
-                  <p>{selectedEntry.palletChargePlan}</p>
+                  <p>{selectedEntry.palletWeight}</p>
               }
             </li>
 
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
+              <span className="font-semibold">Peso Adicional: </span>
+              {
+                DESPATCH_ENABLED_EDIT ?
+                  <Input type="number" onChange={handleChange} className="block" id="aditionalWeight" value={selectedEntry.aditionalWeight} />
+                  :
+                  <p>{selectedEntry.aditionalWeight}</p>
+              }
+            </li>
+
+            <li className="bg-sky-100 p-2">
+              <span className="font-semibold">Peso Neto Calculado: </span>
+              {
+                DESPATCH_ENABLED_EDIT ?
+                  <Input type="number" onChange={handleChange} className="block" id="calculatedNetWeight" value={selectedEntry.calculatedNetWeight || 0} />
+                  :
+                  <p>{selectedEntry.calculatedNetWeight}</p>
+              }
+            </li>
+
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Cantidad de Paletas: </span>
               {
                 DESPATCH_ENABLED_EDIT ?
-                  <Input type="number" onChange={handleChange} className="block" id="palletsQuatity" value={selectedEntry.palletsQuatity || 0} />
+                  <Input type="text" onChange={handleChange} className="block" id="palletsQuatity" value={selectedEntry.palletsQuatity || 0} />
                   :
                   <p>{selectedEntry.palletsQuatity}</p>
               }
             </li>
 
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Autorización de Salida:</span>
               {
                 DESPATCH_ENABLED_EDIT ?
@@ -362,47 +404,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
               }
             </li>
 
-            <li className="bg-sky-50 p-2">
-              <span className="font-semibold">Peso Adicional: </span>
-              {
-                DESPATCH_ENABLED_EDIT ?
-                  <Input type="number" onChange={handleChange} className="block" id="aditionalWeight" value={selectedEntry.aditionalWeight} />
-                  :
-                  <p>{selectedEntry.aditionalWeight}</p>
-              }
-            </li>
-
-            <li className="bg-sky-50 p-2">
-              <span className="font-semibold">Peso de Paletas: </span>
-              {
-                DESPATCH_ENABLED_EDIT ?
-                  <Input type="number" onChange={handleChange} className="block" id="palletWeight" value={selectedEntry.palletWeight || 30} />
-                  :
-                  <p>{selectedEntry.palletWeight}</p>
-              }
-            </li>
-
-            <li className="bg-sky-50 p-2">
-              <span className="font-semibold">Peso Neto Calculado: </span>
-              {
-                DESPATCH_ENABLED_EDIT ?
-                  <Input type="number" onChange={handleChange} className="block" id="calculatedNetWeight" value={selectedEntry.calculatedNetWeight || 0} />
-                  :
-                  <p>{selectedEntry.calculatedNetWeight}</p>
-              }
-            </li>
-
-            <li className="bg-sky-50 p-2">
-              <span className="font-semibold">Destino de Carga: </span>
-              <p>{selectedEntry.chargeDestination}</p>
-            </li>
-
-            <li className="bg-sky-50 p-2">
-              <span className="font-semibold">Estatus de Vehículo: </span>
-              <p>{selectedEntry.vehiculeStatus}</p>
-            </li>
-
-            <li className="bg-sky-50 p-2">
+            <li className="bg-sky-100 p-2">
               <span className="font-semibold">Observaciones: </span>
               {
                 BOTH_ENABLED_EDIT ?
@@ -419,15 +421,6 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
               }
             </li>
 
-            {
-              INITIAL_ENABLED_EDIT &&
-              <li className="col-start-3 pr-10 cursor-pointer">
-                <label htmlFor="exit-ticket" className="flex items-center gap-4">
-                  <input id="exit-ticket" name="exit-ticket" type="checkbox" checked={exitTicketEnabled} onChange={handleChange} />
-                  <span className="font-bold">Emitir Ticket de Salida</span>
-                </label>
-              </li>
-            }
           </ul>
 
           {
