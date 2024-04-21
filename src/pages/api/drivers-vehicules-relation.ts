@@ -58,7 +58,7 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
         
       } else {
         response.status(400).json({
-          message: DRIVER_VEHICULE_RELATION_NOT_FOUND
+          message: "No se ha podido encontrar una relación entre el vehículo y un conductor"
         });
       }
 
