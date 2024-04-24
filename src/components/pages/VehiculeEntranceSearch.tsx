@@ -1,4 +1,4 @@
-import React, { ChangeEventHandler, useState } from 'react'
+import React, { ChangeEventHandler, FormEventHandler, useState } from 'react'
 import Input from '../widgets/Input'
 import Button from '../widgets/Button'
 import { FaSearch } from 'react-icons/fa'
@@ -6,6 +6,7 @@ import { AxiosError } from 'axios'
 import getErrorMessage from '@/utils/services/errorMessages'
 import NotificationModal from '../widgets/NotificationModal'
 import useNotification from '@/hooks/useNotification'
+import Form from '../widgets/Form'
 
 type Props = {
   id: string,
@@ -28,7 +29,8 @@ const VehiculeEntranceSearch = ({ searchInfo, createButton, disabled = false, ha
     setSearch(target.value)
   }
 
-  const handleSearch = async () => {
+  const handleSearch: FormEventHandler<HTMLFormElement> = async (event) => {
+    event.preventDefault()
     setLoading(true)
     try {
 
@@ -41,7 +43,7 @@ const VehiculeEntranceSearch = ({ searchInfo, createButton, disabled = false, ha
     } catch (error) {
       setLoading(false)
       console.log(error)
-      
+
       let message = "Ha habido un error en la consulta"
 
       if (error instanceof AxiosError) {
@@ -59,7 +61,7 @@ const VehiculeEntranceSearch = ({ searchInfo, createButton, disabled = false, ha
   }
 
   return (
-    <div className="VehiculeEntranceSearch">
+    <Form onSubmit={handleSearch} className="VehiculeEntranceSearch">
       <Input
         {...props}
         value={searchValue}
@@ -69,7 +71,7 @@ const VehiculeEntranceSearch = ({ searchInfo, createButton, disabled = false, ha
         required={false}
       />
       <Button
-        onClick={handleSearch}
+        type="submit"
         className='bg-secondary !rounded-l-none'
         style={{ height: "41px" }}
         loading={loading}
@@ -80,7 +82,7 @@ const VehiculeEntranceSearch = ({ searchInfo, createButton, disabled = false, ha
         {createButton}
       </button>
       <NotificationModal alertProps={[alert, handleAlert]} />
-    </div>
+    </Form>
   )
 }
 

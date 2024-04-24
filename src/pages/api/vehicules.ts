@@ -9,59 +9,98 @@ type BodyProps = {
 
 const driversHandler = async (request: NextApiRequest, response: NextApiResponse) => {
   try {
-    
+
     const METHOD = request.method
     const { vehiculePlate }: BodyProps = request.body
-    
+
     console.log('vehiculePlate', vehiculePlate)
-    
+
     if (METHOD === "POST") {
 
-      const queryString1 = `
-        SELECT * FROM [HDTA025].[dbo].[H025_T_VEH] 
-        WHERE VEH_PLA = '${vehiculePlate}'
-      `
+      const origin = {
+        SIPVEH: 0,
+        JDE: 1,
+      }
+
+      const { SIPVEH, JDE } = origin
       
+      let vehicules: T_VEH[] = []
+      let ORI_ID: T_VEH["ORI_ID"] = SIPVEH
+
       // const sequelize = await getSequelize()
-      
-      const [data1] = await sequelize.query(queryString1) as [T_VEH[], unknown]
-      
-      if(data1.length){
-        
-        const queryString2 = `
-          SELECT * FROM [HDTA025].[dbo].[H025_T_TRA]
-          WHERE TRA_COD = '${data1[0].TRA_COD}'
+
+      // JDE Vehicule
+      const JDE_VehiculesQuery = `
+        SELECT * FROM OPENQUERY(JDE, '
+          SELECT
+            VMVEHN as VEH_ID,
+            VMVEHI as VEH_PLA,
+            VMDL01 as VEH_MOD,
+            VMVTYP as VEH_TIP,
+            VMWTCA as VEH_CAP,
+            VMVOWN as TRA_COD
+          FROM PRODDTA.f4930
+          WHERE VMVEHI in (''${vehiculePlate}'')
+        ')
+      `
+
+      // Lo busca entre los vehículos creados en distribu
+      vehicules = (await sequelize.query(JDE_VehiculesQuery) as [T_VEH[], unknown])[0]
+      ORI_ID = JDE // Lo asigna como que viene de JDE 
+
+      console.log('JDE vehicules', vehicules)
+
+      if (!vehicules.length) {
+        // SQL Vehicule
+        const SQL_VehiculesQuery = `
+          SELECT * FROM [HDTA025].[dbo].[H025_T_VEH] 
+          WHERE VEH_PLA = '${vehiculePlate}'
+          AND ORI_ID = ${SIPVEH}
         `
-        
-        const [data2] = await sequelize.query(queryString2) as [T_TRA[], unknown]
-        
-        if(data2.length){
-          
+        vehicules = (await sequelize.query(SQL_VehiculesQuery) as [T_VEH[], unknown])[0]
+        ORI_ID = SIPVEH // Lo asigna como que viene de SIPVEH 
+
+        console.log('SQL vehicules', vehicules)
+      }
+
+      if (vehicules.length) {
+
+        const tranportQuery = `
+          SELECT * FROM [HDTA025].[dbo].[H025_T_TRA]
+          WHERE TRA_COD = '${vehicules[0].TRA_COD}'
+        `
+
+        const [transports] = await sequelize.query(tranportQuery) as [T_TRA[], unknown]
+
+        if (transports.length) {
+
           const vehicule: Vehicule = {
-            id: data1[0].VEH_ID,
-            plate: data1[0].VEH_PLA,
-            model: data1[0].VEH_MOD,
-            type: data1[0].VEH_TIP,
-            capacity: data1[0].VEH_CAP,
-            company: data2[0].TRA_NOM,
+            id: vehicules[0].VEH_ID,
+            plate: vehicules[0].VEH_PLA,
+            model: vehicules[0].VEH_MOD,
+            type: vehicules[0].VEH_TIP,
+            capacity: vehicules[0].VEH_CAP,
+            company: transports[0].TRA_NOM,
+            originID: ORI_ID,
           }
-          
+
           response.json(vehicule)
-        }else{
+
+        } else {
           response.status(400).json({
             message: VEHICULE_COMPANY_NOT_FOUND
           });
         }
-        
-      }else{
+
+      } else {
         response.status(400).json({
           message: VEHICULE_NOT_FOUND
         });
       }
-      
-      
+
+
     } else {
-      
+
       response.status(400).json({
         message: "Bad Request"
       });

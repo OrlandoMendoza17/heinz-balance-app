@@ -14,22 +14,59 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
     const METHOD = request.method
     const { driverID, field }: BodyProps = request.body
 
+    const getField = {
+      CON_COD: "ABAN8",
+      CON_CED: "ABALKY",
+    }
+
     if (METHOD === "POST") {
 
-      const queryString = `
-        SELECT * FROM [HDTA025].[dbo].[H025_T_CON] 
-        WHERE ${field} = '${driverID}'
+      const origin = {
+        SIPVEH: 0,
+        JDE: 1,
+      }
+
+      const { SIPVEH, JDE } = origin
+
+      let ORI_ID = JDE
+      let drivers: T_CON[] = []
+      
+      // JDE Datos Conductor
+      const distDriverQuery = `
+        SELECT 
+          ABALPH as CON_NOM, 
+          ABALKY as CON_CED, 
+          ABAN8 as CON_COD
+        FROM OPENQUERY(JDE, '
+          SELECT * FROM PRODDTA.F0101
+          WHERE ${getField[field]} = ''${driverID}''
+        ')
       `
-
+      
       // const sequelize = await getSequelize()
-      const [data] = await sequelize.query(queryString) as [T_CON[], unknown]
-
-      if (data.length) {
+      drivers = (await sequelize.query(distDriverQuery) as [T_CON[], unknown])[0]
+      ORI_ID = JDE
+      
+      console.log('JDE drivers', drivers)
+      
+      if(!drivers.length){
+        const sipvehDriverQuery = `
+          SELECT * FROM [HDTA025].[dbo].[H025_T_CON] 
+          WHERE ${field} = '${driverID}'
+        `
+        
+        drivers = (await sequelize.query(sipvehDriverQuery) as [T_CON[], unknown])[0]
+        ORI_ID = SIPVEH
+        console.log('SIPVEH drivers', drivers)
+      }
+      
+      if (drivers.length) {
 
         const driver: Driver = {
-          name: data[0].CON_NOM,
-          cedula: data[0].CON_CED,
-          code: data[0].CON_COD,
+          name: drivers[0].CON_NOM,
+          cedula: drivers[0].CON_CED,
+          code: drivers[0].CON_COD,
+          appOrigin: ORI_ID,
         }
 
         response.json(driver)

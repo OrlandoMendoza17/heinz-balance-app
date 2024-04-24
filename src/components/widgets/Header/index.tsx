@@ -103,7 +103,7 @@ const Header = ({ refreshEntries = async () => { } }: Props) => {
           }
 
           {
-            (user.rol === "01" || user.rol === "05" || user.rol === "06") &&
+            (user.rol === "01" || user.rol === "04" || user.rol === "05" || user.rol === "06") &&
             <>
               {
                 router.pathname === "/romana" &&

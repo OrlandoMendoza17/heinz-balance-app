@@ -117,7 +117,8 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
 
         distEntry.ENT_DI_PNC = (
           (entry.calculatedNetWeight === null) ? chargePlanInfo.weight :
-            (entry.chargePlan === chargePlan) ? calculatedNetWeight : chargePlanInfo.weight
+            (entry.chargePlan === chargePlan) ? 
+              calculatedNetWeight : chargePlanInfo.weight
         )
 
         // Si se añaden paletas
@@ -127,6 +128,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
       }
 
       if (INITIAL_ENABLED_EDIT && exitTicketEnabled) {
+        
         const udpatedEntry: UpdateP_ENT = {
           ...rest,
           ENT_FLW: 2, // La asignación de este valor indica que lo manda a "por salir"
@@ -336,7 +338,8 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
             </li>
 
             {
-              INITIAL_ENABLED_EDIT ?
+              INITIAL_ENABLED_EDIT && 
+              (user.rol === "01" || user.rol === "06") ?
               <li className="col-start-3 pr-10 cursor-pointer content-center">
                 <label htmlFor="exit-ticket" className="flex items-center gap-4">
                   <input id="exit-ticket" name="exit-ticket" type="checkbox" checked={exitTicketEnabled} onChange={handleChange} />

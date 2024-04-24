@@ -13,7 +13,6 @@ import { getMaterials } from '@/services/materials'
 import { getDensity } from '@/services/density'
 import { createNewEntry, createNewEntryDifference, getDistEntries, getEntriesInPlant, getEntry, getFormattedDistEntries, updateDistEntry, updateEntry } from '@/services/entries'
 import VehiculeExitDetails from './VehiculeExitDetails'
-import { PDFRenderType } from '../widgets/PDFRender/types/PDFRendeType'
 import ConfirmModal from '../widgets/ConfirmModal'
 import readWeightFromBalance from '@/utils'
 import useAuth from '@/hooks/useAuth'
@@ -81,6 +80,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
       type: "",
       capacity: 0,
       company: "",
+      originID: 0,
     },
     action: 1,
     destination: "D01",
@@ -188,7 +188,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
   }
 
   const handleSubmit = async () => {
-
+    
     let validWeight = false;
     let invalidWeightMessage = "";
     debugger

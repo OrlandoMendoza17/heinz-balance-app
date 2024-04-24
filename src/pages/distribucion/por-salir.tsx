@@ -10,11 +10,16 @@ import TableDistribution from '@/components/pages/distribucion/TableDistribution
 import DistributionDetails from '@/components/pages/distribucion/DistributionDetails';
 import distributionEntry from '@/utils/defaultValues/distributionEntry';
 import Header from '@/components/widgets/Header';
+import useAuth from '@/hooks/useAuth';
+import { useRouter } from 'next/router';
 
 const ENTRIES_TYPE: EntriesType = "aboutToLeave"
 
 const PorSalir = () => {
 
+  const router = useRouter()
+  const [renderPage, credentials] = useAuth()
+  
   const [showModal, setModal] = useState<boolean>(false)
   const [entries, setEntries] = useState<DistributionEntry[]>([])
 
@@ -26,6 +31,21 @@ const PorSalir = () => {
 
   const [selectedEntry, setSelectedEntry] = useState<DistributionEntry>(distributionEntry)
 
+  useEffect(() => {
+    const { user } = credentials
+    if(renderPage){
+      if(user.rol === "01" || user.rol === "04" || user.rol === "05" || user.rol === "06"){
+        
+        // getEntries()
+        
+      }else if(user.rol === "02" || user.rol === "03"){
+        
+        router.push("/romana")
+        
+      }
+    }
+  }, [renderPage])
+  
   useEffect(() => {
     (async () => {
       try {

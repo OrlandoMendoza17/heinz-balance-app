@@ -66,7 +66,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
   const [vehicule, setVehicule] = useState<Vehicule>()
 
   const [action, setAction] = useState<Action>()
-  
+
   const [newEntry, setNewEntry] = useState<NewEntryDto>(defaultNewEntry)
 
   useEffect(() => {
@@ -137,7 +137,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
       const vehicule = await getVehicule(vehiculePlate)
       setVehicule(vehicule)
 
-      const driver = await getDriverFromVehicule(vehicule.id)
+      const driver = await getDriverFromVehicule(vehicule)
       setDriver(driver)
     },
     driver: async (driverID: string) => {
@@ -172,17 +172,17 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
 
             const { nextEntryNumber: ENT_NUM } = await getNextEntryNumber()
 
-            const params = { 
-              vehicule, 
-              driver, 
-              action, 
-              ENT_NUM, 
-              DES_COD, 
-              OPE_COD, 
-              user, 
-              newEntry 
+            const params = {
+              vehicule,
+              driver,
+              action,
+              ENT_NUM,
+              DES_COD,
+              OPE_COD,
+              user,
+              newEntry
             }
-            
+
             const entry = getInsertNewEntry(params)
             const entryByDestination = getInsertValue(params) as object
 
@@ -200,6 +200,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
             await refreshEntries()
 
             // Resets the modal
+            setAction(undefined)
             setVehicule(undefined)
             setDriver(undefined)
             setEnableInvoice(false)
@@ -257,12 +258,12 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
     const { name, value } = target
 
     let actionInput = action
-    
+
     if (target.name === "action") {
       actionInput = parseInt(target.value) as Action
       setAction(actionInput)
     }
-    
+
     let invoice = newEntry.invoice
 
     const destinationSelect = document.getElementById("destination") as HTMLSelectElement
@@ -270,7 +271,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
 
     const REQUIRES_INVOICE = Boolean(INVOICE_BY_CODE[DES_COD])
     setEnableInvoice(REQUIRES_INVOICE && actionInput === ACTION.DESCARGA)
-    
+
     invoice = REQUIRES_INVOICE ? newEntry.invoice : null
 
     if (target.name === "destination") {
@@ -335,13 +336,9 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
         className='py-10 !items-baseline overflow-auto !grid-cols-[minmax(auto,_750px)]'
       >
         <h1 className="font-semibold pb-10">Procesar Entrada de Vehículo</h1>
-        <Form
-          onSubmit={handleOpenModal}
-          className='grid grid-cols-2 gap-x-5 gap-y-8'
-        >
-
+        <div>
           {/* Búsqueda por placa del vehículo */}
-          <>
+          <div className="grid grid-cols-2 gap-x-5 pb-8">
             <VehiculeEntranceSearch
               id="vehiculePlate"
               title="Placa del Vehículo"
@@ -358,10 +355,10 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
                 }
               </span>
             }
-          </>
+          </div>
 
           {/* Búsqueda por cédula del conductor */}
-          <>
+          <div className="grid grid-cols-2 gap-x-5 pb-8">
             <VehiculeEntranceSearch
               id="driverID"
               title="Cédula del Chofer"
@@ -379,92 +376,96 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
                 }
               </span>
             }
-          </>
-
-          <Input
-            id="origin"
-            value={origin}
-            className="w-full"
-            title="Procedencia"
-            placeholder="VALENCIA"
-            onChange={handleChange}
-          />
-
-          <Select
-            defaultValue={DES_COD}
-            name="destination"
-            title="Destino"
-            defaultOption="Destino"
-            options={destinations}
-            onChange={handleChange}
-            objectString
-          />
-
-          <div className="grid grid-cols-[1fr_auto] items-end relative">
+          </div>
+          <Form
+            onSubmit={handleOpenModal}
+            className='grid grid-cols-2 gap-x-5 gap-y-8'
+          >
             <Input
-              id="truckWeight"
-              value={truckWeight}
-              type='number'
-              className="w-full !rounded-r-none"
-              title="Peso Tara (kg)"
-              placeholder="0.00"
-              min={1}
-              disabled={disableWeight}
+              id="origin"
+              value={origin}
+              className="w-full"
+              title="Procedencia"
+              placeholder="VALENCIA"
               onChange={handleChange}
             />
-            <Button
-              onClick={handleWeightReading}
-              style={{ maxHeight: "41px" }}
-              className='bg-secondary !rounded-l-none'
-            >
-              Leer Peso
-            </Button>
-            {
-              (user.rol === "01" || user.rol === "02") &&
-              <button
-                type="button"
-                onClick={() => setDisableWeight(!disableWeight)}
-                className={`create-btn ${!disableWeight ? "!bg-red-400 !text-black font-bold" : ""}`}
-              >
-                Habilitar Peso
-              </button>
-            }
-          </div>
 
-          <CheckAction {...{ handleChange, DES_COD, action }} />
-
-          {
-            enableInvoice &&
-            <Input
-              id="invoice"
-              value={invoice || ""}
-              className="w-full"
-              title="Factura"
-              placeholder=""
+            <Select
+              defaultValue={DES_COD}
+              name="destination"
+              title="Destino"
+              defaultOption="Destino"
+              options={destinations}
               onChange={handleChange}
+              objectString
+            />
+
+            <div className="grid grid-cols-[1fr_auto] items-end relative">
+              <Input
+                id="truckWeight"
+                value={truckWeight}
+                type='number'
+                className="w-full !rounded-r-none"
+                title="Peso Tara (kg)"
+                placeholder="0.00"
+                min={1}
+                disabled={disableWeight}
+                onChange={handleChange}
+              />
+              <Button
+                onClick={handleWeightReading}
+                style={{ maxHeight: "41px" }}
+                className='bg-secondary !rounded-l-none'
+              >
+                Leer Peso
+              </Button>
+              {
+                (user.rol === "01" || user.rol === "02") &&
+                <button
+                  type="button"
+                  onClick={() => setDisableWeight(!disableWeight)}
+                  className={`create-btn ${!disableWeight ? "!bg-red-400 !text-black font-bold" : ""}`}
+                >
+                  Habilitar Peso
+                </button>
+              }
+            </div>
+
+            <CheckAction {...{ handleChange, DES_COD, action }} />
+
+            {
+              enableInvoice &&
+              <Input
+                id="invoice"
+                value={invoice || ""}
+                className="w-full"
+                title="Factura"
+                placeholder=""
+                onChange={handleChange}
+                required={false}
+              />
+            }
+
+            <Textarea
+              id="details"
+              value={details}
+              title="Observaciones en entrada"
+              className="col-span-2"
+              onChange={handleChange}
+              placeholder="📝 ..."
               required={false}
             />
-          }
 
-          <Textarea
-            id="details"
-            value={details}
-            title="Observaciones en entrada"
-            className="col-span-2"
-            onChange={handleChange}
-            placeholder="📝 ..."
-            required={false}
-          />
+            <Button
+              type="submit"
+              loading={loading}
+              className="bg-secondary col-span-2"
+            >
+              Procesar
+            </Button>
 
-          <Button
-            type="submit"
-            loading={loading}
-            className="bg-secondary col-span-2"
-          >
-            Procesar
-          </Button>
-
-        </Form>
+          </Form>
+        </div>
 
         {
           showVehiculeModal &&

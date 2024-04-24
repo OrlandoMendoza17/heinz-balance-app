@@ -71,7 +71,7 @@ const Transport = () => {
       // Busca un conductor a partir del vehículo si lo encuentra
       await catchError(async () => {
         if (vehicule) {
-          driverThatMatchesVehicule = await getDriverFromVehicule(vehicule.id);
+          driverThatMatchesVehicule = await getDriverFromVehicule(vehicule);
           debugger
         }
       })

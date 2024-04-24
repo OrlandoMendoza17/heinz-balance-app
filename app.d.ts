@@ -2,6 +2,7 @@ type Driver = {
   name: T_CON["CON_NOM"],
   cedula: T_CON["CON_CED"],
   code: T_CON["CON_COD"],
+  appOrigin: T_CON["ORI_ID"]
 }
 
 type NewDriverDto = Omit<Driver, "code">
@@ -13,6 +14,7 @@ type Vehicule = {
   type: T_VEH["VEH_TIP"],
   capacity: T_VEH["VEH_CAP"],
   company: T_TRA["TRA_COD"],
+  originID: T_VEH["ORI_ID"]
 }
 
 type NewVehiculeDto = Omit<Vehicule, "id">

@@ -26,8 +26,8 @@ export const createVehicule = async (vehicule: Omit<T_VEH, "VEH_ID">) => {
   return data;
 }
 
-export const getDriverFromVehicule = async (vehiculeId: string) => {
-  const { data } = await axios.post<Driver>("/api/drivers-vehicules-relation", { vehiculeId })
+export const getDriverFromVehicule = async (vehicule: Vehicule) => {
+  const { data } = await axios.post<Driver>("/api/drivers-vehicules-relation", { vehicule })
   return data;
 }
 

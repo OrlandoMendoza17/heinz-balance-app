@@ -259,3 +259,11 @@ type F4960 = {
   TMLDNM: number, // Plan de carga
   TMCTY1: string, // Destino
 }
+
+type JDEDriver = {
+  ABALKY: string; // Driver Personal ID
+  ABALPH: string; // Driver name
+  ABAN8: number;  // Driver Code
+  ABTAXC: string;
+  ABAT1: string;
+}

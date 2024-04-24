@@ -34,17 +34,13 @@ const Entradas = () => {
   useEffect(() => {
     const { user } = credentials
     if(renderPage){
-      if(user.rol === "01" || user.rol === "05" || user.rol === "06"){
+      if(user.rol === "01" || user.rol === "04" || user.rol === "05" || user.rol === "06"){
         
         // getEntries()
         
       }else if(user.rol === "02" || user.rol === "03"){
         
         router.push("/romana")
-        
-      }else if(user.rol === "04"){
-        
-        router.push("/transporte")
         
       }
     }

@@ -32,6 +32,7 @@ const CreateVehiculeModal = ({ showVehiculeModal, setVehiculeModal }: Props) => 
     type: "",
     capacity: 0,
     company: "",
+    originID: 0,
   })
 
   const [selectedTransport, setSelectedTransport] = useState<Transport>()

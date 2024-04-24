@@ -1,61 +1,63 @@
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
 import { DRIVER_NOT_FOUND, DRIVER_VEHICULE_RELATION_NOT_FOUND } from "@/utils/services/errorMessages";
-import { da } from "date-fns/locale";
 import { NextApiRequest, NextApiResponse } from "next";
 
 type BodyProps = {
-  vehiculeId: T_VEH["VEH_ID"],
+  vehicule: Vehicule,
+}
+
+type JDERelation = {
+  VSSTFN: number, // Driver ID
+  VSVEHI: string  // Vehicule Plate
 }
 
 const driversHandler = async (request: NextApiRequest, response: NextApiResponse) => {
   try {
 
     const METHOD = request.method
-    const { vehiculeId }: BodyProps = request.body
+    const { vehicule }: BodyProps = request.body
+    
+    const origin = {
+      SIPVEH: 0,
+      JDE: 1,
+    }
+
+    const { SIPVEH, JDE } = origin
 
     if (METHOD === "POST") {
 
-      const queryString = `
-        SELECT *
-        FROM H025_VW_CON_VEH AS vw
-        INNER JOIN H025_T_CON AS con ON vw.CON_COD = con.CON_COD
-        INNER JOIN H025_T_VEH AS veh ON vw.VEH_ID = veh.VEH_ID
-        WHERE vw.VEH_ID = '${vehiculeId}'
-        order by vw.CON_COD asc;
+      // JDE Relación Conductor-Vehículo
+      const JDERelationQuery = `
+        select VSSTFN, VSVEHI from openquery(jde, '
+          SELECT * FROM PRODDTA.F49041
+          WHERE VSVEHI in (''${vehicule.plate}'')
+        ')
       `
 
-      // const sequelize = await getSequelize()
-      const [CON_VEH] = await sequelize.query(queryString) as [(T_CON & T_VEH)[], unknown]
+      const [relation] = await sequelize.query(JDERelationQuery) as [JDERelation[], unknown]
 
-      if (CON_VEH.length) {
-        
-        // const { CON_COD } = data[0]
-        
-        // const queryString = `
-        //   SELECT * FROM [HDTA025].[dbo].[H025_T_CON] 
-        //   WHERE CON_COD = '${CON_COD}'
-        // `
+      // JDE Datos Conductor (Busca por el Driver ID -> VSSTFN)
+      const distDriverQuery = `
+        select ABAN8, ABTAXC, ABALKY, ABALPH, ABAT1 from openquery(jde, '
+          SELECT * FROM PRODDTA.f0101
+          WHERE ABAN8 in (''${relation[0].VSSTFN}'')
+        ')
+      `
 
-        // // const sequelize = await getSequelize()
-        // const [drivers] = await sequelize.query(queryString) as [T_CON[], unknown]
-        
-        // if (drivers.length) {
+      const [drivers] = await sequelize.query(distDriverQuery) as [JDEDriver[], unknown]
 
-          const driver: Driver = {
-            name: CON_VEH[0].CON_NOM,
-            cedula: CON_VEH[0].CON_CED,
-            code: CON_VEH[0].CON_COD,
-          }
-  
-          response.json(driver)
-  
-        // } else {
-        //   response.status(400).json({
-        //     message: DRIVER_NOT_FOUND
-        //   });
-        // }
-        
+      if (drivers.length) {
+
+        const driver: Driver = {
+          name: drivers[0].ABALPH,
+          cedula: drivers[0].ABALKY,
+          code: drivers[0].ABAN8.toString(),
+          appOrigin: JDE,
+        }
+
+        response.json(driver)
+
       } else {
         response.status(400).json({
           message: "No se ha podido encontrar una relación entre el vehículo y un conductor"
