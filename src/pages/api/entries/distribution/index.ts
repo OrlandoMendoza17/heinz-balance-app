@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
+import axios from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type BodyProps = {
@@ -17,6 +18,8 @@ const isDistInitialEntry = (distEntry: P_ENT_DI) => {
     Boolean(ENT_DI_NDE)
   )
 }
+
+const base_url = process.env.NEXT_PUBLIC_AAD_REDIRECT_ID
 
 const distributionHandler = async (request: NextApiRequest, response: NextApiResponse) => {
   try {
@@ -46,7 +49,7 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
       AND DES_COD ='D01'
       ORDER BY ENT_NUM DESC;
     `
-
+    
     const [data1] = await sequelize.query(queryString) as [P_ENT[], unknown]
     // const data1: P_ENT[] = entriesExamples
 
@@ -132,25 +135,29 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
 
       const [transports] = await sequelize.query(transportsQuery) as [T_TRA[], unknown]
 
-      const formattedEntries: DistributionEntry[] = distEntries.map((distEntry) => {
-
+      const formattedEntries: DistributionEntry[] = []
+      
+      for (const distEntry of distEntries) {
         const { ENT_NUM, ENT_DI_PRO, ENT_DI_PNC, ENT_DI_DES, ENT_DI_STA, ENT_DI_OBS, ENT_DI_CPA, ENT_DI_REV } = distEntry
         const { ENT_DI_PAL, ENT_DI_GUI, ENT_DI_PLA, ENT_DI_NDE, ENT_DI_PPA, ENT_DI_PAD, ENT_DI_DPA, ENT_DI_AUT } = distEntry
 
         const { VEH_ID, CON_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW, ENT_OBS } = data1.find((item) => item.ENT_NUM === ENT_NUM) as P_ENT
 
         const vehicule = vehicules.find((vehicule) => vehicule.VEH_ID === VEH_ID)
-        const driver = drivers.find((driver) => driver.CON_COD === CON_COD)
-        const transport = transports.find((transport) => transport.TRA_COD === vehicule?.TRA_COD)
+        
+        // const vehiculeBody = {vehiculeID: VEH_ID, field: "VEH_ID"}
+        // const vehicule = (await axios.post<Vehicule>(`${base_url}/api/vehicules`, vehiculeBody)).data
+        
+        // const driver = drivers.find((driver) => driver.CON_COD === CON_COD)
+        const driverBody = { driverID: CON_COD, field: "CON_COD" }
+        const driver = (await axios.post<Driver>(`${base_url}/api/drivers`, driverBody)).data
 
-        return {
+        const transport = transports.find((transport) => transport.TRA_COD === vehicule?.TRA_COD)
+        
+        formattedEntries.push({
           entryNumber: ENT_NUM,
           entryDate: ENT_FEC,
-          driver: {
-            name: driver?.CON_NOM || "",
-            cedula: driver?.CON_CED || "",
-            code: driver?.CON_COD || "",
-          },
+          driver,
           vehicule: {
             id: VEH_ID,
             plate: vehicule?.VEH_PLA || "",
@@ -158,6 +165,8 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
             type: vehicule?.VEH_TIP || "",
             capacity: vehicule?.VEH_CAP || 0,
             company: transport?.TRA_NOM || "",
+            originID: vehicule?.ORI_ID || 0,
+            companyID: transport?.TRA_COD || "",
           },
           origin: ENT_DI_PRO,
           truckWeight: ENT_PES_TAR,
@@ -177,8 +186,49 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
           aditionalWeightDescription: ENT_DI_DPA,
           exitAuthorization: ENT_DI_AUT,
           returned: Boolean(ENT_DI_REV)
-        }
-      })
+        })
+      }
+      
+      // const formattedEntries: DistributionEntry[] = distEntries.map(async (distEntry) => {
+
+      //   const { ENT_NUM, ENT_DI_PRO, ENT_DI_PNC, ENT_DI_DES, ENT_DI_STA, ENT_DI_OBS, ENT_DI_CPA, ENT_DI_REV } = distEntry
+      //   const { ENT_DI_PAL, ENT_DI_GUI, ENT_DI_PLA, ENT_DI_NDE, ENT_DI_PPA, ENT_DI_PAD, ENT_DI_DPA, ENT_DI_AUT } = distEntry
+
+      //   const { VEH_ID, CON_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW, ENT_OBS } = data1.find((item) => item.ENT_NUM === ENT_NUM) as P_ENT
+
+      //   // const vehicule = vehicules.find((vehicule) => vehicule.VEH_ID === VEH_ID)
+      //   const vehiculeBody = {vehiculeID: VEH_ID, field: "VEH_ID"}
+      //   const vehicule = (await axios.post<Vehicule>(`${base_url}/api/vehicules`, vehiculeBody)).data
+        
+      //   // const driver = drivers.find((driver) => driver.CON_COD === CON_COD)
+      //   const driverBody = { driverID: CON_COD, field: "CON_COD" }
+      //   const driver = (await axios.post<Driver>(`${base_url}/api/drivers`, driverBody)).data
+
+      //   return {
+      //     entryNumber: ENT_NUM,
+      //     entryDate: ENT_FEC,
+      //     driver,
+      //     vehicule,
+      //     origin: ENT_DI_PRO,
+      //     truckWeight: ENT_PES_TAR,
+      //     entryDetails: ENT_OBS,
+      //     calculatedNetWeight: ENT_DI_PNC,
+      //     aboutToLeave: Boolean(ENT_FLW === 2),
+      //     chargeDestination: ENT_DI_DES,
+      //     vehiculeStatus: ENT_DI_STA,
+      //     distDetails: ENT_DI_OBS,
+      //     palletsQuatity: ENT_DI_CPA,
+      //     palletChargePlan: ENT_DI_PAL,
+      //     guideNumber: ENT_DI_GUI,
+      //     chargePlan: ENT_DI_PLA,
+      //     dispatchNote: ENT_DI_NDE,
+      //     palletWeight: ENT_DI_PPA,
+      //     aditionalWeight: ENT_DI_PAD,
+      //     aditionalWeightDescription: ENT_DI_DPA,
+      //     exitAuthorization: ENT_DI_AUT,
+      //     returned: Boolean(ENT_DI_REV)
+      //   }
+      // })
 
       response.status(200).json(formatted ? formattedEntries : distEntries);
 

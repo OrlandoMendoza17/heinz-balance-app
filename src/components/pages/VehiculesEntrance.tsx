@@ -22,7 +22,7 @@ import defaultNewEntry from '@/utils/defaultValues/newEntry'
 import readWeightFromBalance from "@/utils/index"
 import useAuth from '@/hooks/useAuth'
 import CheckAction from './CheckAction'
-import { getInsertNewEntry, getInsertValue } from '@/utils/getTableValues'
+import { getNewEntryValue, getNewEntryByDestinationValue } from '@/utils/getTableValues'
 
 type Props = {
   showModal: boolean,
@@ -153,8 +153,8 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
   const handleSubmit = async () => {
     try {
       setLoading(true)
-      const form = new FormData(document.getElementsByTagName("form")[0])
-      debugger
+      const form = new FormData(document.getElementById("VehiculeEntranceForm") as HTMLFormElement)
+      
       const { truckWeight, details, origin, invoice } = newEntry; // Destiny code
 
       const { DES_COD, OPE_COD }: DestinationSelectValue = JSON.parse(form.get("destination") as string)
@@ -170,27 +170,24 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
 
           if (vehiculeInPlantYet?.vehicule.plate !== vehicule?.plate) {
 
-            const { nextEntryNumber: ENT_NUM } = await getNextEntryNumber()
-
             const params = {
               vehicule,
               driver,
               action,
-              ENT_NUM,
               DES_COD,
               OPE_COD,
               user,
               newEntry
             }
 
-            const entry = getInsertNewEntry(params)
-            const entryByDestination = getInsertValue(params) as object
+            const entry = getNewEntryValue(params)
+            const entryByDestination = await getNewEntryByDestinationValue(params) as object
 
             console.log('entry', entry)
             console.log('entryByDestination', entryByDestination)
-
+            
             await createNewEntry({ entry, entryByDestination })
-
+            
             handleAlert.open(({
               type: "success",
               title: "Entrada de Vehículo",
@@ -244,6 +241,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
 
     } catch (error) {
       console.log(error)
+      setLoading(false)
       handleAlert.open(({
         type: "danger",
         title: "Error ❌",
@@ -258,7 +256,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
     const { name, value } = target
 
     let actionInput = action
-
+    
     if (target.name === "action") {
       actionInput = parseInt(target.value) as Action
       setAction(actionInput)
@@ -275,6 +273,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
     invoice = REQUIRES_INVOICE ? newEntry.invoice : null
 
     if (target.name === "destination") {
+      debugger
       setDriver(DES_COD === "D01" ? undefined : driver)
 
       // Esto lo que hace es resetear los radio buttons
@@ -321,7 +320,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
   }
 
   const { origin, invoice, destination, truckWeight, details } = newEntry
-  debugger
+  // debugger
   const DES_COD = destination.slice(12, 15)
 
   console.log('DES_COD', DES_COD)
@@ -377,7 +376,9 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
               </span>
             }
           </div>
+          
           <Form
+            id="VehiculeEntranceForm"
             onSubmit={handleOpenModal}
             className='grid grid-cols-2 gap-x-5 gap-y-8'
           >

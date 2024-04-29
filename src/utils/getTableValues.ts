@@ -1,7 +1,9 @@
 import { ACTION, STATUS } from "@/lib/enums"
 import { getDateTime } from "./parseDate"
 import { NewExit } from "@/components/pages/VehiculesExit"
-
+import { SelectOptions } from "@/components/widgets/Select"
+import { getFormattedDistEntries, getNextEntryNumber } from "@/services/entries"
+import { splitString } from "./splitString"
 export type NewEntry = Omit<P_ENT, "ENT_NUM">
 
 type TABLE_VALUES = {
@@ -13,8 +15,14 @@ type TABLE_VALUES = {
   D07: P_ENT_OS,
 }
 
+type DetailsParams = {
+  exit: Exit,
+  OS_AUTHORIZATION: string,
+  densityOptions: SelectOptions[],
+  materialsOptions: SelectOptions[],
+}
+
 type CommonParams = {
-  ENT_NUM: P_ENT["ENT_NUM"]
   DES_COD: DES_COD,
   OPE_COD: string,
   user: User,
@@ -28,6 +36,7 @@ type EntryParams = CommonParams & {
 }
 
 type ExitParams = CommonParams & {
+  ENT_NUM: P_ENT["ENT_NUM"]
   material: string | null,
   OS_AUTHORIZATION: string,
   authCheck: boolean,
@@ -35,9 +44,90 @@ type ExitParams = CommonParams & {
   density: number,
   exitDate: string,
   densityLts: number,
+  exitDetails: string | undefined,
 }
 
-export const getInsertNewEntry = ({ vehicule, driver, action, DES_COD, OPE_COD, newEntry, user }: EntryParams) => {
+export const getDetails = async (params: DetailsParams) => {
+  try {
+    const MAX_CHARS = 250
+
+    const { exit, OS_AUTHORIZATION } = params
+    const { densityOptions, materialsOptions } = params
+
+    const { invoice, destination } = exit
+
+    let genetatedDetails = ""
+
+    const departments = {
+      "D01": async () => { // Distribución
+
+        const entries = await getFormattedDistEntries("aboutToLeave")
+        const distEntry = entries.find(({ entryNumber }) => exit.entryNumber === entryNumber)
+
+        if (distEntry) {
+          const { chargePlan, calculatedNetWeight, chargeDestination } = distEntry
+
+          // Si no están alguno de estos es por es para devolución
+          if (chargePlan && calculatedNetWeight && chargeDestination) {
+
+            genetatedDetails = `PLAN DE CARGA: ${chargePlan}\nPESO DE CARGA: ${calculatedNetWeight}\nDESTINO DE CARGA: ${chargeDestination}`
+
+          } else if (exit.action === ACTION.DEVOLUCION) {
+
+            genetatedDetails = "TIKET DE SALIDA: PARA DEVOLUCION."
+
+          } else if (exit.action === ACTION.TICKET_DE_SALIDA) {
+
+            genetatedDetails = "TIKET DE SALIDA: SIN CARGA."
+
+          }
+        }
+      },
+      "D02": () => { // Materia Prima
+        debugger
+        const getDensity = () => {
+          const density = document.getElementById("density") as HTMLSelectElement | undefined
+          const densityValue = densityOptions.find(({ value }) => value === parseFloat(density?.value || ""))
+          return densityValue?.name
+        }
+
+        const density = getDensity()
+
+        genetatedDetails = `${invoice ? `FACTURA: ${invoice}\n` : ""}${density ? `DENSIDAD: ${density}` : ""}`
+      },
+      "D03": async () => { // Servicios Generales
+        genetatedDetails = `${invoice ? `FACTURA: ${invoice}` : ""}`
+      },
+      "D04": async () => { // Almacén
+        genetatedDetails = `${invoice ? `FACTURA: ${invoice}` : ""}`
+      },
+      "D05": async () => { // Materiales
+        const getMaterial = () => {
+          const material = document.getElementById("materials") as HTMLSelectElement | undefined
+          const materialValue = materialsOptions.find(({ value }) => value === material?.value)
+          return materialValue?.name
+        }
+
+        const material = getMaterial()
+        genetatedDetails = `${material ? `TIPO DE MATERIAL: ${material}` : ""}`
+      },
+      "D07": async () => { //Otros Servicios
+        genetatedDetails = `${OS_AUTHORIZATION ? `AUTORIZACION SALIDA: ${OS_AUTHORIZATION}` : ""}`
+      },
+    }
+
+    await departments[destination]()
+
+    const exitDetails = `${genetatedDetails}${exit.distDetails ? `\n\n${splitString(exit.distDetails)}` : ""}\n\n${splitString(exit.exitDetails)}`.slice(0, MAX_CHARS)
+
+    return exitDetails;
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+export const getNewEntryValue = ({ vehicule, driver, action, DES_COD, OPE_COD, newEntry, user }: EntryParams) => {
 
   const getStatus = (): STATUS => {
     if (DES_COD === "D01") {
@@ -68,9 +158,10 @@ export const getInsertNewEntry = ({ vehicule, driver, action, DES_COD, OPE_COD, 
   return entry;
 }
 
-export const getInsertValue = ({ ENT_NUM, DES_COD, OPE_COD, user, newEntry }: EntryParams) => {
+export const getNewEntryByDestinationValue = async ({ DES_COD, OPE_COD, user, newEntry }: EntryParams) => {
 
   const { invoice, origin } = newEntry
+  const ENT_NUM = await getNextEntryNumber()
 
   const table_values: TABLE_VALUES = {
     "D01": { // Distribución
@@ -130,9 +221,9 @@ export const getInsertValue = ({ ENT_NUM, DES_COD, OPE_COD, user, newEntry }: En
   return entryByDestination;
 }
 
-export const getInsertExit = ({ ENT_NUM, user, exitDate, selectedExit, density, densityLts}: ExitParams) => {
+export const getInsertExit = ({ ENT_NUM, user, exitDate, exitDetails, selectedExit, density, densityLts }: ExitParams) => {
 
-  const { truckWeight, netWeight, grossWeight, exitDetails } = selectedExit
+  const { truckWeight, netWeight, grossWeight } = selectedExit
 
   const leavingEntry: NewExit = {
     ENT_NUM,
@@ -143,9 +234,9 @@ export const getInsertExit = ({ ENT_NUM, user, exitDate, selectedExit, density, 
     SAL_PES_BRU: grossWeight,
     DEN_COD: null,        // Siempre es NULL
     SAL_DEN_LIT: density ? densityLts : null,
-    SAL_OBS: (exitDetails !== "") ? exitDetails : null,
+    SAL_OBS: (exitDetails !== "" && exitDetails !== undefined) ? exitDetails : null,
   }
-  
+
   return leavingEntry;
 }
 

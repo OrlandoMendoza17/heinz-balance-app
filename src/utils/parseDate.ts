@@ -30,7 +30,7 @@ export const shortTime = (date: string | number) => {
 }
 
 export const getCuteFullDate = (date: string) => {
-  console.log('date', date)
+  // console.log('date', date)
   // return date ? new Date(date).toLocaleString("es-VE") : ""
   // return date ? format(addHours(new Date(date), 4), "dd/MM/yyyy, hh:mm:ss aaaa") : ""
   return date ? format(new Date(date), "dd/MM/yyyy, hh:mm:ss aaaa") : ""

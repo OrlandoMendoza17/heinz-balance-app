@@ -32,6 +32,7 @@ const CreateVehiculeModal = ({ showVehiculeModal, setVehiculeModal }: Props) => 
     type: "",
     capacity: 0,
     company: "",
+    companyID: "",
     originID: 0,
   })
 

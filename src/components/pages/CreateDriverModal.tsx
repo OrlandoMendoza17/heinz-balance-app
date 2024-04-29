@@ -23,6 +23,7 @@ const CreateDriverModal = ({ showDriverModal, setDriverModal }: Props) => {
   const [newDriver, setNewDriver] = useState<NewDriverDto>({
     name: "",
     cedula: "",
+    originID: 0,
   })
 
   const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {

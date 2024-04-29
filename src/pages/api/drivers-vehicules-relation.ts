@@ -1,5 +1,6 @@
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
+import { createVehicule } from "@/services/transportInfo";
 import { DRIVER_NOT_FOUND, DRIVER_VEHICULE_RELATION_NOT_FOUND } from "@/utils/services/errorMessages";
 import { NextApiRequest, NextApiResponse } from "next";
 
@@ -17,7 +18,7 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
 
     const METHOD = request.method
     const { vehicule }: BodyProps = request.body
-    
+
     const origin = {
       SIPVEH: 0,
       JDE: 1,
@@ -37,6 +38,7 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
 
       const [relation] = await sequelize.query(JDERelationQuery) as [JDERelation[], unknown]
 
+
       // JDE Datos Conductor (Busca por el Driver ID -> VSSTFN)
       const distDriverQuery = `
         select ABAN8, ABTAXC, ABALKY, ABALPH, ABAT1 from openquery(jde, '
@@ -53,7 +55,7 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
           name: drivers[0].ABALPH,
           cedula: drivers[0].ABALKY,
           code: drivers[0].ABAN8.toString(),
-          appOrigin: JDE,
+          originID: JDE,
         }
 
         response.json(driver)
@@ -67,7 +69,7 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
     } else {
 
       response.status(400).json({
-        message: "Bad Request"
+        message: "Bad Request en driver relations"
       });
 
     }

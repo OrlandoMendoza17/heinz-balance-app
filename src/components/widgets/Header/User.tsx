@@ -22,7 +22,6 @@ const User = () => {
     (async () => {
       if(userRolID){
         try {
-          debugger
           const rol = await auth.getRol(userRolID)
           setRol(rol)
         } catch (error) {

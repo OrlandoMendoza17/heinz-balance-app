@@ -16,7 +16,9 @@ import VehiculeExitDetails from './VehiculeExitDetails'
 import ConfirmModal from '../widgets/ConfirmModal'
 import readWeightFromBalance from '@/utils'
 import useAuth from '@/hooks/useAuth'
-import { getInsertExit, getUpdateValue } from '@/utils/getTableValues'
+import { getDetails, getInsertExit, getNewEntryValue, getNewEntryByDestinationValue, getUpdateValue } from '@/utils/getTableValues'
+import defaultNewEntry from '@/utils/defaultValues/newEntry'
+import { splitString } from '@/utils/splitString'
 
 const PDFRender = lazy(() => import("../widgets/PDFRender"))
 
@@ -48,12 +50,13 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
   const [, credentials] = useAuth()
   const { user } = credentials
 
+  const $automaticEntry = useRef<HTMLInputElement>(null)
+
+  const [loading, setLoading] = useState<boolean>(false)
   const [authCheck, setAuthCheck] = useState<boolean>(true)
 
   const [alert, handleAlert] = useNotification()
   const [confirm, handleConfirm] = useNotification()
-
-  const [loading, setLoading] = useState<boolean>(false)
 
   const [disableWeight, setDisableWeight] = useState<boolean>(true)
   const [rendered, setRendered] = useState<boolean>(false)
@@ -63,8 +66,8 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
   const [OS_AUTHORIZATION, setOS_AUTHORIZATION] = useState<string>("")
 
-  const [density, setDensity] = useState<SelectOptions[]>([])
-  const [materials, setMaterials] = useState<SelectOptions[]>([])
+  const [densityOptions, setDensity] = useState<SelectOptions[]>([])
+  const [materialsOptions, setMaterials] = useState<SelectOptions[]>([])
 
   const [selectedExit, setSelectedExit] = useState<Exit>({
     entryNumber: "",
@@ -72,6 +75,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
       name: "",
       cedula: "",
       code: "",
+      originID: 0,
     },
     vehicule: {
       id: "",
@@ -80,6 +84,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
       type: "",
       capacity: 0,
       company: "",
+      companyID: "",
       originID: 0,
     },
     action: 1,
@@ -188,10 +193,10 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
   }
 
   const handleSubmit = async () => {
-    
+
     let validWeight = false;
     let invalidWeightMessage = "";
-    debugger
+
     // El vehículo sale con más peso que con el que entró
     if (action === CARGA) {
       if (grossWeight >= truckWeight) {
@@ -228,7 +233,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         console.log('material', material)
         console.log('density', density)
 
-        const { entryNumber: ENT_NUM, invoice, truckWeight, exitDetails, netWeight, destination, operation } = selectedExit
+        const { entryNumber: ENT_NUM, invoice, truckWeight, netWeight, destination, operation } = selectedExit
 
         // Si es Descarga o es Devoluación
         console.log('destination', destination)
@@ -236,12 +241,17 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         const densityLts = netWeight / density
         console.log('densityLts', densityLts)
 
-        debugger
-
         // Si viene a cargar    -> el peso bruto tiene que ser mayor a la tara
         // Si viene a descargar -> el peso bruto tiene que ser menor a la tara
 
         const exitDate = getDateTime()
+
+        const exitDetails = await getDetails({
+          exit: selectedExit,
+          OS_AUTHORIZATION,
+          densityOptions,
+          materialsOptions,
+        })
 
         const params = {
           user,
@@ -255,6 +265,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
           density,
           densityLts,
           exitDate,
+          exitDetails,
         }
 
         // Creando objeto de Salida de vehículo
@@ -276,49 +287,54 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
           title: "Salida de Vehículo",
           message: `Se ha procesado la salida del vehículo exitosamente"`,
         }))
-
+        
+        const formattedEntryDetails = splitString(selectedExit.entryDetails)
+        
         setSelectedExit(() => ({
-          ...selectedExit, exitDate
+          ...selectedExit, 
+          exitDate,
+          entryDetails: formattedEntryDetails,
+          exitDetails: exitDetails ? exitDetails : "",
         }))
 
+        // Ejecución de entrada automática
+        if ($automaticEntry.current?.checked) {
+          try {
 
-        try {
+            const { vehicule, driver, origin, grossWeight } = selectedExit
 
-          const { vehicule, driver } = selectedExit
-          
-          // const params = { 
-          //   vehicule, 
-          //   driver, 
-          //   action, 
-          //   ENT_NUM, 
-          //   DES_COD: destination,
-          //   OPE_COD: operation,
-          //   user, 
-          //   newEntry: {
-          //     ...defaultNewEntry,
-          //     details: selectedExit.details,
-          //     truckWeight: selectedExit.truckWeight,
-          //     invoice,: selectedExit.invoice 
-          //     origin: selectedExit.origin,
-          //   }
-          // }
-          
-          // const entry = getInsertNewEntry(params)
-          // const entryByDestination = getInsertValue(params) as object
+            const params = {
+              vehicule,
+              driver,
+              action: CARGA,
+              DES_COD: destination,
+              OPE_COD: operation,
+              user,
+              newEntry: {
+                ...defaultNewEntry,
+                origin,
+                details: "VACIO",
+                // Se le asigna el gross weight porque tiene que ingresar con el mismo peso de salida (VACIO "en teoría")
+                truckWeight: grossWeight,
+              }
+            }
 
-          // console.log('entry', entry)
-          // console.log('entryByDestination', entryByDestination)
+            const entry = getNewEntryValue(params)
+            const entryByDestination = await getNewEntryByDestinationValue(params) as object
 
-          // await createNewEntry({ entry, entryByDestination })
+            console.log('entry', entry)
+            console.log('entryByDestination', entryByDestination)
 
-        } catch (error) {
-          console.log(error)
-          setLoading(false)
-          handleAlert.open(({
-            type: "danger",
-            title: "Error ❌",
-            message: "Ha habido un error creando la entrada automática del vehículo",
-          }))
+            await createNewEntry({ entry, entryByDestination })
+
+          } catch (error) {
+            console.log(error)
+            handleAlert.open(({
+              type: "danger",
+              title: "Error ❌",
+              message: "Ha habido un error creando la entrada automática del vehículo",
+            }))
+          }
         }
 
         setTimeout(() => {
@@ -329,6 +345,8 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
             setModal(false)
           }, 3000)
         }, 1000)
+
+        // setLoading(false)
 
       } catch (error) {
         console.log(error)
@@ -379,7 +397,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         const { entryNumber, grossWeight, weightDifference } = selectedExit
 
         const difDate = getDateTime()
-        debugger
+
         const entryDif: Omit<P_ENT_DIF, "ENT_DIF_NUM"> = {
           ENT_NUM,                          // Numero de la entrada 
           ENT_DIF_FEC: difDate,             // Fecha en la que ocurre la diferencia 
@@ -533,9 +551,6 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
     }
   }
 
-  console.log('entryDate', entryDate)
-  console.log('entryDate', getCuteFullDate(entryDate))
-
   // console.log('exitDate', getDateTime())
   // console.log('exitDate', getCuteFullDate(getDateTime()))
 
@@ -673,7 +688,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
                     title="Densidad:"
                     className="font-semibold"
                     defaultOption=""
-                    options={density}
+                    options={densityOptions}
                     onChange={() => { }}
                   />
                 }
@@ -686,7 +701,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
                 name="materials"
                 title="Tipo de Material"
                 defaultOption="Material"
-                options={materials}
+                options={materialsOptions}
                 onChange={() => { }}
               />
             }
@@ -725,18 +740,23 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
           <VehiculeExitDetails
             exit={selectedExit}
             exitDetails={exitDetails}
-            densityOptions={density}
-            materialsOptions={materials}
+            densityOptions={densityOptions}
+            materialsOptions={materialsOptions}
             OS_AUTHORIZATION={OS_AUTHORIZATION}
             handleAlert={handleAlert}
             handleChange={handleChange}
             setSelectedExit={setSelectedExit}
           />
 
-          <label htmlFor="automically-entry" className="flex justify-self-end self-center gap-4 cursor-pointer">
-            <input type="checkbox" name="" id="automically-entry" />
-            <span className="block select-none">Crear entrada automáticamente</span>
-          </label>
+          {
+            destination === "D01" &&
+            action === DEVOLUCION &&
+            <label htmlFor="automatically-entry" className="flex justify-self-end self-center gap-4 cursor-pointer">
+              <input type="checkbox" name="" id="automatically-entry" ref={$automaticEntry} />
+              <span className="block select-none">Crear entrada automáticamente</span>
+            </label>
+          }
+
 
           {
             rendered &&

@@ -5,6 +5,7 @@ const distributionEntry: DistributionEntry = {
     name: "",
     cedula: "",
     code: "",
+    originID: 0,
   },
   vehicule: {
     id: "",
@@ -13,6 +14,8 @@ const distributionEntry: DistributionEntry = {
     type: "",
     capacity: 0,
     company: "",
+    companyID: "",
+    originID: 0,
   },
   origin: "",
   truckWeight: 0,

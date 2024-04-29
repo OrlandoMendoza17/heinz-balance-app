@@ -4,7 +4,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getSQLValue } from "./entries/newEntry";
 
 type BodyProps = {
-  vehicule: T_VEH,
+  vehicule: Omit<T_VEH, "VEH_ID">,
+  ORI_ID: 1 | 0
 }
 
 const newVehiculeHandler = async (request: NextApiRequest, response: NextApiResponse,) => {
@@ -13,8 +14,10 @@ const newVehiculeHandler = async (request: NextApiRequest, response: NextApiResp
 
     if (METHOD === "POST") {
 
-      const { vehicule }: BodyProps = request.body
-
+      const { vehicule, ORI_ID }: BodyProps = request.body
+      
+      vehicule.ORI_ID = ORI_ID
+      
       const keys = `(${Object.keys(vehicule).map(key => `[${key}]`).join(", ")})`
       const values = `(${Object.values(vehicule).map(value => getSQLValue(value)).join(", ")})`
 

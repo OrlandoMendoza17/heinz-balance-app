@@ -24,7 +24,6 @@ const useAuth = (): [boolean, AuthCredentials] => {
 
   useEffect(() => {
     const credentials = getCookie<AuthCredentials>("login")
-    debugger
     if (credentials) {
       
       const { user } = credentials

@@ -35,6 +35,7 @@ const Romana = () => {
       name: "",
       cedula: "",
       code: "",
+      originID: 0,
     },
     vehicule: {
       id: "",
@@ -43,6 +44,8 @@ const Romana = () => {
       type: "",
       capacity: 0,
       company: "",
+      companyID: "",
+      originID: 0,
     },
     action: 1,
     destination: "D01",
@@ -64,7 +67,7 @@ const Romana = () => {
   })
 
   useEffect(() => {
-    debugger
+    // debugger
     const { user } = credentials
     if (renderPage) {
       if (user.rol === "01" || user.rol === "02" || user.rol === "03") {
@@ -129,9 +132,9 @@ const Romana = () => {
                 </Button>
                 {
                   !showDistEntries ?
-                    <h1>Vehículos por salir</h1>
+                    <h1>Vehículos por salir ({leavingExits.length})</h1>
                     :
-                    <h1>Vehículos en Distribución</h1>
+                    <h1>Vehículos en Distribución ({distEntries.length})</h1>
                 }
               </div>
               <table className="Entries self-start">

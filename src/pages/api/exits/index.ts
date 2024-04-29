@@ -5,6 +5,8 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { format } from 'date-fns';
 import getDestinationEntryQuery from "@/utils/api/aboutToLeave";
 import { ORIGIN_BY_DESTINATION } from "@/lib/enums";
+import axios from "axios";
+import { splitString } from "@/utils/splitString";
 
 export type GetExitsBodyProps = {
   dateFrom: string;
@@ -13,6 +15,8 @@ export type GetExitsBodyProps = {
   plate: T_VEH["VEH_PLA"],
   entryNumber: P_ENT["ENT_NUM"],
 }
+
+const base_url = process.env.NEXT_PUBLIC_AAD_REDIRECT_ID
 
 const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,) => {
   try {
@@ -40,7 +44,7 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
       return { vehicules, drivers }
     }
 
-    const exits: Exit[] = []
+    let exits: Exit[] = []
     const { dateFrom, dateTo, plate, cedula, entryNumber }: GetExitsBodyProps = request.body
 
     const getExits = async () => {
@@ -115,8 +119,14 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
       for (const { ENT_NUM, CON_COD, VEH_ID, DES_COD, OPE_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW, ENT_FLW_ACC } of entries) {
 
         const vehicule = vehicules.find((vehicule) => vehicule.VEH_ID === VEH_ID)
-        const driver = drivers.find((driver) => driver.CON_COD === CON_COD)
+        // const driver = drivers.find((driver) => driver.CON_COD === CON_COD)
 
+        // const vehiculeBody = {vehiculeID: VEH_ID, field: "VEH_ID"}
+        // const vehicule = (await axios.post<Vehicule>(`${base_url}/api/vehicules`, vehiculeBody)).data
+        
+        const driverBody = { driverID: CON_COD, field: "CON_COD" }
+        const driver = (await axios.post<Driver>(`${base_url}/api/drivers`, driverBody)).data
+        
         const destinationQuery = getDestinationEntryQuery(DES_COD, ENT_NUM)
 
         // Trae la información de los transportes de los vehículos
@@ -138,11 +148,7 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
 
         exits.push({
           entryNumber: ENT_NUM,
-          driver: {
-            name: driver?.CON_NOM || "",
-            cedula: driver?.CON_CED || "",
-            code: driver?.CON_COD || "",
-          },
+          driver,
           vehicule: {
             id: VEH_ID,
             plate: vehicule?.VEH_PLA || "",
@@ -150,6 +156,8 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
             type: vehicule?.VEH_TIP || "",
             capacity: vehicule?.VEH_CAP || 0,
             company: transports[0]?.TRA_NOM || "",
+            companyID: transports[0]?.TRA_COD || "",
+            originID: vehicule?.ORI_ID || 0,
           },
           action: ENT_FLW_ACC,
           destination: DES_COD,
@@ -162,7 +170,7 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
           netWeight: exit?.ENT_PES_NET || 0,
           operation: OPE_COD,
           invoice: null,
-          entryDetails: ENT_ENTRY?.ENT_OBS || "",
+          entryDetails: splitString(ENT_ENTRY?.ENT_OBS || ""),
           distDetails: entry?.ENT_DI_OBS || "",
           exitDetails: exit?.SAL_OBS || "",
           weightDifference: 0,
@@ -173,6 +181,16 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
         })
       }
     }
+    
+    // Me ordena las salidas de la más reciente a la más antigua.
+    exits = exits.sort((a, b)=>{
+      if (a.exitDate < b.exitDate) {
+        return -1;
+      } else if (a.exitDate > b.exitDate) {
+        return 1;
+      }
+      return 0;
+    }).reverse()
 
     response.status(200).json(exits);
 
@@ -186,3 +204,8 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
 }
 
 export default exitsHandler;
+
+// Crear un vehículo en SQL con ORI_ID = 1
+// Crear un vehículo en JDE con la misma placa
+// Correr el JOB.
+// Ver la tabla de SQL

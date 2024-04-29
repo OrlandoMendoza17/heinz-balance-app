@@ -66,7 +66,7 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
           name: drivers[0].CON_NOM,
           cedula: drivers[0].CON_CED,
           code: drivers[0].CON_COD,
-          appOrigin: ORI_ID,
+          originID: ORI_ID,
         }
 
         response.json(driver)

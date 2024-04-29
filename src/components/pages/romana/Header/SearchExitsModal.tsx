@@ -67,7 +67,7 @@ const SearchExitsModal = ({ handleModal }: Props) => {
 
         const exits = await getExits(body)
         setExits(exits)
-
+        
         clearTimeout(timeID)
 
         setLoading(false)

@@ -1,8 +1,8 @@
 .VehiculeExitDetails{
   position: relative;
   
-  button{
-    @apply bg-sky-500 hover:bg-sky-600 text-white text-sm px-2 py-0 rounded-xl;
+  small{
+    @apply bg-slate-500 text-white text-sm px-2 py-0 rounded-xl;
     position: absolute;
     top: 0;
     right: 0;
