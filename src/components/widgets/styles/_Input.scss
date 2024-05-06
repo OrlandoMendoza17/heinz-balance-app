@@ -37,9 +37,18 @@ form.validated {
     @apply bg-white rounded-md border-2 border-gray-300;
     @apply px-5 py-3 text-gray-600 placeholder-gray-400;
     
+    min-width: 50px;
+    
     &:focus {
       @apply border-blue-500;
       box-shadow: 0px 0px 0px 3px rgba(161, 190, 251, 1);
     }
+    &:disabled{
+      @apply bg-slate-200 border-slate-200;
+    }
+  }
+  
+  select{
+    @apply pl-3 pr-5 py-3;
   }
 }

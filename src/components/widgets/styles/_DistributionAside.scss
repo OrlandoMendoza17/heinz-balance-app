@@ -1,6 +1,6 @@
 .DistributionAside{
-  @apply p-10 bg-slate-200 h-screen;
-  a{
-    @apply hover:text-blue-600 font-medium;
+  @apply p-10 bg-gray-300 h-screen;
+  a.active{
+    @apply text-sky-700 font-bold block py-1 rounded-2xl;
   }
 }

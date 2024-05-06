@@ -1,7 +1,7 @@
-import { NewEntry } from "@/components/pages/VehiculesEntrance";
-import { DESTINATION_TABLES, ORIGIN_BY_DESTINATION } from "@/lib/enums";
 // import getSequelize from "@/lib/mssql";
+import { DESTINATION_TABLES, ORIGIN_BY_DESTINATION } from "@/lib/enums";
 import sequelize from "@/lib/mssql";
+import { NewEntry } from "@/utils/getTableValues";
 import { NextApiRequest, NextApiResponse } from "next";
 
 type BodyProps = {
@@ -21,6 +21,7 @@ export const getSQLValue = (value: string | number | boolean | null) => {
 }
 
 const newEntryHandler = async (request: NextApiRequest, response: NextApiResponse) => {
+  const transaction = await sequelize.transaction()
   try {
 
     const { entry, entryByDestination }: BodyProps = request.body
@@ -56,18 +57,18 @@ const newEntryHandler = async (request: NextApiRequest, response: NextApiRespons
     console.log('queryString2', queryString2)
 
     // const sequelize = await getSequelize()
-    // await sequelize.query(queryString1)
-    // await sequelize.query(queryString2)
+    
+    await sequelize.query(queryString1)
+    await sequelize.query(queryString2)
 
+    await transaction.commit()
+    
     response.status(201).json({
       message: "Created Succesfully",
-      queries: {
-        queryString1,
-        queryString2,
-      }
     })
-
+    
   } catch (error) {
+    await transaction.rollback();
     console.log(error)
     response.status(500).json({
       error,

@@ -1,23 +1,26 @@
 import React, { MouseEventHandler, SetStateAction } from 'react'
-import { DESTINATION_BY_CODE } from '@/lib/enums'
+import { ACTION_BY_NAME, DESTINATION_BY_CODE } from '@/lib/enums'
 import { getCuteFullDate, shortDate } from '@/utils/parseDate'
 
 type Props = {
+  showDistEntries: boolean,
   setModal: (value: SetStateAction<boolean>) => void,
-  setSelectedTransport: (value: SetStateAction<Entry>) => void,
-  entry: Entry
+  setSelectedExit: (value: SetStateAction<Exit>) => void,
+  exit: Exit
 }
 
-const TableVehicules = ({setModal, setSelectedTransport, entry}: Props) => {
-  
+const TableVehicules = ({ setModal, showDistEntries, setSelectedExit, exit }: Props) => {
+
   const handleClick: MouseEventHandler<HTMLTableRowElement> = () => {
     // alert("Hello! I'm the radio demon! 👹")
-    setModal(true)
-    setSelectedTransport(entry)
+    if(!showDistEntries){
+      setModal(true)
+      setSelectedExit(exit)
+    }
   }
-  
-  const { entryNumber, driver, vehicule, destination, entryDate, origin } = entry
-  
+
+  const { entryNumber, driver, vehicule, action, destination, entryDate, origin } = exit
+
   return (
     <tr onClick={handleClick}>
       <td>{entryNumber}</td>
@@ -26,6 +29,7 @@ const TableVehicules = ({setModal, setSelectedTransport, entry}: Props) => {
       <td>{vehicule.plate}</td>
       <td>{origin}</td>
       <td>{DESTINATION_BY_CODE[destination]}</td>
+      <td>{ACTION_BY_NAME[action as Action]}</td>
       <td>{getCuteFullDate(entryDate)}</td>
     </tr>
   )

@@ -1,0 +1,20 @@
+.TransportVehicule {
+  width: 100%;
+  // @apply col-span-2;
+
+  td,
+  th {
+    text-align: center;
+    padding: .25rem 1rem;
+  }
+
+  th {
+    @apply bg-slate-700 text-white;
+  }
+  
+  tbody {
+    tr.selected{
+      @apply bg-emerald-400 hover:bg-emerald-400;
+    }
+  }
+}

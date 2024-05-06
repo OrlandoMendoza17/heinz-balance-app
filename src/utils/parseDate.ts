@@ -3,22 +3,37 @@ import { es } from "date-fns/locale"
 
 export const TODAY = new Date()
 
+export const reformatDateFromDB = (date: string) =>{
+  
+}
+
 export const shortDate = (date: string | number) => {
   //En caso que llegue undefined se retorna N/A
-
+  debugger
   if (date) {
     return format(new Date(date), "dd/MM/yyyy")
   }
 
-  return 'N/A';
+  return '';
   // It turns this: '2020-10-14T19:29:31Z'
   // into this: '2020-10-14'
+}
+
+export const shortTime = (date: string | number) => {
+  //En caso que llegue undefined se retorna N/A
+  debugger
+  if (date) {
+    return format(new Date(date), "hh:mm:ss aaaa")
+  }
+
+  return '';
 }
 
 export const getCuteFullDate = (date: string) => {
   // console.log('date', date)
   // return date ? new Date(date).toLocaleString("es-VE") : ""
-  return date ? format(addHours(new Date(date), 4), "dd/MM/yyyy, hh:mm:ss aaaa") : ""
+  // return date ? format(addHours(new Date(date), 4), "dd/MM/yyyy, hh:mm:ss aaaa") : ""
+  return date ? format(new Date(date), "dd/MM/yyyy, hh:mm:ss aaaa") : ""
 }
 
 export const getDateTime = (dateString?: string) => {

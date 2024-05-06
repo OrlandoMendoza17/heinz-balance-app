@@ -5,6 +5,7 @@ const distributionEntry: DistributionEntry = {
     name: "",
     cedula: "",
     code: "",
+    originID: 0,
   },
   vehicule: {
     id: "",
@@ -13,6 +14,8 @@ const distributionEntry: DistributionEntry = {
     type: "",
     capacity: 0,
     company: "",
+    companyID: "",
+    originID: 0,
   },
   origin: "",
   truckWeight: 0,
@@ -22,7 +25,7 @@ const distributionEntry: DistributionEntry = {
   chargeDestination: "",
   vehiculeStatus: null,
   distDetails: "",
-  palletsQuatity: 0,
+  palletsQuatity: 0 || "",
   palletChargePlan: "",
   guideNumber: "",
   chargePlan: "",
@@ -31,6 +34,7 @@ const distributionEntry: DistributionEntry = {
   aditionalWeight: 0,
   aditionalWeightDescription: "",
   exitAuthorization: "",
+  returned: false,
 }
 
 export default distributionEntry;

@@ -1,8 +1,12 @@
 import { ORIGIN_BY_DESTINATION } from "@/lib/enums";
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
+import { getDriver, getVehicule } from "@/services/transportInfo";
 import getDestinationEntryQuery from "@/utils/api/aboutToLeave";
+import axios from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
+
+const base_url = process.env.NEXT_PUBLIC_AAD_REDIRECT_ID
 
 const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiResponse) => {
   try {
@@ -31,11 +35,10 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
 
     // const sequelize = await getSequelize()
 
-    const [data] = await sequelize.query(queryString1) as [P_ENT[], unknown]
+    const [entries] = await sequelize.query(queryString1) as [P_ENT[], unknown]
 
-    const entryNums = data.map(({ ENT_NUM }) => ENT_NUM)
-    const vehiculeIDs = data.map(({ VEH_ID }) => VEH_ID)
-    const driversIDs = data.map(({ CON_COD }) => CON_COD)
+    const vehiculeIDs = entries.map(({ VEH_ID }) => VEH_ID)
+    const driversIDs = entries.map(({ CON_COD }) => CON_COD)
 
     // Trae la información de cada vehículo que está dentro de la empresa
     const queryString2 = `
@@ -50,58 +53,59 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
         ${driversIDs}
       )
     `
-    
-    const destinationCodes: DES_COD[] = ["D01", "D02", "D03", "D04", "D05", "D07"]
-    
-    const a = await destinationCodes.map(async (DES_CODE)=>{
-      return data
-    })
 
     const [vehicules] = await sequelize.query(queryString2) as [T_VEH[], unknown]
-    const [drivers] = await sequelize.query(queryString3) as [T_CON[], unknown]
 
-    const entries: Entry[] = []
-    
-    for (const { ENT_NUM, CON_COD, VEH_ID, DES_COD, OPE_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW } of data) {
-      
-      const vehicule = vehicules.find((vehicule) => vehicule.VEH_ID === VEH_ID)
-      const driver = drivers.find((driver) => driver.CON_COD === CON_COD)
-      
+    const exits: Exit[] = []
+
+    for (const { ENT_NUM, CON_COD, VEH_ID, DES_COD, OPE_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW, ENT_FLW_ACC } of entries) {
+
       const destinationQuery = getDestinationEntryQuery(DES_COD, ENT_NUM)
       
-      const [data] = await sequelize.query(destinationQuery) as [any[], unknown]
-      
-      const entry = data.find((entry) => entry.ENT_NUM === ENT_NUM)
-      
-      entries.push({
-        entryNumber: ENT_NUM,
-        driver: {
-          name: driver?.CON_NOM || "",
-          cedula: driver?.CON_CED || "",
-          code: driver?.CON_COD || "",
-        },
-        vehicule: {
-          id: VEH_ID,
-          plate: vehicule?.VEH_PLA || "",
-          model: vehicule?.VEH_MOD || "",
-          type: vehicule?.VEH_TIP || "",
-          capacity: vehicule?.VEH_CAP || 0,
-          company: vehicule?.TRA_COD || "",
-        },
-        destination: DES_COD,
-        entryDate: ENT_FEC,
-        origin: entry[ORIGIN_BY_DESTINATION[DES_COD]] || "",
-        truckWeight: ENT_PES_TAR,
-        grossWeight: (entry.ENT_DI_PNC === null) ? 0 : entry.ENT_DI_PNC,
-        netWeight: (entry.ENT_DI_PNC === null) ? 0 : entry.ENT_DI_PNC,
-        operation: OPE_COD,
-        invoice: null,
-        details: "",
-        aboutToLeave: Boolean(ENT_FLW === 2),
-      }) 
-    }
+      try {
+        
+        const [data] = await sequelize.query(destinationQuery) as [any[], unknown]
   
-    response.json(entries)
+        const entry = data.find((entry) => entry.ENT_NUM === ENT_NUM)
+  
+        const ENT_ENTRY = entries.find(({ ENT_NUM }) => entry.ENT_NUM === ENT_NUM)
+  
+        console.log('ENT_OBS', ENT_ENTRY?.ENT_OBS)
+        
+        const vehicule = await getVehicule(VEH_ID, "VEH_ID")
+        const driver = await getDriver(CON_COD, "CON_COD")
+        
+        exits.push({
+          entryNumber: ENT_NUM,
+          driver,
+          vehicule,
+          action: ENT_FLW_ACC,
+          destination: DES_COD,
+          entryDate: ENT_FEC,
+          exitDate: "",
+          origin: entry[ORIGIN_BY_DESTINATION[DES_COD]] || "",
+          truckWeight: ENT_PES_TAR,
+          grossWeight: 0,
+          calculatedNetWeight: (entry.ENT_DI_PNC === null) ? 0 : entry.ENT_DI_PNC,
+          netWeight: 0,
+          operation: OPE_COD,
+          invoice: entry?.ENT_MP_FAC || entry?.ENT_SG_FAC || entry?.ENT_ALM_FAC || null,
+          entryDetails: ENT_ENTRY?.ENT_OBS || "",
+          distDetails: entry?.ENT_DI_OBS || "",
+          exitDetails: "",
+          weightDifference: 0,
+          palletWeight: entry.ENT_DI_PPA,
+          palletsQuatity: entry.ENT_DI_CPA,
+          aditionalWeight: entry.ENT_DI_PAD,
+          aboutToLeave: Boolean(ENT_FLW === 2),
+        })
+        
+      } catch (error) {
+        console.log(error)        
+      }
+    }
+
+    response.json(exits)
 
   } catch (error) {
     response.status(500).json({

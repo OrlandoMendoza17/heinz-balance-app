@@ -1,4 +1,5 @@
 import sequelize from "@/lib/mssql";
+import { CHARGE_PLAN_NOT_FOUND } from "@/utils/services/errorMessages";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 type BodyProps = {
@@ -32,14 +33,22 @@ const testHandler = async (request: NextApiRequest, response: NextApiResponse,) 
 
     const [data1] = await sequelize.query(queryString1) as [F4961[], unknown]
     const [data2] = await sequelize.query(queryString2) as [F4960[], unknown]
+    
+    if (data1.length && data2.length) {
 
-    const chargePlanInfo: ChargePlanInfo = {
-      number: data1[0].LLLDNM,
-      weight: parseFloat((data1[0].LLSCWT / 10000).toFixed(2)),
-      destination: data2[0].TMCTY1,
+      const chargePlanInfo: ChargePlanInfo = {
+        number: data1[0].LLLDNM,
+        weight: parseFloat((data1[0].LLSCWT / 10000).toFixed(2)),
+        destination: data2[0].TMCTY1,
+      }
+
+      response.status(200).json(chargePlanInfo);
+      
+    }else{
+      response.status(400).json({
+        message: CHARGE_PLAN_NOT_FOUND
+      });
     }
-
-    response.status(200).json(chargePlanInfo);
 
   } catch (error) {
     console.log(error)

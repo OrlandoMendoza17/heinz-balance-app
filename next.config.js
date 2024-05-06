@@ -3,6 +3,9 @@
 const nextConfig = {
   // reactStrictMode: true,
   poweredByHeader: false,
+  experimental: {
+    serverComponentsExternalPackages: ['@react-pdf/renderer'],
+  },
   headers: async () => {
     return [
       {

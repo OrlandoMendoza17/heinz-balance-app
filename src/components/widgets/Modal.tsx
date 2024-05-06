@@ -9,39 +9,47 @@ type Props = {
   closeButton?: boolean,
   transparent?: boolean,
   children: ReactNode,
+  targetModal?: string,
   className?: string,
+  closeOnClickOutside?: boolean,
 }
 
-const Modal = ({ showModal, setModal, closeButton = true, transparent = false, className = "", children }: Props) => {
+const Modal = (props: Props) => {
+  const { showModal, setModal, children , closeButton = true } = props
+  const { transparent = false, className = "", targetModal = "modal", closeOnClickOutside = true  } = props
 
   const handleClick: MouseEventHandler<HTMLDivElement> = ({ target }) => {
-    const clickedOutModal = getDataAttribute(target as TargetProps, "modal")
-    if (clickedOutModal) setModal(false)
+    if(closeOnClickOutside){
+      const clickedOutModal = getDataAttribute(target as TargetProps, targetModal.toLowerCase())
+      if (clickedOutModal) {
+        setModal(false)
+      }
+    }
   }
 
   return (
     showModal ?
-    <Portal type="modal">
-      <div
-        onClick={handleClick}
-        data-modal={true}
-        className={`Modal ${className}`}
-      >
-        <div className={`Modal_container ${transparent && "transparent"}`}>
-          {
-            closeButton &&
-            <button className="close_btn" onClick={() => setModal(false)}>
-              <FaXmark className="fill-black w-6 h-6"/>
-            </button>
-          }
-          {
-            children
-          }
+      <Portal type="modal">
+        <div
+          onClick={handleClick}
+          {...{ [`data-${targetModal}`]: true }}
+          className={`Modal snap-y ${className}`}
+        >
+          <div className={`Modal_container scroll-pb-11 ${transparent && "transparent"}`}>
+            {
+              closeButton &&
+              <button className="close_btn" onClick={() => setModal(false)}>
+                <FaXmark className="fill-black w-6 h-6" />
+              </button>
+            }
+            {
+              children
+            }
+          </div>
         </div>
-      </div>
-    </Portal>
-    :
-    <></>
+      </Portal>
+      :
+      <></>
   )
 }
 

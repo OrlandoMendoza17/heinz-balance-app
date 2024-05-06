@@ -9,21 +9,29 @@ import VehiculeEntranceSearch from './VehiculeEntranceSearch'
 import NotificationModal from '../widgets/NotificationModal'
 import useNotification from '@/hooks/useNotification'
 import { getDestination } from '@/services/destination'
-import { getDriver, getVehicule } from '@/services/transportInfo'
-import { INVOICE_BY_CODE } from '@/lib/enums'
-import { createNewEntry, getNextEntryNumber } from '@/services/entries'
+import { getDriver, getDriverFromVehicule, getVehicule } from '@/services/transportInfo'
+import { ACTION, INVOICE_BY_CODE, STATUS } from '@/lib/enums'
+import { createNewEntry, getEntriesInPlant, getNextEntryNumber } from '@/services/entries'
 import { format } from 'date-fns'
 import { getDateTime } from '@/utils/parseDate'
 import { DESTINATIONS } from '@/pages/api/destinations'
+import CreateVehiculeModal from './CreateVehiculeModal'
+import CreateDriverModal from './CreateDriverModal'
+import ConfirmModal from '../widgets/ConfirmModal'
+import defaultNewEntry from '@/utils/defaultValues/newEntry'
+import readWeightFromBalance from "@/utils/index"
+import useAuth from '@/hooks/useAuth'
+import CheckAction from './CheckAction'
+import { getNewEntryValue, getNewEntryByDestinationValue } from '@/utils/getTableValues'
 
 type Props = {
   showModal: boolean,
   setModal: Dispatch<SetStateAction<boolean>>,
+  refreshEntries: () => Promise<void>,
 }
 
-type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
 type DestinationSelectValue = { DES_COD: DES_COD, OPE_COD: string }
-export type NewEntry = Omit<P_ENT, "ENT_NUM">
+export type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
 
 type TABLE_VALUES = {
   D01: P_ENT_DI,
@@ -34,25 +42,32 @@ type TABLE_VALUES = {
   D07: P_ENT_OS,
 }
 
-const VehiculesEntrance = ({ showModal, setModal }: Props) => {
+const { CARGA, DESCARGA, DEVOLUCION } = ACTION
+
+const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
+
+  const [, credentials] = useAuth()
+  const { user } = credentials
 
   const [alert, handleAlert] = useNotification()
-  const [enableInvoice, setEnableInvoice] = useState<Boolean>(false)
+  const [confirm, handleConfirm] = useNotification()
+
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const [showVehiculeModal, setVehiculeModal] = useState<boolean>(false)
+  const [showDriverModal, setDriverModal] = useState<boolean>(false)
+
+  const [disableWeight, setDisableWeight] = useState<boolean>(true)
+  const [enableInvoice, setEnableInvoice] = useState<boolean>(false)
 
   const [destinations, setDestinations] = useState<SelectOptions[]>([])
 
   const [driver, setDriver] = useState<Driver>()
   const [vehicule, setVehicule] = useState<Vehicule>()
 
-  const [newEntry, setNewEntry] = useState<NewEntryDto>({
-    destination: "",
-    operation: "",
-    invoice: "",
-    origin: "",
-    truckWeight: 0,
-    details: "",
-    aboutToLeave: false,
-  })
+  const [action, setAction] = useState<Action>()
+
+  const [newEntry, setNewEntry] = useState<NewEntryDto>(defaultNewEntry)
 
   useEffect(() => {
     (async () => {
@@ -90,7 +105,7 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
             DES_DES: 'OTROS SERVICIOS',
           },
         ]
-        
+
         const operationOptions: SelectOptions[] = destinations.map(({ DES_DES, OPE_COD, DES_COD }) => {
 
           const value: DestinationSelectValue = {
@@ -110,278 +125,363 @@ const VehiculesEntrance = ({ showModal, setModal }: Props) => {
         console.log(error)
       }
     })()
-  }, [])
+  }, [showModal])
 
-  const searchVehicule = async (vehiculePlate: string) => {
+  const search = {
+    vehicule: async (vehiculePlate: string) => {
 
-    setVehicule(undefined)
-    const vehicule = await getVehicule(vehiculePlate)
-    setVehicule(vehicule)
+      // Antes de la busqueda se vuelve undefined para borrar los datos almacenados en el estado
+      setVehicule(undefined)
+      setDriver(undefined)
 
+      const vehicule = await getVehicule(vehiculePlate, "VEH_PLA")
+      setVehicule(vehicule)
+
+      const driver = await getDriverFromVehicule(vehicule)
+      setDriver(driver)
+    },
+    driver: async (driverID: string) => {
+
+      // Antes de la busqueda se vuelve undefined para borrar los datos almacenados en el estado
+      setDriver(undefined)
+
+      const driver = await getDriver(driverID, "CON_CED")
+      setDriver(driver)
+    },
   }
 
-  const searchDriver = async (driverPersonalID: string) => {
-
-    setDriver(undefined)
-    const driver = await getDriver(driverPersonalID)
-    setDriver(driver)
-
-  }
-
-  const handleSubmit: FormEventHandler<HTMLFormElement> = async (event) => {
-    event.preventDefault()
-    const { currentTarget } = event
+  const handleSubmit = async () => {
     try {
+      setLoading(true)
+      const form = new FormData(document.getElementById("VehiculeEntranceForm") as HTMLFormElement)
+      
+      const { truckWeight, details, origin, invoice } = newEntry; // Destiny code
 
-      const form = new FormData(currentTarget)
+      const { DES_COD, OPE_COD }: DestinationSelectValue = JSON.parse(form.get("destination") as string)
 
-      const action = parseInt(form.get("action") as string)
+      let exits = await getEntriesInPlant()
+      // exits = exits.filter(({ aboutToLeave }) => aboutToLeave)
 
-      const { destination, truckWeight, details, origin, invoice } = newEntry; // Destiny code 
-      const { DES_COD, OPE_COD }: DestinationSelectValue = JSON.parse(destination)
+      if (truckWeight) {
 
-      if (vehicule && driver) {
+        if (vehicule && driver) {
 
-        const { nextEntryNumber: ENT_NUM } = await getNextEntryNumber()
+          const vehiculeInPlantYet = exits.find(({ vehicule: { plate } }) => vehicule?.plate === plate)
 
-        const entry: NewEntry = {
-          // ENT_NUM: "", // Esto es auto incremental
-          ENT_FEC: getDateTime(),
-          USU_LOG: "USR9509C",
-          VEH_ID: vehicule.id,
-          CON_COD: driver.cedula,
-          DES_COD,
-          OPE_COD,
-          ENT_PES_TAR: truckWeight,
-          EMP_ID: null,
-          ENT_OBS: details,
-          ENT_FLW: 2,
-          ENT_FEC_COL: null,
-          ENT_FLW_ACC: action,
+          if (vehiculeInPlantYet?.vehicule.plate !== vehicule?.plate) {
+
+            const params = {
+              vehicule,
+              driver,
+              action,
+              DES_COD,
+              OPE_COD,
+              user,
+              newEntry
+            }
+
+            const entry = getNewEntryValue(params)
+            const entryByDestination = await getNewEntryByDestinationValue(params) as object
+
+            console.log('entry', entry)
+            console.log('entryByDestination', entryByDestination)
+            
+            await createNewEntry({ entry, entryByDestination })
+            
+            handleAlert.open(({
+              type: "success",
+              title: "Entrada de Vehículo",
+              message: `Se ha procesado la entrada del vehículo exitosamente"`,
+            }))
+
+            await refreshEntries()
+
+            // Resets the modal
+            setAction(undefined)
+            setVehicule(undefined)
+            setDriver(undefined)
+            setEnableInvoice(false)
+            setNewEntry(defaultNewEntry)
+            setDisableWeight(true)
+
+            setLoading(false)
+            setModal(false)
+
+          } else {
+
+            handleAlert.open(({
+              type: "danger",
+              title: "Vehículo en planta",
+              message: `No es posible darle entrada a un vehículo que se encuentra actualmente en planta`,
+            }))
+
+            setLoading(false)
+          }
+
+        } else {
+
+          handleAlert.open(({
+            type: "warning",
+            title: "Validación",
+            message: `Para poder dar entrada al vehículo es necesario tener los datos tanto del "conductor" como del "vehículo"`,
+          }))
+
+          setLoading(false)
         }
 
-        const table_values: TABLE_VALUES = {
-          "D01": {
-            ENT_NUM,
-            USU_LOG: "USR9509C",
-            ENT_DI_FEC: getDateTime(),
-            ENT_DI_PRO: origin,
-            ENT_DI_GUI: null,    // (Distribución) - Plan de carga
-            ENT_DI_PNC: null,    // (Distribución) - Peso Neto Calculado
-            ENT_DI_CPA: 0,       // (Distribución) - Cantidad de Paletas | Se manda en 0 en la romana
-            ENT_DI_PPA: null,    // (Distribución) - Peso de las paletas
-            ENT_DI_PLA: null,    // (Distribución) - Plan de carga
-            ENT_DI_DES: null,    // (Distribución) - Destino de carga
-            ENT_DI_PAD: 0,       // (Distribución) - Peso adicional corregido | Se manda en 0 en la romana
-            ENT_DI_DPA: null,    // (Distribución) - Algún tipo de descripción ❓
-            ENT_DI_STA: null,    // (Distribución) - Status (1 | null)
-            ENT_DI_AUT: null,
-            ENT_DI_NDE: null,    // (Distribución) - Plan de carga
-            ENT_DI_PAL: null,    // (Distribución) - Plan de carga con paletas (si colocan cantidad de paletas deja de ser null) | NULL
-            ENT_DI_OBS: null,    // (Distribución) - Observaciones
-            ENT_DI_REV: false,   // 1 | 0 (Aparentemente siempre es 0)
-          },
-          "D02": { // ✅
-            ENT_NUM,
-            ENT_MP_PRO: origin,
-            ENT_MP_FAC: (invoice) ? invoice : null,
-            ENT_MP_NOT: null,     // SIEMPRE NULL
-            ENT_MP_PAL: null      // SIEMPRE NULL
-          },
-          "D03": { // ✅
-            ENT_NUM,
-            ENT_SG_PRO: origin,
-            ENT_SG_FAC: (invoice) ? invoice : null,
-            ENT_SG_NOT: null,
-            ENT_SG_AUT: null,
-            ENT_SG_NDE: null
-          },
-          "D04": { // ✅
-            ENT_NUM,
-            ENT_ALM_PRO: origin,
-            ENT_ALM_FAC: (invoice) ? invoice : null,
-          },
-          "D05": { // ✅
-            ENT_NUM,
-            ENT_PRO: origin,
-            OPE_COD,
-            MAT_COD: null       // Este codigo se pone en la salida pero aquí se manda en null
-          },
-          "D07": { // ✅
-            ENT_NUM,
-            ENT_OS_PRO: origin,
-            ENT_OS_AUT: null    // Se coloca en la salida en el caso de existir
-          },
-        }
-
-        const entryByDestination = table_values[DES_COD]
-
-        console.log('entry', entry)
-        console.log('entryByDestination', entryByDestination)
-
-        const data = await createNewEntry({ entry, entryByDestination })
-        console.log('data', data)
-
+      } else {
         handleAlert.open(({
-          type: "success",
-          title: "Entrada de Vehículo",
-          message: `Se ha procesado la entrada del vehículo exitosamente"`,
+          type: "warning",
+          title: "Peso en 0",
+          message: `Para poder dar entrada al vehículo es necesario leer el peso del vehículo"`,
         }))
 
+        setLoading(false)
       }
+
     } catch (error) {
       console.log(error)
+      setLoading(false)
       handleAlert.open(({
         type: "danger",
         title: "Error ❌",
         message: "Ha habido un error procesando la entrada del vehículo, intentelo de nuevo",
       }))
     }
-
   }
 
   const handleChange: ChangeHandler = async ({ target }) => {
     type DESTINATION_VALUES = { DES_COD: DES_COD, OPE_COD: string }
 
+    const { name, value } = target
+
+    let actionInput = action
+    
+    if (target.name === "action") {
+      actionInput = parseInt(target.value) as Action
+      setAction(actionInput)
+    }
+
     let invoice = newEntry.invoice
 
+    const destinationSelect = document.getElementById("destination") as HTMLSelectElement
+    const { DES_COD }: DESTINATION_VALUES = JSON.parse(destinationSelect.value)
+
+    const REQUIRES_INVOICE = Boolean(INVOICE_BY_CODE[DES_COD])
+    setEnableInvoice(REQUIRES_INVOICE && actionInput === ACTION.DESCARGA)
+
+    invoice = REQUIRES_INVOICE ? newEntry.invoice : null
+
     if (target.name === "destination") {
-      const { DES_COD }: DESTINATION_VALUES = JSON.parse(target.value)
+      debugger
+      setDriver(DES_COD === "D01" ? undefined : driver)
 
-      const REQUIRES_INVOICE = Boolean(INVOICE_BY_CODE[DES_COD])
-      setEnableInvoice(REQUIRES_INVOICE)
-
-      invoice = REQUIRES_INVOICE ? newEntry.invoice : null
+      // Esto lo que hace es resetear los radio buttons
+      setAction(undefined)
     }
 
     setNewEntry({
       ...newEntry,
       invoice,
-      [target.id]: target.value,
+      [name]: name === "truckWeight" ? parseInt(value) : value.toUpperCase(),
     })
   }
 
-  const { origin, invoice, truckWeight, details } = newEntry
+  const handleWeightReading = async () => {
+    try {
+
+      const truckWeight = await readWeightFromBalance()
+
+      if (truckWeight === undefined) {
+        throw Error("La lectura del peso es undefined")
+      }
+
+      setNewEntry({
+        ...newEntry,
+        truckWeight: truckWeight ? truckWeight : 0,
+      })
+
+    } catch (error) {
+      handleAlert.open(({
+        type: "warning",
+        title: "Lectura de peso",
+        message: "Hay un problema leyendo el peso de la balanza, intentelo de nuevo",
+      }))
+    }
+  }
+
+  const handleOpenModal: FormEventHandler<HTMLFormElement> = (event) => {
+    event.preventDefault()
+    handleConfirm.open({
+      type: "warning",
+      title: "Advertencia",
+      message: `¿Estás seguro de que quieres darle entrada al vehículo?`
+    })
+  }
+
+  const { origin, invoice, destination, truckWeight, details } = newEntry
+  // debugger
+  const DES_COD = destination.slice(12, 15)
+
+  console.log('DES_COD', DES_COD)
+  console.log('destination', destination)
+  const disableDriver = (DES_COD === "D01")
+  console.log('disableDriver', disableDriver)
 
   return (
     <>
-      <Modal className='py-10 !items-baseline overflow-auto !grid-cols-[minmax(auto,_750px)]' {...{ showModal, setModal }}>
+      <Modal
+        {...{ showModal, setModal, closeOnClickOutside: false }}
+        className='py-10 !items-baseline overflow-auto !grid-cols-[minmax(auto,_750px)]'
+      >
         <h1 className="font-semibold pb-10">Procesar Entrada de Vehículo</h1>
-        <Form
-          onSubmit={handleSubmit}
-          className='grid grid-cols-2 gap-x-5 gap-y-8'
-        >
-
-          <>
+        <div>
+          {/* Búsqueda por placa del vehículo */}
+          <div className="grid grid-cols-2 gap-x-5 pb-8">
             <VehiculeEntranceSearch
               id="vehiculePlate"
               title="Placa del Vehículo"
               placeholder="A7371V"
-              searchInfo={searchVehicule}
+              createButton="Crear Vehículo"
+              handleCreateButton={() => setVehiculeModal(true)}
+              searchInfo={search.vehicule}
             />
-
-            <VehiculeEntranceSearch
-              id="driverPersonalID"
-              title="Cédula del Chofer"
-              placeholder="27313279"
-              searchInfo={searchDriver}
-            />
-
             {
-              (driver || vehicule) &&
-              <div className="col-span-2 grid grid-cols-2 gap-x-5 text-secondary">
+              <span className="self-end pb-4 text-secondary">
                 {
                   vehicule &&
-                  <span className="col-start-1 row-start-1">
-                    {vehicule.plate} - {vehicule.model} - {vehicule.company}
-                  </span>
+                  <>{vehicule.plate} - {vehicule.model} - {vehicule.company}</>
                 }
+              </span>
+            }
+          </div>
+
+          {/* Búsqueda por cédula del conductor */}
+          <div className="grid grid-cols-2 gap-x-5 pb-8">
+            <VehiculeEntranceSearch
+              id="driverID"
+              title="Cédula del Chofer"
+              placeholder="27313279"
+              createButton="Crear Chofer"
+              handleCreateButton={() => setDriverModal(true)}
+              disabled={disableDriver}
+              searchInfo={search.driver}
+            />
+            {
+              <span className="self-end pb-4 text-secondary">
                 {
                   driver &&
-                  <span className="col-start-2 row-start-1">
-                    {driver.cedula} - {driver.name}
-                  </span>
+                  <>{driver.cedula} - {driver.name}</>
                 }
-              </div>
+              </span>
             }
-          </>
-
-          <Input
-            id="origin"
-            value={origin}
-            className="w-full"
-            title="Procedencia"
-            placeholder="VALENCIA"
-            onChange={handleChange}
-          />
-
-          <Select
-            name="destination"
-            title="Destino"
-            defaultOption="Destino"
-            options={destinations}
-            onChange={handleChange}
-          />
-
-          <div className="grid grid-cols-[1fr_auto] items-end">
-            <Input
-              id="truckWeight"
-              value={truckWeight}
-              type='number'
-              className="w-full !rounded-r-none"
-              title="Peso Tara"
-              placeholder="0.00"
-              onChange={handleChange}
-            />
-            <Button className='bg-secondary !rounded-l-none' style={{ maxHeight: "41px" }} onClick={() => { }}>
-              Leer Peso
-            </Button>
           </div>
-
-          {
-            enableInvoice &&
+          
+          <Form
+            id="VehiculeEntranceForm"
+            onSubmit={handleOpenModal}
+            className='grid grid-cols-2 gap-x-5 gap-y-8'
+          >
             <Input
-              id="invoice"
-              value={invoice || ""}
+              id="origin"
+              value={origin}
               className="w-full"
-              title="Factura"
-              placeholder=""
+              title="Procedencia"
+              placeholder="VALENCIA"
               onChange={handleChange}
             />
-          }
 
-          <div className="pt-12 flex items-center gap-5">
-            <label htmlFor="carga">
-              <input id="carga" name="action" type="radio" className="mr-2" value="1" />
-              <span>Carga</span>
-            </label>
+            <Select
+              defaultValue={DES_COD}
+              name="destination"
+              title="Destino"
+              defaultOption="Destino"
+              options={destinations}
+              onChange={handleChange}
+              objectString
+            />
 
-            <label htmlFor="descarga">
-              <input id="descarga" name="action" type="radio" className="mr-2" value="2" />
-              <span>Descarga</span>
-            </label>
+            <div className="grid grid-cols-[1fr_auto] items-end relative">
+              <Input
+                id="truckWeight"
+                value={truckWeight}
+                type='number'
+                className="w-full !rounded-r-none"
+                title="Peso Tara (kg)"
+                placeholder="0.00"
+                min={1}
+                disabled={disableWeight}
+                onChange={handleChange}
+              />
+              <Button
+                onClick={handleWeightReading}
+                style={{ maxHeight: "41px" }}
+                className='bg-secondary !rounded-l-none'
+              >
+                Leer Peso
+              </Button>
+              {
+                (user.rol === "01" || user.rol === "02") &&
+                <button
+                  type="button"
+                  onClick={() => setDisableWeight(!disableWeight)}
+                  className={`create-btn ${!disableWeight ? "!bg-red-400 !text-black font-bold" : ""}`}
+                >
+                  Habilitar Peso
+                </button>
+              }
+            </div>
 
-            <label htmlFor="devolucion">
-              <input id="devolucion" name="action" type="radio" className="mr-2" value="3" />
-              <span>Devolución</span>
-            </label>
-          </div>
+            <CheckAction {...{ handleChange, DES_COD, action }} />
 
-          <Textarea
-            id="details"
-            value={details}
-            title="Observaciones en entrada"
-            className="col-span-2"
-            onChange={handleChange}
-            placeholder="📝 ..."
-            required={false}
-          />
+            {
+              enableInvoice &&
+              <Input
+                id="invoice"
+                value={invoice || ""}
+                className="w-full"
+                title="Factura"
+                placeholder=""
+                onChange={handleChange}
+                required={false}
+              />
+            }
 
-          <Button type="submit" className="bg-secondary col-span-2">Procesar</Button>
+            <Textarea
+              id="details"
+              value={details}
+              title="Observaciones en entrada"
+              className="col-span-2"
+              onChange={handleChange}
+              placeholder="📝 ..."
+              required={false}
+            />
 
-        </Form>
+            <Button
+              type="submit"
+              loading={loading}
+              className="bg-secondary col-span-2"
+            >
+              Procesar
+            </Button>
+
+          </Form>
+        </div>
+
+        {
+          showVehiculeModal &&
+          <CreateVehiculeModal {...{ showVehiculeModal, setVehiculeModal }} />
+        }
+        {
+          showDriverModal &&
+          <CreateDriverModal {...{ showDriverModal, setDriverModal }} />
+        }
       </Modal>
       <NotificationModal alertProps={[alert, handleAlert]} />
+      <ConfirmModal
+        acceptAction={handleSubmit}
+        confirmProps={[confirm, handleConfirm]}
+      />
     </>
   )
 }

@@ -5,7 +5,7 @@ import Portal from './Portal'
 type TargetProps = EventTarget & HTMLElement
 
 interface Props {
-  notificationProps: [NotificationProps, HandleNotification],
+  confirmProps: [NotificationProps, HandleNotification],
   button1?: boolean,
   button2?: boolean,
   acceptAction: () => void,
@@ -15,8 +15,8 @@ const LOREM = "Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellen
 
 const ConfirmModal = (props: Props) => {
 
-  const { acceptAction, notificationProps, button1 = true, button2 = true } = props
-  const [notification, handleNotification] = notificationProps
+  const { acceptAction, confirmProps, button1 = true, button2 = true } = props
+  const [notification, handleNotification] = confirmProps
   
   const { title = "Title", message = LOREM } = notification
 

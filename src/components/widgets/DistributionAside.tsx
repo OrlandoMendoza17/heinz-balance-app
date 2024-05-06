@@ -1,23 +1,44 @@
 import Link from 'next/link'
+import { useRouter } from 'next/router'
+import { title } from 'process'
 import React from 'react'
 
 const DistributionAside = () => {
+
+  const router = useRouter()
+
+  const links = [
+    {
+      title: "Entrada de Vehículos",
+      href: "/distribucion/entradas"
+    },
+    {
+      title: "Vehículos en Distribución",
+      href: "/distribucion/vehiculos"
+    },
+    {
+      title: "Vehículos en Despacho",
+      href: "/distribucion/despacho"
+    },
+    {
+      title: "Vehículos por salir",
+      href: "/distribucion/por-salir"
+    },
+  ]
+
   return (
     <aside className="DistributionAside">
       <nav>
         <ul className="grid gap-6">
-          <li>
-            <Link href="/distribucion/entradas">Entrada de Vehículos</Link>
-          </li>
-          <li>
-            <Link href="/distribucion/vehiculos">Vehículos en Distribución</Link>
-          </li>
-          <li>
-            <Link href="/distribucion/despacho">Vehículos en Despacho</Link>
-          </li>
-          <li>
-            <Link href="/distribucion/por-salir">Vehículos por salir</Link>
-          </li>
+          {
+            links.map(({ title, href }, i) =>
+              <li key={i}>
+                <Link href={href} className={`${href === router.pathname ? "active" : ""}`}>
+                  {title}
+                </Link>
+              </li>
+            )
+          }
         </ul>
       </nav>
     </aside>

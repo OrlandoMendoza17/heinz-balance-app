@@ -1,8 +1,11 @@
-type Driver =  {
+type Driver = {
   name: T_CON["CON_NOM"],
   cedula: T_CON["CON_CED"],
   code: T_CON["CON_COD"],
+  originID: T_CON["ORI_ID"]
 }
+
+type NewDriverDto = Omit<Driver, "code">
 
 type Vehicule = {
   id: T_VEH["VEH_ID"],
@@ -10,8 +13,12 @@ type Vehicule = {
   model: T_VEH["VEH_MOD"],
   type: T_VEH["VEH_TIP"],
   capacity: T_VEH["VEH_CAP"],
-  company: T_TRA["TRA_COD"],
+  company: T_TRA["TRA_NOM"],
+  originID: T_VEH["ORI_ID"],
+  companyID: T_TRA["TRA_COD"]
 }
+
+type NewVehiculeDto = Omit<Vehicule, "id">
 
 type Entry = {
   entryNumber: P_ENT["ENT_NUM"],
@@ -29,6 +36,37 @@ type Entry = {
   aboutToLeave: boolean,
 }
 
+type Exit = {
+  entryNumber: P_ENT["ENT_NUM"],
+  entryDate: string,
+  exitDate: string,
+  driver: Driver,
+  vehicule: Vehicule,
+  action: ACTION, // Carga (1), Descarga (2), Devolución (3), Ticket de salida (4)
+  destination: T_DES["DES_COD"],
+  operation: string,
+  invoice: string | null,
+  origin: string,
+  truckWeight: number,
+  grossWeight: number,
+  calculatedNetWeight: number,
+  netWeight: number,
+  entryDetails: string,
+  distDetails: string,
+  exitDetails: string,
+  weightDifference: number,
+  palletWeight: P_ENT_DI["ENT_DI_PPA"],
+  palletsQuatity: P_ENT_DI["ENT_DI_CPA"],
+  aditionalWeight: P_ENT_DI["ENT_DI_PAD"],
+  aboutToLeave: boolean,
+}
+
+type Transport = {
+  name: T_TRA["TRA_NOM"],
+  RIF: T_TRA["TRA_RIF"],
+  code: T_TRA["TRA_COD"],
+}
+
 type DistributionEntry = {
   entryNumber: P_ENT_DI["ENT_NUM"],
   entryDate: P_ENT["ENT_FEC"],
@@ -42,7 +80,7 @@ type DistributionEntry = {
   chargeDestination: P_ENT_DI["ENT_DI_DES"],
   vehiculeStatus: P_ENT_DI["ENT_DI_STA"],
   distDetails: P_ENT_DI["ENT_DI_OBS"],
-  palletsQuatity: P_ENT_DI["ENT_DI_CPA"],
+  palletsQuatity: P_ENT_DI["ENT_DI_CPA"] | string,
   palletChargePlan: P_ENT_DI["ENT_DI_PAL"],
   guideNumber: P_ENT_DI["ENT_DI_GUI"],
   chargePlan: P_ENT_DI["ENT_DI_PLA"],
@@ -51,6 +89,19 @@ type DistributionEntry = {
   aditionalWeight: P_ENT_DI["ENT_DI_PAD"],
   aditionalWeightDescription: P_ENT_DI["ENT_DI_DPA"],
   exitAuthorization: P_ENT_DI["ENT_DI_AUT"],
+  returned: boolean,
+}
+
+type EntryDif = {
+  entryDifferenceNumber: P_ENT_DIF["ENT_DIF_NUM"]; // id de la diferencia 
+  entryNumber: P_ENT["ENT_NUM"];                   // numero de la entrada 
+  entryDifferenceDate: P_ENT_DIF["ENT_DIF_FEC"];   // Fecha en la que ocurre la diferencia 
+  truckWeight: P_ENT["ENT_PES_TAR"];               // Tara- peso de entrada 
+  calculatedNetWeight: P_ENT_DI["ENT_DI_PNC"];     // peso del plan de carga (verificar )
+  aditionalWeight: P_ENT_DI["ENT_DI_PAD"];         // Peso adicional 
+  palletWeight: P_ENT_DI["ENT_DI_PPA"];            // Peso de las paletas 
+  grossWeight: P_SAL["SAL_PES_BRU"];               // Peso bruto de la salida 
+  weightDifference: P_ENT_DIF["DIF_PES"];          // diferencia de peso 
 }
 
 type NewEntryDto = Omit<Entry, "entryNumber" | "entryDate" | "vehicule" | "driver" | "grossWeight" | "netWeight" | "destination"> & {
@@ -66,14 +117,18 @@ type ChargePlanInfo = {
 }
 
 type User = {
-  nombre: string,
-  email: string,
-  ficha: string,
-  // is_admin: boolean,
-  // password_login_available: boolean,
+  nombre: S_USU["USU_NOM"],
+  email: S_USU["USU_MAI"],
+  ficha: S_USU["USU_FIC"],
+  cedula: S_USU["USU_CED"],
+  rol: S_USU["ROL_COD"],
+  accountName: S_USU["USU_LOG"],
+  status: boolean,
 }
 
 type AuthCredentials = {
   user: User,
   token: string,
 }
+
+type html2pdf = any
