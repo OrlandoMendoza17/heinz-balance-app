@@ -134,7 +134,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
       setVehicule(undefined)
       setDriver(undefined)
 
-      const vehicule = await getVehicule(vehiculePlate)
+      const vehicule = await getVehicule(vehiculePlate, "VEH_PLA")
       setVehicule(vehicule)
 
       const driver = await getDriverFromVehicule(vehicule)

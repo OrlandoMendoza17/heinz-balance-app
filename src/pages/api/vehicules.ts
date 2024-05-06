@@ -6,13 +6,14 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 type BodyProps = {
   vehiculeID: string,
+  field: "VEH_PLA" | "VEH_ID",
 }
 
 const driversHandler = async (request: NextApiRequest, response: NextApiResponse) => {
   try {
 
     const METHOD = request.method
-    const { vehiculeID }: BodyProps = request.body
+    const { vehiculeID, field }: BodyProps = request.body
 
     if (METHOD === "POST") {
 
@@ -27,12 +28,15 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
       const { SIPVEH, JDE } = origin
 
       // const sequelize = await getSequelize()
-
+      
+      console.log('vehiculeID', vehiculeID)
+      console.log('field', field)
+      
       const getSQLVehicule = async () => {
         // SQL Vehicule
         const SQL_VehiculesQuery = `
           SELECT * FROM [HDTA025].[dbo].[H025_T_VEH] 
-          WHERE VEH_PLA = '${vehiculeID}'
+          WHERE ${field} = '${vehiculeID}'
           -- AND ORI_ID = ${SIPVEH}
         `
         const [vehicules] = await sequelize.query(SQL_VehiculesQuery) as [T_VEH[], unknown]
@@ -44,7 +48,7 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
       let vehicules = await getSQLVehicule()
 
       // Si no existe el vehículo en T_VEH, me lo busca en JDE
-      if (!vehicules.length) {
+      if (!vehicules.length && field === "VEH_PLA") {
         // JDE Vehicule
         const JDE_VehiculesQuery = `
           SELECT * FROM OPENQUERY(JDE, '
@@ -67,6 +71,7 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
           SQL_NOT_FOUND = true
           JDE_FOUND = true
         }
+        
         console.log("Buscando en JDE...")
         console.log('JDE vehicules', vehicules)
       }
@@ -112,10 +117,9 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
 
       } else {
         response.status(400).json({
-          message: VEHICULE_NOT_FOUND
+          message: "No se ha podido encontrar el vehículo"
         });
       }
-
 
     } else {
 

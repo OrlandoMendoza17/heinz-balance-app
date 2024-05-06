@@ -118,7 +118,7 @@ export const getDetails = async (params: DetailsParams) => {
 
     await departments[destination]()
 
-    const exitDetails = `${genetatedDetails}${exit.distDetails ? `\n\n${splitString(exit.distDetails)}` : ""}\n\n${splitString(exit.exitDetails)}`.slice(0, MAX_CHARS)
+    const exitDetails = `${genetatedDetails}\n${exit.distDetails ? splitString(exit.distDetails) : ""}\n\n${splitString(exit.exitDetails)}`.slice(0, MAX_CHARS)
 
     return exitDetails;
 

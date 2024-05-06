@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
+import { getDriver, getVehicule } from "@/services/transportInfo";
 import axios from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
 
@@ -49,19 +50,19 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
       AND DES_COD ='D01'
       ORDER BY ENT_NUM DESC;
     `
-    
-    const [data1] = await sequelize.query(queryString) as [P_ENT[], unknown]
-    // const data1: P_ENT[] = entriesExamples
 
-    if (data1.length) {
+    const [entries] = await sequelize.query(queryString) as [P_ENT[], unknown]
+    // const entries: P_ENT[] = entriesExamples
 
-      const distributionIDS = data1.map(({ ENT_NUM }) => ENT_NUM)
+    if (entries.length) {
+
+      const distributionIDS = entries.map(({ ENT_NUM }) => ENT_NUM)
       // const distributionIDS = ['95557', '95555', '95552', '95551']
 
       // ENT_FLW = 1 -> Es porque la entrada está en proceso de distribución
       // ENT_FLW = 2 -> Es porque la entrada está por salir
-      const entryDistIDS = data1.filter(({ ENT_FLW }) => ENT_FLW === 1).map(({ ENT_NUM }) => ENT_NUM)
-      const aboutToLeaveDistIDS = data1.filter(({ ENT_FLW }) => ENT_FLW === 2).map(({ ENT_NUM }) => ENT_NUM)
+      const entryDistIDS = entries.filter(({ ENT_FLW }) => ENT_FLW === 1).map(({ ENT_NUM }) => ENT_NUM)
+      const aboutToLeaveDistIDS = entries.filter(({ ENT_FLW }) => ENT_FLW === 2).map(({ ENT_NUM }) => ENT_NUM)
 
       // const entryDistIDS = ['95557', '95555', '95552', '95551']
       // const aboutToLeaveDistIDS: string[] = []
@@ -72,23 +73,23 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
         ORDER BY ENT_NUM DESC
       `
 
-      const [entries] = await sequelize.query(queryString2) as [P_ENT_DI[], unknown]
+      let [distEntries] = await sequelize.query(queryString2) as [P_ENT_DI[], unknown]
 
       const distribution = {
         entry:
-          entries.filter(({ ENT_NUM }) =>
+          distEntries.filter(({ ENT_NUM }) =>
             entryDistIDS.includes(ENT_NUM) &&
             !aboutToLeaveDistIDS.includes(ENT_NUM) // Valida que no es una entrada que está por salir de distribución
           )
         ,
         initial:
-          entries.filter((distEntry) =>
+          distEntries.filter((distEntry) =>
             isDistInitialEntry(distEntry) &&
             !aboutToLeaveDistIDS.includes(distEntry.ENT_NUM) // Valida que no es una entrada que está por salir de distribución
           )
         ,
         dispatch:
-          entries.filter((distEntry) => {
+          distEntries.filter((distEntry) => {
             const { ENT_NUM } = distEntry
             return (
               !isDistInitialEntry(distEntry) &&      // Valida que no es una entrada que acaba de entrar a distribución
@@ -97,138 +98,57 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
           })
         ,
         aboutToLeave:
-          entries.filter(({ ENT_NUM }) => aboutToLeaveDistIDS.includes(ENT_NUM))
+          distEntries.filter(({ ENT_NUM }) => aboutToLeaveDistIDS.includes(ENT_NUM))
         ,
-        all: entries,
+        all: distEntries,
       }
 
-      const distEntries = distribution[entriesType]
-
-      const vehiculeIDs = data1.map(({ VEH_ID }) => VEH_ID)
-      const driversIDs = data1.map(({ CON_COD }) => CON_COD)
-
-      // Trae la información de cada vehículo que está dentro de la empresa
-      const vehiculesQuery = `
-        SELECT * FROM H025_T_VEH WHERE VEH_ID IN (
-          ${vehiculeIDs}
-        ) 
-      `
-
-      // Trae la información de los conductores de los vehículos
-      const driversQuery = `
-        SELECT * FROM H025_T_CON WHERE CON_COD IN (
-          ${driversIDs}
-        ) 
-      `
-
-      const [vehicules] = await sequelize.query(vehiculesQuery) as [T_VEH[], unknown]
-      const [drivers] = await sequelize.query(driversQuery) as [T_CON[], unknown]
-
-      const transportIDs = vehicules.map(({ TRA_COD }) => TRA_COD)
-
-      // Trae la información de los transportes de los vehículos
-      const transportsQuery = `
-        SELECT * FROM H025_T_TRA WHERE TRA_COD IN (
-          ${transportIDs}
-        )
-      `
-
-      const [transports] = await sequelize.query(transportsQuery) as [T_TRA[], unknown]
+      distEntries = distribution[entriesType]
 
       const formattedEntries: DistributionEntry[] = []
-      
+
       for (const distEntry of distEntries) {
         const { ENT_NUM, ENT_DI_PRO, ENT_DI_PNC, ENT_DI_DES, ENT_DI_STA, ENT_DI_OBS, ENT_DI_CPA, ENT_DI_REV } = distEntry
         const { ENT_DI_PAL, ENT_DI_GUI, ENT_DI_PLA, ENT_DI_NDE, ENT_DI_PPA, ENT_DI_PAD, ENT_DI_DPA, ENT_DI_AUT } = distEntry
 
-        const { VEH_ID, CON_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW, ENT_OBS } = data1.find((item) => item.ENT_NUM === ENT_NUM) as P_ENT
+        const entry = entries.find((item) => item.ENT_NUM === ENT_NUM) as P_ENT
+        
+        const { VEH_ID, CON_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW, ENT_OBS } = entry
 
-        const vehicule = vehicules.find((vehicule) => vehicule.VEH_ID === VEH_ID)
-        
-        // const vehiculeBody = {vehiculeID: VEH_ID, field: "VEH_ID"}
-        // const vehicule = (await axios.post<Vehicule>(`${base_url}/api/vehicules`, vehiculeBody)).data
-        
-        // const driver = drivers.find((driver) => driver.CON_COD === CON_COD)
-        const driverBody = { driverID: CON_COD, field: "CON_COD" }
-        const driver = (await axios.post<Driver>(`${base_url}/api/drivers`, driverBody)).data
+        try {
 
-        const transport = transports.find((transport) => transport.TRA_COD === vehicule?.TRA_COD)
-        
-        formattedEntries.push({
-          entryNumber: ENT_NUM,
-          entryDate: ENT_FEC,
-          driver,
-          vehicule: {
-            id: VEH_ID,
-            plate: vehicule?.VEH_PLA || "",
-            model: vehicule?.VEH_MOD || "",
-            type: vehicule?.VEH_TIP || "",
-            capacity: vehicule?.VEH_CAP || 0,
-            company: transport?.TRA_NOM || "",
-            originID: vehicule?.ORI_ID || 0,
-            companyID: transport?.TRA_COD || "",
-          },
-          origin: ENT_DI_PRO,
-          truckWeight: ENT_PES_TAR,
-          entryDetails: ENT_OBS,
-          calculatedNetWeight: ENT_DI_PNC,
-          aboutToLeave: Boolean(ENT_FLW === 2),
-          chargeDestination: ENT_DI_DES,
-          vehiculeStatus: ENT_DI_STA,
-          distDetails: ENT_DI_OBS,
-          palletsQuatity: ENT_DI_CPA,
-          palletChargePlan: ENT_DI_PAL,
-          guideNumber: ENT_DI_GUI,
-          chargePlan: ENT_DI_PLA,
-          dispatchNote: ENT_DI_NDE,
-          palletWeight: ENT_DI_PPA,
-          aditionalWeight: ENT_DI_PAD,
-          aditionalWeightDescription: ENT_DI_DPA,
-          exitAuthorization: ENT_DI_AUT,
-          returned: Boolean(ENT_DI_REV)
-        })
+          const vehicule = await getVehicule(VEH_ID, "VEH_ID")
+          const driver = await getDriver(CON_COD, "CON_COD")
+
+          formattedEntries.push({
+            entryNumber: ENT_NUM,
+            entryDate: ENT_FEC,
+            driver,
+            vehicule,
+            origin: ENT_DI_PRO,
+            truckWeight: ENT_PES_TAR,
+            entryDetails: ENT_OBS,
+            calculatedNetWeight: ENT_DI_PNC,
+            aboutToLeave: Boolean(ENT_FLW === 2),
+            chargeDestination: ENT_DI_DES,
+            vehiculeStatus: ENT_DI_STA,
+            distDetails: ENT_DI_OBS,
+            palletsQuatity: ENT_DI_CPA,
+            palletChargePlan: ENT_DI_PAL,
+            guideNumber: ENT_DI_GUI,
+            chargePlan: ENT_DI_PLA,
+            dispatchNote: ENT_DI_NDE,
+            palletWeight: ENT_DI_PPA,
+            aditionalWeight: ENT_DI_PAD,
+            aditionalWeightDescription: ENT_DI_DPA,
+            exitAuthorization: ENT_DI_AUT,
+            returned: Boolean(ENT_DI_REV)
+          })
+
+        } catch (error) {
+          console.log('error', error)
+        }
       }
-      
-      // const formattedEntries: DistributionEntry[] = distEntries.map(async (distEntry) => {
-
-      //   const { ENT_NUM, ENT_DI_PRO, ENT_DI_PNC, ENT_DI_DES, ENT_DI_STA, ENT_DI_OBS, ENT_DI_CPA, ENT_DI_REV } = distEntry
-      //   const { ENT_DI_PAL, ENT_DI_GUI, ENT_DI_PLA, ENT_DI_NDE, ENT_DI_PPA, ENT_DI_PAD, ENT_DI_DPA, ENT_DI_AUT } = distEntry
-
-      //   const { VEH_ID, CON_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW, ENT_OBS } = data1.find((item) => item.ENT_NUM === ENT_NUM) as P_ENT
-
-      //   // const vehicule = vehicules.find((vehicule) => vehicule.VEH_ID === VEH_ID)
-      //   const vehiculeBody = {vehiculeID: VEH_ID, field: "VEH_ID"}
-      //   const vehicule = (await axios.post<Vehicule>(`${base_url}/api/vehicules`, vehiculeBody)).data
-        
-      //   // const driver = drivers.find((driver) => driver.CON_COD === CON_COD)
-      //   const driverBody = { driverID: CON_COD, field: "CON_COD" }
-      //   const driver = (await axios.post<Driver>(`${base_url}/api/drivers`, driverBody)).data
-
-      //   return {
-      //     entryNumber: ENT_NUM,
-      //     entryDate: ENT_FEC,
-      //     driver,
-      //     vehicule,
-      //     origin: ENT_DI_PRO,
-      //     truckWeight: ENT_PES_TAR,
-      //     entryDetails: ENT_OBS,
-      //     calculatedNetWeight: ENT_DI_PNC,
-      //     aboutToLeave: Boolean(ENT_FLW === 2),
-      //     chargeDestination: ENT_DI_DES,
-      //     vehiculeStatus: ENT_DI_STA,
-      //     distDetails: ENT_DI_OBS,
-      //     palletsQuatity: ENT_DI_CPA,
-      //     palletChargePlan: ENT_DI_PAL,
-      //     guideNumber: ENT_DI_GUI,
-      //     chargePlan: ENT_DI_PLA,
-      //     dispatchNote: ENT_DI_NDE,
-      //     palletWeight: ENT_DI_PPA,
-      //     aditionalWeight: ENT_DI_PAD,
-      //     aditionalWeightDescription: ENT_DI_DPA,
-      //     exitAuthorization: ENT_DI_AUT,
-      //     returned: Boolean(ENT_DI_REV)
-      //   }
-      // })
 
       response.status(200).json(formatted ? formattedEntries : distEntries);
 

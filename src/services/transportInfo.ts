@@ -12,8 +12,8 @@ export const createDriver = async (driver: T_CON) => {
   return data;
 }
 
-export const getVehicule = async (vehiculeID: string) => {
-  const { data } = await axios.post<Vehicule>(`${base_url}/api/vehicules`, { vehiculeID })
+export const getVehicule = async (vehiculeID: string, field: "VEH_ID" | "VEH_PLA") => {
+  const { data } = await axios.post<Vehicule>(`${base_url}/api/vehicules`, { vehiculeID, field })
   return data;
 }
 

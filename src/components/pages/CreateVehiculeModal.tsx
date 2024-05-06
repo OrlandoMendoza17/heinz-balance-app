@@ -81,7 +81,7 @@ const CreateVehiculeModal = ({ showVehiculeModal, setVehiculeModal }: Props) => 
 
       try {
 
-        vehicule = await getVehicule(plate)
+        vehicule = await getVehicule(plate, "VEH_PLA")
 
       } catch (error) {
         console.log('error', error)

@@ -5,6 +5,7 @@ import { getSQLValue } from "./entries/newEntry";
 
 type BodyProps = {
   driver: T_CON,
+  ORI_ID: 1 | 0
 }
 
 const newDriverHandler = async (request: NextApiRequest, response: NextApiResponse,) => {

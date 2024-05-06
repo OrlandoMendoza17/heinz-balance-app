@@ -61,7 +61,7 @@ const Transport = () => {
       let driverThatMatchesVehicule: Driver | undefined = undefined
 
       await catchError(async () => {
-        vehicule = await getVehicule(plate);
+        vehicule = await getVehicule(plate, "VEH_PLA");
       })
 
       await catchError(async () => {
