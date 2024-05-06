@@ -5,17 +5,16 @@ import type { NextApiRequest, NextApiResponse } from "next";
 
 const testHandler = async (request: NextApiRequest, response: NextApiResponse,) => {
   try {
-    
+
     const queryString = `
-      SELECT * FROM [HDTA025].[dbo].[H025_P_ENT_DI]
-      WHERE ENT_NUM = 92596
+      SELECT TOP 1000 * FROM [HDTA025].[dbo].[H025_VW_ENT_NOTA_SAL]
     `
-    
+
     // const sequelize = await getSequelize()
     const [data] = await sequelize.query(queryString) as [unknown[], unknown]
-    
+
     response.status(200).json(data);
-    
+
   } catch (error) {
     console.log(error)
     response.status(500).json({
@@ -23,7 +22,7 @@ const testHandler = async (request: NextApiRequest, response: NextApiResponse,) 
       message: "There has been an error in the server"
     });
   }
-  
+
 }
 
 export default testHandler;
