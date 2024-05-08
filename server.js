@@ -211,7 +211,9 @@ app.prepare().then(() => {
 
 /* El fragmento de código ` .listen(puerto, () => {
       console.log(`> Listo en http://:`)
-})` está configurando el servidor para escuchar las solicitudes HTTP entrantes en un puerto específico. */
+
+
+    })` está configurando el servidor para escuchar las solicitudes HTTP entrantes en un puerto específico. */
     .listen(port, () => {
       console.log(`> Ready on http://${hostname}:${port}`)
     })

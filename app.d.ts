@@ -110,6 +110,14 @@ type NewEntryDto = Omit<Entry, "entryNumber" | "entryDate" | "vehicule" | "drive
 
 type UpdateP_ENT = Omit<P_ENT, "ENT_NUM">
 
+/**
+ * El tipo ChargePlanInfo contiene información sobre un plan de carga, incluido el número, el peso y
+ * destino.
+ * @property number: la propiedad `number` guarda informacion sobre el numero del plan de carga.
+ * @property weight: la propiedad `weight` guarda informacion sobre el peso del plan de carga.
+ * @property destination: la propiedad `destination` guarda informacion sobre el destino del plan de carga.
+ */
+
 type ChargePlanInfo = {
   number: F4961["LLLDNM"],
   weight: F4961["LLSCWT"],
