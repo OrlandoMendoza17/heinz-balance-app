@@ -14,10 +14,10 @@ type BodyProps = {
 /**
  * La función `testHandler` es una función asíncrona que recupera información sobre un cargo
  * planifica desde una base de datos y lo devuelve como respuesta JSON, manejando los errores de manera adecuada.
- * Solicitud @param {NextApiRequest}: el parámetro `request` en la función `testHandler` es de tipo
+ * Solicitud @param {NextApiRequest} NextApiRequest: el parámetro `request` en la función `testHandler` es de tipo
  * `NextApiRequest`, que es una interfaz proporcionada por Next.js para manejar solicitudes de API. Contiene
  * información sobre la solicitud HTTP entrante, como encabezados, cuerpo, parámetros de consulta, etc.
- * @param {NextApiResponse} respuesta: el parámetro `respuesta` en la función `testHandler` es un
+ * @param {NextApiResponse} response: el parámetro `respuesta` en la función `testHandler` es un
  * objeto que representa la respuesta HTTP que se enviará al cliente. Tiene métodos como
  * `status()` para establecer el código de estado HTTP de la respuesta y `json()` para enviar una respuesta JSON a
  * el cliente.
