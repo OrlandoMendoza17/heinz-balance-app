@@ -1,5 +1,9 @@
+// EndPoint de prueba
+
+
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 // import getSequelize from "@/lib/mssql";
+
 import sequelize from "@/lib/mssql";
 import type { NextApiRequest, NextApiResponse } from "next";
 

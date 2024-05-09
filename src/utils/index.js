@@ -1,5 +1,10 @@
-const readWeightFromBalance = async () => {
+/**
+  * Funcion para leer el peso de la balanza del puerto COM
+  * @return {number} -> Regresa el peso leido en la balanza
+*/
 
+const readWeightFromBalance = async () => {
+ 
   let failedAccessWithoutAskPermission = false
   // Solicita permiso al usuario para acceder a los puertos COM.
   

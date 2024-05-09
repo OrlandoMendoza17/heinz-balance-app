@@ -123,14 +123,27 @@ type T_CON_VEH = {
   VEH_ID: string;  // ID de Vehículo
 }
 
-//H025_T_DEN -> Tabla de densidad del alcohol y vinagre
+
+/**
+ * The type `T_DEN` H025_T_DEN -> Tabla de densidad del alcohol y vinagre
+ * @property {string} DEN_COD La propiedad `DEN_COD` representa el Codigo de densidad.
+ * @property {string} DEN_DES La propiedad `DEN_DES` representa el Nombre del liquido.
+ * @property {number} DEN_DEN La propiedad `DEN_DEN` representa el Numero de la densidad Densidad. 
+ */
 type T_DEN = {
-  DEN_COD: string; // Codigo de densidad 
-  DEN_DES: string; // Nombre del liquido 
-  DEN_DEN: number; // Densidad 
+  DEN_COD: string;  
+  DEN_DES: string; 
+  DEN_DEN: number; 
 }
 
 // H025_T_DES -> Destino dentro de Planta
+/**
+ * El tipo T_DES representa un código de destino y una descripción dentro de una planta.
+ * @property {DES_COD} DES_COD - DES_COD es una propiedad que representa el código del destino
+ * dentro de la planta. Se utiliza para identificar de forma única diferentes destinos dentro de la planta.
+ * @property {string} DES_DES - La propiedad `DES_DES` en el tipo `T_DES` representa la descripción
+ * del destino dentro de la planta. 
+ **/
 type T_DES = {
   DES_COD: DES_COD;  // Código de Destino dentro de planta
   DES_DES: string;  // Descripción de Destino dentro de planta
@@ -168,13 +181,36 @@ type T_F4930 = {
   VMWTUM: string; // Unidad de medida KG
 }
 
-// H025_T_MAT -> Destino dentro de Planta
+
+/**
+ * El tipo T_MAT representa materiales con propiedades MAT_COD para código de material y MAT_DES para
+ * Descripción del material.
+ * @property {string} MAT_COD - MAT_COD es una propiedad del tipo T_MAT que representa el código de un
+ * material. Es un tipo de cadena.
+ * @property {string} MAT_DES - MAT_DES es una propiedad del tipo T_MAT que representa la descripción
+ * de materiales. Es un tipo de cadena que proporciona una breve explicación o nombre del material.
+ * especificado por MAT_COD.
+ */
 type T_MAT = {
   MAT_COD: string; // Código de Materiales
   MAT_DES: string; // Descripción de Materiales
 }
 
 // H025_T_OPE -> Operación dentro de Planta
+/**
+ * El tipo `T_OPE` define propiedades relacionadas con la operación de una planta, incluido el código de operación,
+ * descripción, estado de autorización, estado de notificación, estado de palet y código de destino.
+ * @property {string} OPE_COD - La propiedad `OPE_COD` representa el código de operación dentro de la planta.
+ * Es de tipo cadena.
+ * @property {string} OPE_DES - La propiedad `OPE_DES` representa la descripción de una operación
+ *dentro de una planta. Es un tipo de cadena que proporciona una breve explicación o nombre de la operación.
+ * en ejecución.
+ * @property {boolean} OPE_AUT: No se usa actualmente.
+ * @property {boolean} OPE_NOT No se usa actualmente. 
+ * @property {boolean} OPE_PAL: No se usa actualmente.
+ * @property {DES_COD} DES_COD - DES_COD es una propiedad que representa el código del destino
+ * dentro de la planta.
+ */
 type T_OPE = {
   OPE_COD: string;  // Código de Operación dentro de planta
   OPE_DES: string;  // Descripción de Operación dentro de planta
@@ -210,6 +246,21 @@ type T_TRA = {
 }
 
 
+/**
+  * El tipo T_VEH define propiedades para un vehículo incluyendo ID, placa, modelo, tipo, capacidad,
+  * código de transporte y origen.
+  * @property {string} VEH_ID - La propiedad `VEH_ID` en el tipo `T_VEH` representa el ID del
+  * vehículo. Es un campo de tipo cadena que se utiliza para identificar de forma única cada vehículo en el sistema.
+  * @property {string} VEH_PLA - La propiedad `VEH_PLA` representa la placa del vehículo.
+  * @property {string} VEH_MOD - La propiedad `VEH_MOD` en el tipo `T_VEH` representa el modelo del
+  * vehículo. Es un tipo de cadena que contiene información sobre el modelo del vehículo.
+  * @property {string} VEH_TIP: la propiedad `VEH_TIP` representa el tipo de vehículo. 
+  * @property {número} VEH_CAP - La propiedad `VEH_CAP` en el tipo `T_VEH` representa la capacidad de
+  * el vehículo. Es una propiedad de tipo numérico que indica cuánto peso el vehículo puede transportar.
+  * @property {string} TRA_COD - La propiedad `TRA_COD` representa el código del transporte al que el vehículo pertenece.
+  * @property {number} ORI_ID - La propiedad `ORI_ID` en el tipo `T_VEH` representa el origen del
+  * vehículo. 0-Balanzas 1-JDE.
+  */
 type T_VEH = {
   VEH_ID: string;  // Id del vehiculo 
   VEH_PLA: string; // Placa del vehiculo

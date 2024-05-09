@@ -7,6 +7,17 @@ type Driver = {
 
 type NewDriverDto = Omit<Driver, "code">
 
+/**
+ * Esta tipo guarda la informacion de los vehiculos 
+ * @param {T_VEH["VEH_ID"]} id Id del vehiculo
+ * @param {T_VEH["VEH_PLA"]} plate Placa del vehiculo 
+ * @param {T_VEH["VEH_MOD"]} model Modelo del vehiculo 
+ * @param {T_VEH["VEH_TIP"]} type Tipo del vehiculo 
+ * @param {T_VEH["VEH_CAP"]} capacity Capacidad del vehiculo KG
+ * @param {T_TRA["TRA_NOM"]} company Trasporte al que pertene el vehiculo 
+ * @param {T_VEH["ORI_ID"]} originID Lugar de origen del vehiculo: 0-Balanza, 1-JDE
+ * @param {T_TRA["TRA_COD"]} companyID Id del trasporte 
+ */
 type Vehicule = {
   id: T_VEH["VEH_ID"],
   plate: T_VEH["VEH_PLA"],
@@ -62,6 +73,13 @@ type Exit = {
   aboutToLeave: boolean,
 }
 
+/**
+  * El tipo `Transporte` define una estructura con propiedades `nombre`, `RIF` y `código` de especifico
+  * tipos.
+  * @property {T_TRA["TRA_NOM"]} name: Representa el nombre del trasporte.
+  * @property {T_TRA["TRA_RIF"]} RIF - Representa el RIF del trasporte.
+  * @property {T_TRA["TRA_COD"]} code: Representa el codigo del trasporte
+  */
 type Transport = {
   name: T_TRA["TRA_NOM"],
   RIF: T_TRA["TRA_RIF"],
@@ -110,6 +128,14 @@ type NewEntryDto = Omit<Entry, "entryNumber" | "entryDate" | "vehicule" | "drive
 }
 
 type UpdateP_ENT = Omit<P_ENT, "ENT_NUM">
+
+/**
+ * El tipo ChargePlanInfo contiene información sobre un plan de carga, incluido el número, el peso y
+ * destino.
+ * @property number: la propiedad `number` guarda informacion sobre el numero del plan de carga.
+ * @property weight: la propiedad `weight` guarda informacion sobre el peso del plan de carga.
+ * @property destination: la propiedad `destination` guarda informacion sobre el destino del plan de carga.
+ */
 
 type ChargePlanInfo = {
   number: F4961["LLLDNM"],

@@ -54,4 +54,4 @@ const CheckAction = ({ handleChange, DES_COD, action }: Props) => {
   )
 }
 
-export default CheckAction
+export default CheckAction 
