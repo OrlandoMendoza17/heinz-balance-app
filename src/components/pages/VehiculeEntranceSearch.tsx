@@ -26,7 +26,7 @@ const VehiculeEntranceSearch = ({ searchInfo, createButton, disabled = false, ha
   const [loading, setLoading] = useState<boolean>(false)
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = async ({ target }) => {
-    setSearch(target.value)
+    setSearch(target.value.toUpperCase())
   }
 
   const handleSearch: FormEventHandler<HTMLFormElement> = async (event) => {

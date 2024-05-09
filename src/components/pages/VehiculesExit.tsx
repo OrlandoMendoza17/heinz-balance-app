@@ -4,7 +4,7 @@ import Modal from '../widgets/Modal'
 import Button from '../widgets/Button'
 import Input from '../widgets/Input'
 import { getCuteFullDate, getDateTime, shortDate } from '@/utils/parseDate'
-import { ACTION, ACTION_BY_NAME, DESTINATION_BY_CODE, INVOICE_BY_CODE } from '@/lib/enums'
+import { ACTION, ACTION_BY_NAME, DESTINATION_BY_CODE, INVOICE_BY_CODE, ROLS } from '@/lib/enums'
 import useNotification from '@/hooks/useNotification'
 import NotificationModal from '../widgets/NotificationModal'
 import { createNewExit } from '@/services/exits'
@@ -45,6 +45,7 @@ type ChangeHandler = ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>
 
 const { CARGA, DESCARGA, TICKET_DE_SALIDA, DEVOLUCION } = ACTION
 
+const { ADMIN, SUPERVISOR_BALANZA } = ROLS
 const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
   const [, credentials] = useAuth()
@@ -68,6 +69,9 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
   const [densityOptions, setDensity] = useState<SelectOptions[]>([])
   const [materialsOptions, setMaterials] = useState<SelectOptions[]>([])
+
+
+  const [density, setSelectedDensity] = useState<number>(1)
 
   const [selectedExit, setSelectedExit] = useState<Exit>({
     entryNumber: "",
@@ -105,6 +109,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
     palletsQuatity: 0,
     aditionalWeight: 0,
     weightDifference: 0,
+    userAccountName: "",
     aboutToLeave: false,
   })
 
@@ -168,6 +173,8 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
   const expectedWeight = calculatedNetWeight + allPalletWeight + aditionalWeight
 
+  const densityLts = parseFloat((netWeight / density).toFixed(2))
+  
   const handleOpenModal: FormEventHandler<HTMLFormElement> = (event) => {
     event.preventDefault()
 
@@ -228,18 +235,13 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         const form = new FormData(document.getElementsByTagName("form")[0])
 
         const material = form.get("materials") as string
-        const density = parseFloat(form.get("density") as string)
 
         console.log('material', material)
-        console.log('density', density)
 
         const { entryNumber: ENT_NUM, invoice, truckWeight, netWeight, destination, operation } = selectedExit
 
         // Si es Descarga o es Devoluación
         console.log('destination', destination)
-
-        const densityLts = netWeight / density
-        console.log('densityLts', densityLts)
 
         // Si viene a cargar    -> el peso bruto tiene que ser mayor a la tara
         // Si viene a descargar -> el peso bruto tiene que ser menor a la tara
@@ -251,6 +253,8 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
           OS_AUTHORIZATION,
           densityOptions,
           materialsOptions,
+          density,
+          densityLts,
         })
 
         const params = {
@@ -270,7 +274,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
         // Creando objeto de Salida de vehículo
         const leavingEntry = getInsertExit(params)
-
+        
         // Actualiza la entrada dependiendo del departamento
         const updateEntryByDestination = getUpdateValue(params)
 
@@ -278,10 +282,10 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         console.log('updateEntryByDestination', updateEntryByDestination)
         
         await createNewExit({ leavingEntry, updateEntryByDestination, destination })
-
+        
         // Saca al vehículo de las entradas por salir que está en el cliente
         setExits((exits) => exits.filter((item) => item.entryNumber !== entryNumber))
-
+        
         handleAlert.open(({
           type: "success",
           title: "Salida de Vehículo",
@@ -289,14 +293,14 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         }))
         
         const formattedEntryDetails = splitString(selectedExit.entryDetails)
-        
+
         setSelectedExit(() => ({
-          ...selectedExit, 
+          ...selectedExit,
           exitDate,
           entryDetails: formattedEntryDetails,
           exitDetails: exitDetails ? exitDetails : "",
         }))
-
+        
         // Ejecución de entrada automática
         if ($automaticEntry.current?.checked) {
           try {
@@ -342,11 +346,11 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
 
           setTimeout(() => {
             setRendered(false)
+            setLoading(false)
             setModal(false)
           }, 3000)
         }, 1000)
 
-        // setLoading(false)
 
       } catch (error) {
         console.log(error)
@@ -442,15 +446,19 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
   const handleChange: ChangeHandler = async (event) => {
     const target = event.target
     type DESTINATION_VALUES = { DES_COD: DES_COD, OPE_COD: string }
-    if (target.name === "chargeType") {
 
-      setChargeType(target.value as ChargeTypes)
+    const { name, value, id } = target
 
-    } else if (target.name === "authorization") {
+    if (name === "chargeType") {
 
-      setOS_AUTHORIZATION(target.value)
+      setChargeType(value as ChargeTypes)
+      setSelectedDensity(densityOptions[0].value as number)
 
-    } if (target.name === "auth-check") {
+    } else if (name === "authorization") {
+
+      setOS_AUTHORIZATION(value)
+
+    } if (name === "auth-check") {
 
       const currentTarget = event.currentTarget as HTMLInputElement
       setAuthCheck(currentTarget.checked)
@@ -458,7 +466,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
     } else {
       setSelectedExit({
         ...selectedExit,
-        [target.id]: target.value,
+        [id]: value,
       })
     }
 
@@ -651,7 +659,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
                 Leer
               </Button>
               {
-                (user.rol === "01" || user.rol === "02") &&
+                (user.rol === ADMIN || user.rol === SUPERVISOR_BALANZA) &&
                 <button
                   type="button"
                   onClick={() => setDisableWeight(!disableWeight)}
@@ -683,14 +691,17 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
                 </div>
                 {
                   chargeType === "LTS" &&
-                  <Select
-                    name="density"
-                    title="Densidad:"
-                    className="font-semibold"
-                    defaultOption=""
-                    options={densityOptions}
-                    onChange={() => { }}
-                  />
+                  <>
+                    <Select
+                      name="density"
+                      selectTitle={<>Densidad: </>}
+                      className="font-semibold"
+                      defaultOption=""
+                      options={densityOptions}
+                      onChange={({target}) => setSelectedDensity(parseFloat(target.value))}
+                    />
+                    <span className="text-green-800 self-end font-medium pb-3">{densityLts} Litros</span>
+                  </>
                 }
               </div>
             }
@@ -699,7 +710,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
               destination === "D05" &&
               <Select
                 name="materials"
-                title="Tipo de Material"
+                selectTitle="Tipo de Material"
                 defaultOption="Material"
                 options={materialsOptions}
                 onChange={() => { }}

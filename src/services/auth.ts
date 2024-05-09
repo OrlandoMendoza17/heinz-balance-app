@@ -39,16 +39,6 @@ class AuthService {
     const { data } = await axios.post<{ verified: boolean }>(`${base_url}/api/auth/verifyAuthOTP`, body)
     return data.verified;
   }
-
-  getUsers = async (email: string = "") => {
-    const { data } = await axios.post<User[]>(`${base_url}/api/auth/users`, { email })
-    return email ? data[0] : data
-  }
-  
-  getRol = async (userRolID: S_USU["ROL_COD"]) => {
-    const { data } = await axios.post<S_ROL>(`${base_url}/api/auth/rols`, { userRolID })
-    return data.ROL_DES
-  }
 }
 
 export default AuthService;

@@ -12,8 +12,11 @@ import distributionEntry from '@/utils/defaultValues/distributionEntry';
 import Header from '@/components/widgets/Header';
 import useAuth from '@/hooks/useAuth';
 import { useRouter } from 'next/router';
+import { ROLS } from '@/lib/enums';
 
 const ENTRIES_TYPE: EntriesType = "aboutToLeave"
+
+const { ADMIN, SUPERVISOR_BALANZA, BALANZA, VIGILANCIA, FACTURACION, DESPACHO } = ROLS
 
 const PorSalir = () => {
 
@@ -34,11 +37,11 @@ const PorSalir = () => {
   useEffect(() => {
     const { user } = credentials
     if(renderPage){
-      if(user.rol === "01" || user.rol === "04" || user.rol === "05" || user.rol === "06"){
+      if(user.rol === ADMIN || user.rol === VIGILANCIA || user.rol === FACTURACION || user.rol === DESPACHO){
         
         // getEntries()
         
-      }else if(user.rol === "02" || user.rol === "03"){
+      }else if(user.rol === SUPERVISOR_BALANZA || user.rol === BALANZA){
         
         router.push("/romana")
         

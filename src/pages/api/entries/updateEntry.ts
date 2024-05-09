@@ -1,7 +1,7 @@
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSQLValue } from "./newEntry";
+import { getUPDATEValues } from "@/utils/api/update";
 
 type BodyProps = {
   entryNumber: P_ENT["ENT_NUM"],
@@ -12,8 +12,7 @@ const updateEntryHandler = async (request: NextApiRequest, response: NextApiResp
   try {
     const { entryNumber, entry }: BodyProps = request.body
 
-    const object = Object.entries(entry)
-    const values = object.map(([key, value]) => `${key} = ${getSQLValue(value)}`).join(",\n    ")
+    const values = getUPDATEValues(entry)
 
     const queryString = `
       UPDATE H025_P_ENT

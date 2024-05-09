@@ -69,6 +69,7 @@ type Exit = {
   palletWeight: P_ENT_DI["ENT_DI_PPA"],
   palletsQuatity: P_ENT_DI["ENT_DI_CPA"],
   aditionalWeight: P_ENT_DI["ENT_DI_PAD"],
+  userAccountName: P_ENT["USU_LOG"],
   aboutToLeave: boolean,
 }
 

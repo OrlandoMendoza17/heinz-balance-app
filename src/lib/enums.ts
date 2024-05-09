@@ -62,3 +62,13 @@ export enum STATUS {
   DISTRIBUTION = 1,
   ABOUT_TO_LEAVE = 2,
 }
+
+export enum ROLS {
+  ADMIN = "01",
+  SUPERVISOR_BALANZA = "02",
+  BALANZA = "03",
+  VIGILANCIA = "04",
+  FACTURACION = "05",
+  DESPACHO = "06",
+  AUDITORIA = "07",
+}

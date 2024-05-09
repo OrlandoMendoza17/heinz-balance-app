@@ -10,7 +10,7 @@ import NotificationModal from '../widgets/NotificationModal'
 import useNotification from '@/hooks/useNotification'
 import { getDestination } from '@/services/destination'
 import { getDriver, getDriverFromVehicule, getVehicule } from '@/services/transportInfo'
-import { ACTION, INVOICE_BY_CODE, STATUS } from '@/lib/enums'
+import { ACTION, INVOICE_BY_CODE, ROLS, STATUS } from '@/lib/enums'
 import { createNewEntry, getEntriesInPlant, getNextEntryNumber } from '@/services/entries'
 import { format } from 'date-fns'
 import { getDateTime } from '@/utils/parseDate'
@@ -42,7 +42,7 @@ type TABLE_VALUES = {
   D07: P_ENT_OS,
 }
 
-const { CARGA, DESCARGA, DEVOLUCION } = ACTION
+const { ADMIN, SUPERVISOR_BALANZA } = ROLS 
 
 const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
 
@@ -257,8 +257,8 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
 
     let actionInput = action
     
-    if (target.name === "action") {
-      actionInput = parseInt(target.value) as Action
+    if (name === "action") {
+      actionInput = parseInt(value) as Action
       setAction(actionInput)
     }
 
@@ -272,7 +272,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
 
     invoice = REQUIRES_INVOICE ? newEntry.invoice : null
 
-    if (target.name === "destination") {
+    if (name === "destination") {
       debugger
       setDriver(DES_COD === "D01" ? undefined : driver)
 
@@ -327,7 +327,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
   console.log('destination', destination)
   const disableDriver = (DES_COD === "D01")
   console.log('disableDriver', disableDriver)
-
+  
   return (
     <>
       <Modal
@@ -394,7 +394,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
             <Select
               defaultValue={DES_COD}
               name="destination"
-              title="Destino"
+              selectTitle="Destino"
               defaultOption="Destino"
               options={destinations}
               onChange={handleChange}
@@ -421,7 +421,7 @@ const VehiculesEntrance = ({ showModal, setModal, refreshEntries }: Props) => {
                 Leer Peso
               </Button>
               {
-                (user.rol === "01" || user.rol === "02") &&
+                (user.rol === ADMIN || user.rol === SUPERVISOR_BALANZA) &&
                 <button
                   type="button"
                   onClick={() => setDisableWeight(!disableWeight)}

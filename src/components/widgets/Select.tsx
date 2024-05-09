@@ -6,26 +6,27 @@ export type SelectOptions = {
 }
 
 interface Props extends SelectHTMLAttributes<HTMLSelectElement> {
-  title?: string,
+  selectTitle?: string | JSX.Element,
   titleStyle?: string,
   className?: string,
   options: SelectOptions[],
   defaultOption: string,
+  defaultFirst?: boolean,
   objectString?: boolean,
 }
 
 const Select = (props: Props) => {
 
-  const { title = "", titleStyle = "", className = "", options, name = "", defaultOption = "", required = true, defaultValue, objectString = false, ...rest } = props
+  const { selectTitle = "", titleStyle = "", className = "", defaultFirst = false, options, name = "", defaultOption = "", required = true, defaultValue, objectString = false, ...rest } = props
 
   const selectsOptions = [...options]
 
   return (
     <label htmlFor={name} className={`Input ${className}`}>
       {
-        title &&
+        selectTitle &&
         <span className={titleStyle}>
-          {title}
+          {selectTitle}
         </span>
       }
       <select name={name} id={name} required={required} {...rest}>
@@ -33,10 +34,10 @@ const Select = (props: Props) => {
           {defaultOption}
         </option>
         {
-          selectsOptions.map(({ name, value }, i) => {
+          selectsOptions.map(({ name, value }, index) => {
             const selected = objectString ? (defaultValue === (value as string).slice(12, 15)) : (defaultValue === value)
             return (
-              <option selected={selected} value={value} key={`name-${i}`}>
+              <option selected={selected} value={value} key={`name-${index}`}>
                 {name}
               </option>
             )

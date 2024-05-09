@@ -10,6 +10,7 @@ import Link from 'next/link';
 import useAuth from '@/hooks/useAuth';
 import { useRouter } from 'next/router';
 import { MdEmojiTransportation } from "react-icons/md";
+import { ROLS } from '@/lib/enums';
 
 export type NavbarListItem = {
   title: string;
@@ -20,6 +21,8 @@ export type NavbarListItem = {
 type Props = {
   refreshEntries?: () => Promise<void>;
 }
+
+const { ADMIN, VIGILANCIA, FACTURACION, DESPACHO } = ROLS
 
 const Header = ({ refreshEntries = async () => { } }: Props) => {
 
@@ -80,7 +83,7 @@ const Header = ({ refreshEntries = async () => { } }: Props) => {
     link: "/romana",
   }
 
-  if (user.rol === "01" && router.pathname !== "/romana")
+  if (user.rol === ADMIN && router.pathname !== "/romana")
     navListDistribution.unshift(goToRomana)
 
   return (
@@ -103,7 +106,7 @@ const Header = ({ refreshEntries = async () => { } }: Props) => {
           }
 
           {
-            (user.rol === "01" || user.rol === "04" || user.rol === "05" || user.rol === "06") &&
+            (user.rol === ADMIN || user.rol === VIGILANCIA || user.rol === FACTURACION || user.rol === DESPACHO) &&
             <>
               {
                 router.pathname === "/romana" &&

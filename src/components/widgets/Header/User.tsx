@@ -1,5 +1,6 @@
 import useAuth from '@/hooks/useAuth'
 import AuthService from '@/services/auth'
+import { getRol } from '@/services/user'
 import { eraseCookie } from '@/utils/cookies'
 import { useMsal } from '@azure/msal-react'
 import Link from 'next/link'
@@ -22,7 +23,7 @@ const User = () => {
     (async () => {
       if(userRolID){
         try {
-          const rol = await auth.getRol(userRolID)
+          const rol = await getRol(userRolID)
           setRol(rol)
         } catch (error) {
           console.log('error', error)        
@@ -46,7 +47,7 @@ const User = () => {
         Bienvenido <span className="font-bold text-sky-500">{nombre?.split(" ")[1]}</span>
       </span>
       <ul>
-        <li>
+        <li onClick={() => alert("El manual de usuario será añadido PROXIMAMENTE!!!")}>
           <Link href="/romana">
             <IoDocumentTextSharp size={20} />
             Manual de Usuario

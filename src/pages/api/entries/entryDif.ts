@@ -2,7 +2,7 @@
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSQLValue } from "../exits/newExit";
+import { getInsertAttributes } from "@/utils/api/insert";
 
 type GET_QueryProps = {
   entryDif: Omit<P_ENT_DIF, "ENT_DIF_NUM">,
@@ -58,10 +58,9 @@ const entryDifferencesHandler = async (request: NextApiRequest, response: NextAp
     } else if (METHOD === "POST") {
 
       const { entryDif }: POST_BodyProps = request.body
-
-      const keys = `(${Object.keys(entryDif).map(key => `[${key}]`).join(", ")})`
-      const values = `(${Object.values(entryDif).map(value => getSQLValue(value)).join(", ")})`
-
+ 
+      const [keys, values] = getInsertAttributes(entryDif)
+      
       const queryString = `
         INSERT H025_P_ENT_DIF\n${keys} 
         VALUES ${values}

@@ -65,11 +65,11 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
       try {
         
         const [data] = await sequelize.query(destinationQuery) as [any[], unknown]
-  
+        
         const entry = data.find((entry) => entry.ENT_NUM === ENT_NUM)
-  
+        
         const ENT_ENTRY = entries.find(({ ENT_NUM }) => entry.ENT_NUM === ENT_NUM)
-  
+        
         console.log('ENT_OBS', ENT_ENTRY?.ENT_OBS)
         
         const vehicule = await getVehicule(VEH_ID, "VEH_ID")
@@ -97,6 +97,7 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
           palletWeight: entry.ENT_DI_PPA,
           palletsQuatity: entry.ENT_DI_CPA,
           aditionalWeight: entry.ENT_DI_PAD,
+          userAccountName: ENT_ENTRY?.USU_LOG || "",
           aboutToLeave: Boolean(ENT_FLW === 2),
         })
         

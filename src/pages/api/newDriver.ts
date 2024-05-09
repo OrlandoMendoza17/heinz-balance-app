@@ -1,7 +1,7 @@
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSQLValue } from "./entries/newEntry";
+import { getInsertAttributes } from "@/utils/api/insert";
 
 
 /**
@@ -37,12 +37,8 @@ const newDriverHandler = async (request: NextApiRequest, response: NextApiRespon
       // Obtenemos el cuerpo de la solicitud, que contiene la información del conductor
       const { driver }: BodyProps = request.body
 
-      // Creamos una cadena con las claves del objeto driver, rodeadas de corchetes
-      const keys = `(${Object.keys(driver).map(key => `[${key}]`).join(", ")})`
-      // Creamos una cadena con los valores del objeto driver, convirtiéndolos a formato SQL
-      const values = `(${Object.values(driver).map(value => getSQLValue(value)).join(", ")})`
-
-      // Creamos la consulta SQL para insertar el nuevo conductor
+      const [keys, values] = getInsertAttributes(driver)
+      
       const queryString = `
         INSERT H025_T_CON\n${keys} 
         VALUES ${values}

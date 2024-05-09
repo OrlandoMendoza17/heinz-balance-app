@@ -42,7 +42,6 @@ const VehiculeExitDetails = (props: Props) => {
         Boolean(chargePlan) &&
         <small>Plan de Carga {"->"} <strong>{chargePlan}</strong></small>
       }
-      {/* <Button loading={loading} onClick={getDetails}>Generar Observaciones</Button> */}
       <Textarea
         maxLength={MAX_CHARS}
         id="exitDetails"

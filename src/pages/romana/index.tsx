@@ -7,11 +7,13 @@ import NotificationModal from '@/components/widgets/NotificationModal';
 import Spinner from '@/components/widgets/Spinner';
 import useAuth from '@/hooks/useAuth';
 import useNotification from '@/hooks/useNotification';
+import { ROLS } from '@/lib/enums';
 import { getEntriesInPlant } from '@/services/entries';
 import { useRouter } from 'next/router';
 import React, { useEffect, useState } from 'react'
-import { FaTruck } from 'react-icons/fa6';
 import { PiPackageFill } from 'react-icons/pi';
+
+const { ADMIN, SUPERVISOR_BALANZA, BALANZA } = ROLS
 
 const Romana = () => {
 
@@ -26,7 +28,7 @@ const Romana = () => {
 
   const [loading, setLoading] = useState<boolean>(false)
   const [alert, handleAlert] = useNotification()
-
+  
   const [selectedExit, setSelectedExit] = useState<Exit>({
     entryNumber: "",
     entryDate: "",
@@ -63,14 +65,16 @@ const Romana = () => {
     palletWeight: 0,
     palletsQuatity: 0,
     aditionalWeight: 0,
+    userAccountName: "",
     aboutToLeave: false,
   })
-
+  
+  const { user } = credentials
+  
   useEffect(() => {
-    // debugger
-    const { user } = credentials
+    debugger
     if (renderPage) {
-      if (user.rol === "01" || user.rol === "02" || user.rol === "03") {
+      if (user.rol === ADMIN || user.rol === SUPERVISOR_BALANZA || user.rol === BALANZA) {
 
         getEntries()
         
@@ -148,6 +152,10 @@ const Romana = () => {
                     <th>Destino</th>
                     <th>Acción</th>
                     <th>Fecha de Entrada</th>
+                    {
+                      user.rol &&
+                      <th>Usuario</th>
+                    }
                   </tr>
                 </thead>
                 <tbody>

@@ -1,7 +1,7 @@
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSQLValue } from "./entries/newEntry";
+import { getInsertAttributes } from "@/utils/api/insert";
 
 /**
  * El tipo `BodyProps` en TypeScript define una estructura con una propiedad de vehículo excluyendo VEH_ID
@@ -39,12 +39,8 @@ const newVehiculeHandler = async (request: NextApiRequest, response: NextApiResp
       // Asignamos el ORI_ID al objeto vehicule
       vehicule.ORI_ID = ORI_ID
       
-       // Creamos una cadena con las claves del objeto vehicule, rodeadas de corchetes
-      const keys = `(${Object.keys(vehicule).map(key => `[${key}]`).join(", ")})`
-      // Creamos una cadena con los valores del objeto vehicule, convirtiéndolos a formato SQL
-      const values = `(${Object.values(vehicule).map(value => getSQLValue(value)).join(", ")})`
-
-      // Creamos la consulta SQL para insertar el nuevo vehículo
+      const [keys, values] = getInsertAttributes(vehicule)
+       
       const queryString = `
         INSERT H025_T_VEH\n${keys} 
         VALUES ${values}
