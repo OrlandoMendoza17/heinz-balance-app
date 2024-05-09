@@ -81,7 +81,7 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
       const entryNumbers = dbExits.map(({ ENT_NUM }) => ENT_NUM)
       const entries = await getEntriesByExits(entryNumbers)
 
-      for (const { ENT_NUM, CON_COD, VEH_ID, DES_COD, OPE_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW, ENT_FLW_ACC } of entries) {
+      for (const { ENT_NUM, CON_COD, VEH_ID, DES_COD, OPE_COD, ENT_FEC, ENT_PES_TAR, USU_LOG, ENT_FLW, ENT_FLW_ACC } of entries) {
         try {
           const destinationQuery = getDestinationEntryQuery(DES_COD, ENT_NUM)
           const [data] = await sequelize.query(destinationQuery) as [any[], unknown]
@@ -117,6 +117,7 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
             palletWeight: entry.ENT_DI_PPA,
             palletsQuatity: entry.ENT_DI_CPA,
             aditionalWeight: entry.ENT_DI_PAD,
+            userAccountName: USU_LOG || "", 
             aboutToLeave: Boolean(ENT_FLW === 2),
           })
         } catch (error) {
