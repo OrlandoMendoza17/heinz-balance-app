@@ -20,6 +20,8 @@ type DetailsParams = {
   OS_AUTHORIZATION: string,
   densityOptions: SelectOptions[],
   materialsOptions: SelectOptions[],
+  density: number,
+  densityLts: number,
 }
 
 type CommonParams = {
@@ -41,8 +43,8 @@ type ExitParams = CommonParams & {
   OS_AUTHORIZATION: string,
   authCheck: boolean,
   selectedExit: Exit,
-  density: number,
   exitDate: string,
+  density: number,
   densityLts: number,
   exitDetails: string | undefined,
 }
@@ -51,13 +53,14 @@ export const getDetails = async (params: DetailsParams) => {
   try {
     const MAX_CHARS = 250
 
-    const { exit, OS_AUTHORIZATION } = params
+    const { exit, density, densityLts, OS_AUTHORIZATION } = params
     const { densityOptions, materialsOptions } = params
 
     const { invoice, destination } = exit
 
-    let genetatedDetails = ""
-
+    let genetatedDetails = "\n"
+    const invoiceDetails = invoice ? `FACTURA: ${invoice}\n` : ""
+    
     const departments = {
       "D01": async () => { // Distribución
 
@@ -70,36 +73,27 @@ export const getDetails = async (params: DetailsParams) => {
           // Si no están alguno de estos es por es para devolución
           if (chargePlan && calculatedNetWeight && chargeDestination) {
 
-            genetatedDetails = `PLAN DE CARGA: ${chargePlan}\nPESO DE CARGA: ${calculatedNetWeight}\nDESTINO DE CARGA: ${chargeDestination}`
+            genetatedDetails += `PLAN DE CARGA: ${chargePlan}\nPESO DE CARGA: ${calculatedNetWeight}\nDESTINO DE CARGA: ${chargeDestination}`
 
           } else if (exit.action === ACTION.DEVOLUCION) {
 
-            genetatedDetails = "TIKET DE SALIDA: PARA DEVOLUCION."
+            genetatedDetails += "TIKET DE SALIDA: PARA DEVOLUCION."
 
           } else if (exit.action === ACTION.TICKET_DE_SALIDA) {
 
-            genetatedDetails = "TIKET DE SALIDA: SIN CARGA."
+            genetatedDetails += "TIKET DE SALIDA: SIN CARGA."
 
           }
         }
       },
       "D02": () => { // Materia Prima
-        debugger
-        const getDensity = () => {
-          const density = document.getElementById("density") as HTMLSelectElement | undefined
-          const densityValue = densityOptions.find(({ value }) => value === parseFloat(density?.value || ""))
-          return densityValue?.name
-        }
-
-        const density = getDensity()
-
-        genetatedDetails = `${invoice ? `FACTURA: ${invoice}\n` : ""}${density ? `DENSIDAD: ${density}` : ""}`
+        genetatedDetails += `${invoiceDetails}${density ? `DENSIDAD: ${density}\nLITROS: ${densityLts}` : ""}`
       },
       "D03": async () => { // Servicios Generales
-        genetatedDetails = `${invoice ? `FACTURA: ${invoice}` : ""}`
+        genetatedDetails += `${invoiceDetails}`
       },
       "D04": async () => { // Almacén
-        genetatedDetails = `${invoice ? `FACTURA: ${invoice}` : ""}`
+        genetatedDetails += `${invoiceDetails}`
       },
       "D05": async () => { // Materiales
         const getMaterial = () => {
@@ -109,16 +103,16 @@ export const getDetails = async (params: DetailsParams) => {
         }
 
         const material = getMaterial()
-        genetatedDetails = `${material ? `TIPO DE MATERIAL: ${material}` : ""}`
+        genetatedDetails += `${material ? `TIPO DE MATERIAL: ${material}` : ""}`
       },
       "D07": async () => { //Otros Servicios
-        genetatedDetails = `${OS_AUTHORIZATION ? `AUTORIZACION SALIDA: ${OS_AUTHORIZATION}` : ""}`
+        genetatedDetails += `${OS_AUTHORIZATION ? `AUTORIZACION SALIDA: ${OS_AUTHORIZATION}` : ""}`
       },
     }
 
     await departments[destination]()
 
-    const exitDetails = `${genetatedDetails}\n${exit.distDetails ? splitString(exit.distDetails) : ""}\n\n${splitString(exit.exitDetails)}`.slice(0, MAX_CHARS)
+    const exitDetails = `${genetatedDetails}\n${exit.distDetails ? splitString(exit.distDetails) : ""}\n${splitString(exit.exitDetails)}`.slice(0, MAX_CHARS)
 
     return exitDetails;
 

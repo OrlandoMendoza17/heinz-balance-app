@@ -1,23 +1,13 @@
 // import getSequelize from "@/lib/mssql";
 import { DESTINATION_TABLES, ORIGIN_BY_DESTINATION } from "@/lib/enums";
 import sequelize from "@/lib/mssql";
+import { getInsertAttributes } from "@/utils/api/insert";
 import { NewEntry } from "@/utils/getTableValues";
 import { NextApiRequest, NextApiResponse } from "next";
 
 type BodyProps = {
   entry: NewEntry,
   entryByDestination: object,
-}
-
-export const getSQLValue = (value: string | number | boolean | null) => {
-  return (
-    (typeof value === "string") ? `'${value}'` : (
-      (value === null) ? JSON.stringify(value) : (
-        (typeof value === "boolean") ? (value ? 1 : 0) :
-          value
-      )
-    )
-  )
 }
 
 const newEntryHandler = async (request: NextApiRequest, response: NextApiResponse) => {
@@ -27,9 +17,9 @@ const newEntryHandler = async (request: NextApiRequest, response: NextApiRespons
     const { entry, entryByDestination }: BodyProps = request.body
 
     const getQueryString1 = () => {
-      const keys = `(${Object.keys(entry).map(key => `[${key}]`).join(", ")})`
-      const values = `(${Object.values(entry).map(value => getSQLValue(value)).join(", ")})`
-
+      
+      const [keys, values] = getInsertAttributes(entry)
+      
       const queryString = `
         INSERT H025_P_ENT\n${keys} 
         VALUES ${values}
@@ -39,8 +29,8 @@ const newEntryHandler = async (request: NextApiRequest, response: NextApiRespons
     }
 
     const getQueryString2 = () => {
-      const keys = `(${Object.keys(entryByDestination).map(key => `[${key}]`).join(", ")})`
-      const values = `(${Object.values(entryByDestination).map(value => getSQLValue(value)).join(", ")})`
+
+      const [keys, values] = getInsertAttributes(entryByDestination)
 
       const queryString = `
         INSERT H025_P_${DESTINATION_TABLES[entry.DES_COD]}\n${keys} 

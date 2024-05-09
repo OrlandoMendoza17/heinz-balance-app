@@ -19,7 +19,7 @@ const TableVehicules = ({ setModal, showDistEntries, setSelectedExit, exit }: Pr
     }
   }
 
-  const { entryNumber, driver, vehicule, action, destination, entryDate, origin } = exit
+  const { entryNumber, driver, vehicule, action, destination, entryDate, origin, userAccountName } = exit
 
   return (
     <tr onClick={handleClick}>
@@ -31,6 +31,7 @@ const TableVehicules = ({ setModal, showDistEntries, setSelectedExit, exit }: Pr
       <td>{DESTINATION_BY_CODE[destination]}</td>
       <td>{ACTION_BY_NAME[action as Action]}</td>
       <td>{getCuteFullDate(entryDate)}</td>
+      <td className="text-sm">{userAccountName}</td>
     </tr>
   )
 }

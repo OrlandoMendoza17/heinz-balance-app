@@ -1,7 +1,7 @@
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSQLValue } from "./entries/newEntry";
+import { getInsertAttributes } from "@/utils/api/insert";
 
 type BodyProps = {
   vehicule: Omit<T_VEH, "VEH_ID">,
@@ -18,9 +18,8 @@ const newVehiculeHandler = async (request: NextApiRequest, response: NextApiResp
       
       vehicule.ORI_ID = ORI_ID
       
-      const keys = `(${Object.keys(vehicule).map(key => `[${key}]`).join(", ")})`
-      const values = `(${Object.values(vehicule).map(value => getSQLValue(value)).join(", ")})`
-
+      const [keys, values] = getInsertAttributes(vehicule)
+       
       const queryString = `
         INSERT H025_T_VEH\n${keys} 
         VALUES ${values}

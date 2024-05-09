@@ -67,7 +67,7 @@ const CreateVehiculeModal = ({ showVehiculeModal, setVehiculeModal }: Props) => 
     try {
       setLoading(true)
       handleAlert.close()
-      
+
       let vehicule: Vehicule | undefined = undefined;
 
       const $form = new FormData(event.currentTarget)
@@ -90,7 +90,7 @@ const CreateVehiculeModal = ({ showVehiculeModal, setVehiculeModal }: Props) => 
       debugger
 
       if (vehicule?.plate !== plate) {
-        
+
         if (selectedTransport) {
 
           const vehicule: Omit<T_VEH, "VEH_ID"> = {
@@ -154,9 +154,12 @@ const CreateVehiculeModal = ({ showVehiculeModal, setVehiculeModal }: Props) => 
   }
 
   const handleChange: ChangeEventHandler<HTMLInputElement | HTMLSelectElement> = ({ target }) => {
+
+    const { name, value } = target
+
     setNewVehicule({
       ...newVehicule,
-      [target.name]: target.value,
+      [name]: name === "capacity" ? parseFloat(value) : value.toUpperCase(),
     })
   }
 
@@ -179,22 +182,24 @@ const CreateVehiculeModal = ({ showVehiculeModal, setVehiculeModal }: Props) => 
         />
         <Input
           id="capacity"
+          type="number"
+          min={0}
           value={capacity}
           className="w-full"
           title="Capacidad del Vehículo"
-          placeholder="VALENCIA"
+          placeholder="0"
           onChange={handleChange}
         />
         <Select
           name="model"
-          title="Modelo"
+          selectTitle="Modelo"
           defaultOption="Modelo"
           options={models}
           onChange={handleChange}
         />
         <Select
           name="type"
-          title="Tipo"
+          selectTitle="Tipo"
           defaultOption="Tipo"
           options={types}
           onChange={handleChange}

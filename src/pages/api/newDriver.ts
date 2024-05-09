@@ -1,7 +1,7 @@
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getSQLValue } from "./entries/newEntry";
+import { getInsertAttributes } from "@/utils/api/insert";
 
 type BodyProps = {
   driver: T_CON,
@@ -16,9 +16,8 @@ const newDriverHandler = async (request: NextApiRequest, response: NextApiRespon
 
       const { driver }: BodyProps = request.body
 
-      const keys = `(${Object.keys(driver).map(key => `[${key}]`).join(", ")})`
-      const values = `(${Object.values(driver).map(value => getSQLValue(value)).join(", ")})`
-
+      const [keys, values] = getInsertAttributes(driver)
+      
       const queryString = `
         INSERT H025_T_CON\n${keys} 
         VALUES ${values}

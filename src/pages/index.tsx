@@ -12,8 +12,12 @@ import useNotification from "@/hooks/useNotification";
 import NotificationModal from "@/components/widgets/NotificationModal";
 import getDestinationEntryQuery from "@/utils/api/aboutToLeave";
 import { AxiosError } from "axios";
+import { getUsers } from "@/services/user";
+import { ROLS } from "@/lib/enums";
 
 const auth = new AuthService()
+
+const { ADMIN, SUPERVISOR_BALANZA, BALANZA, VIGILANCIA, FACTURACION, DESPACHO } = ROLS
 
 const Home = () => {
 
@@ -51,7 +55,7 @@ const Home = () => {
     try {
       
       // Busca el rol en la base de datos local
-      const foundUser = await auth.getUsers(email) as User
+      const foundUser = await getUsers(email) as User
       
       const data = await instance.loginPopup({
         scopes: ["user.read"],
@@ -108,15 +112,15 @@ const Home = () => {
   }
   
   const redirectUser = (user: User) => {
-    if (user.rol === "01" || user.rol === "02" || user.rol === "03") {
+    if (user.rol === ADMIN || user.rol === SUPERVISOR_BALANZA || user.rol === BALANZA) {
 
       router.push("/romana")
 
-    } else if (user.rol === "04") {
+    } else if (user.rol === VIGILANCIA) {
 
       router.push("/transporte")
 
-    } else if (user.rol === "05" || user.rol === "06") {
+    } else if (user.rol === FACTURACION || user.rol === DESPACHO) {
 
       router.push("/distribucion/entradas")
 

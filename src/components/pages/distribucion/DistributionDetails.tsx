@@ -6,7 +6,7 @@ import Modal from '@/components/widgets/Modal'
 import Textarea from '@/components/widgets/Textarea'
 import useAuth from '@/hooks/useAuth'
 import useNotification, { HandleNotification } from '@/hooks/useNotification'
-import { ACTION } from '@/lib/enums'
+import { ACTION, ROLS } from '@/lib/enums'
 import { getChargePlan } from '@/services/chargePlan'
 import { EntriesType, getEntry, getEntryDifference, updateDistEntry, updateEntry } from '@/services/entries'
 import { getMaterials } from '@/services/materials'
@@ -36,8 +36,9 @@ const DEPARTMENT_AREAS = {
   all: "",
 }
 
-const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEntries = false, handleAlert, setEntries }: Props) => {
+const { ADMIN, DESPACHO } = ROLS
 
+const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEntries = false, handleAlert, setEntries }: Props) => {
 
   const [, credentials] = useAuth()
   const { user } = credentials
@@ -339,7 +340,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
 
             {
               INITIAL_ENABLED_EDIT && 
-              (user.rol === "01" || user.rol === "06") ?
+              (user.rol === ADMIN || user.rol === DESPACHO) ?
               <li className="col-start-3 pr-10 cursor-pointer content-center">
                 <label htmlFor="exit-ticket" className="flex items-center gap-4">
                   <input id="exit-ticket" name="exit-ticket" type="checkbox" checked={exitTicketEnabled} onChange={handleChange} />
