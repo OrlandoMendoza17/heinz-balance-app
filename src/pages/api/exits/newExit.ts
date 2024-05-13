@@ -6,6 +6,12 @@ import { getInsertAttributes } from "@/utils/api/insert";
 import { getUPDATEValues } from "@/utils/api/update";
 import { NextApiRequest, NextApiResponse } from "next";
 
+/**
+ * Propiedades del cuerpo de la petición para crear una nueva salida.
+ * @property {NewExit} leavingEntry - Información de la salida que se está creando.
+ * @property {object | undefined} updateEntryByDestination - Información adicional para actualizar la entrada por destino (opcional).
+ * @property {DES_COD} destination - Código de destino de la salida.
+ */
 export type NewExitParamsBodyProps = {
   leavingEntry: NewExit,
   updateEntryByDestination: object | undefined,
