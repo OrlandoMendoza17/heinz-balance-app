@@ -44,9 +44,18 @@ export const getInsertValues = (object: object) =>{
   return `(${Object.values(object).map(value => getSQLValue(value)).join(", ")})`
 }
 
+/**
+ * Función que devuelve los atributos necesarios para construir una consulta SQL de inserción.
+ * 
+ * @param {object} object El objeto que contiene los datos a insertar.
+ * @returns {Array<string, string[]>} Un arreglo que contiene los nombres de las columnas y los valores a insertar.
+ */
 export const getInsertAttributes = (object: object) => {
+  // Obtiene los nombres de las columnas a insertar.
   const keys = getInsertKeys(object)
+  // Obtiene los valores a insertar.
   const values = getInsertValues(object)
-  
+  //Devuelve un arreglo que contiene los nombres de las columnas y los valores a insertar.
+
   return [keys, values]
 }

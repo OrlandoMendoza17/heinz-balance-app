@@ -8,9 +8,18 @@ import { NextApiRequest, NextApiResponse } from "next";
 
 const base_url = process.env.NEXT_PUBLIC_AAD_REDIRECT_ID
 
+/**
+ * Handler para obtener la lista de vehículos que están a punto de salir de la empresa.
+ * 
+ * @param {NextApiRequest} request - La solicitud HTTP.
+ * @param {NextApiResponse} response - La respuesta HTTP.
+ */
 const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiResponse) => {
   try {
-
+    // Consulta SQL para obtener todas las entradas de vehículos dentro de la empresa que se registraron en balanza.
+    // La consulta selecciona varias columnas de la tabla `H025_P_ENT` y se une con la tabla `H025_P_SAL`
+    // para obtener solo las entradas que no tienen una salida asociada. El resultado se ordena en orden descendente por número de entrada.
+    
     // Trae todas las entradas de vehículos dentro de la empresa que se registraron en balanza
     const queryString1 = `
       SELECT 
@@ -34,36 +43,42 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
     `
 
     // const sequelize = await getSequelize()
-
+    // Ejecuta la consulta SQL y obtiene el resultado.
+    // El resultado es un arreglo de objetos que representan las entradas de vehículos dentro de la empresa.
+    
     const [entries] = await sequelize.query(queryString1) as [P_ENT[], unknown]
 
+    // Extrae los IDs de vehículos y conductores de las entradas.
     const vehiculeIDs = entries.map(({ VEH_ID }) => VEH_ID)
     const driversIDs = entries.map(({ CON_COD }) => CON_COD)
 
+    // Consulta SQL para obtener la información de cada vehículo que está dentro de la empresa.
     // Trae la información de cada vehículo que está dentro de la empresa
     const queryString2 = `
       SELECT * FROM H025_T_VEH WHERE VEH_ID IN (
         ${vehiculeIDs}
       ) 
     `
-
+    // Consulta SQL para obtener la información de los conductores de los vehículos.
     // Trae la información de los conductores de los vehículos
     const queryString3 = `
       SELECT * FROM H025_T_CON WHERE CON_COD IN (
         ${driversIDs}
       )
     `
-
+    // Ejecuta la consulta SQL para obtener la información de los vehículos y obtiene el resultado.
     const [vehicules] = await sequelize.query(queryString2) as [T_VEH[], unknown]
 
+    // Inicializa un arreglo para almacenar los datos de salida.
     const exits: Exit[] = []
 
+    // Itera sobre las entradas y obtiene la información adicional necesaria para cada una.
     for (const { ENT_NUM, CON_COD, VEH_ID, DES_COD, OPE_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW, ENT_FLW_ACC } of entries) {
 
       const destinationQuery = getDestinationEntryQuery(DES_COD, ENT_NUM)
       
       try {
-        
+        // Agrega la información de la entrada a la lista de salidas
         const [data] = await sequelize.query(destinationQuery) as [any[], unknown]
         
         const entry = data.find((entry) => entry.ENT_NUM === ENT_NUM)
@@ -106,6 +121,7 @@ const aboutToLeaveHandler = async (request: NextApiRequest, response: NextApiRes
       }
     }
 
+    // Devuelve la respuesta HTTP con la lista de salidas.
     response.json(exits)
 
   } catch (error) {
