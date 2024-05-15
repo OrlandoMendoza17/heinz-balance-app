@@ -5,12 +5,24 @@ import { getDriver, getVehicule } from "@/services/transportInfo";
 import axios from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
 
+/**
+ * @property {"entry" | "initial" | "dispatch" | "aboutToLeave" | "all"} entriesType Propiedades 
+ * @property {boolean} formatted Si esta formateado o no 
+ */
 type BodyProps = {
   entriesType: "entry" | "initial" | "dispatch" | "aboutToLeave" | "all";
   formatted: boolean,
 };
 
-// Si ninguno de estos 3 valores está es porque el vehículo está en entrada
+
+/**
+ * Verifica si una entrada de distribución es inicial.
+ * 
+ * Una entrada de distribución se considera inicial si alguno de los campos ENT_DI_GUI, ENT_DI_PLA o ENT_DI_NDE está vacío.
+ * 
+ * @param {P_ENT_DI} distEntry - La entrada de distribución a verificar.
+ * @returns {boolean} Verdadero si la entrada es inicial, falso en caso contrario.
+ */
 const isDistInitialEntry = (distEntry: P_ENT_DI) => {
   const { ENT_DI_GUI, ENT_DI_PLA, ENT_DI_NDE } = distEntry
   return !(
@@ -22,13 +34,21 @@ const isDistInitialEntry = (distEntry: P_ENT_DI) => {
 
 const base_url = process.env.NEXT_PUBLIC_AAD_REDIRECT_ID
 
+/**
+ * Maneja una solicitud de distribución.
+ * 
+ * Esta función es un punto de entrada de API que devuelve las entradas de distribución según el tipo de entrada solicitado.
+ * 
+ * @param {NextApiRequest} request - El objeto de solicitud entrante.
+ * @param {NextApiResponse} response - El objeto de respuesta para enviar de vuelta al cliente.
+ */
 const distributionHandler = async (request: NextApiRequest, response: NextApiResponse) => {
   try {
-
+    // Extrae los parámetros del cuerpo de la solicitud.
     const { entriesType, formatted }: BodyProps = request.body
 
     // const sequelize = await getSequelize()
-
+    // Construye la consulta SQL para obtener las entradas de distribución.
     const queryString = `
       SELECT 
         H025_P_ENT.ENT_NUM,
@@ -50,15 +70,16 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
       AND DES_COD ='D01'
       ORDER BY ENT_NUM DESC;
     `
-
+    //Ejecuta la consulta SQL y obtiene las entradas de distribución.
     const [entries] = await sequelize.query(queryString) as [P_ENT[], unknown]
     // const entries: P_ENT[] = entriesExamples
 
+    //Procesa las entradas de distribución según el tipo de entrada solicitado.
     if (entries.length) {
-
+      //Procesa las entradas de distribución según el tipo de entrada solicitado.
+      
       const distributionIDS = entries.map(({ ENT_NUM }) => ENT_NUM)
       // const distributionIDS = ['95557', '95555', '95552', '95551']
-
       // ENT_FLW = 1 -> Es porque la entrada está en proceso de distribución
       // ENT_FLW = 2 -> Es porque la entrada está por salir
       const entryDistIDS = entries.filter(({ ENT_FLW }) => ENT_FLW === 1).map(({ ENT_NUM }) => ENT_NUM)
@@ -108,6 +129,7 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
       const formattedEntries: DistributionEntry[] = []
 
       for (const distEntry of distEntries) {
+        // Formatea cada entrada de distribución según sea necesario.
         const { ENT_NUM, ENT_DI_PRO, ENT_DI_PNC, ENT_DI_DES, ENT_DI_STA, ENT_DI_OBS, ENT_DI_CPA, ENT_DI_REV } = distEntry
         const { ENT_DI_PAL, ENT_DI_GUI, ENT_DI_PLA, ENT_DI_NDE, ENT_DI_PPA, ENT_DI_PAD, ENT_DI_DPA, ENT_DI_AUT } = distEntry
 
@@ -116,6 +138,7 @@ const distributionHandler = async (request: NextApiRequest, response: NextApiRes
         const { VEH_ID, CON_COD, ENT_FEC, ENT_PES_TAR, ENT_FLW, ENT_OBS } = entry
 
         try {
+          //Obtiene información adicional para cada entrada de distribución.
 
           const vehicule = await getVehicule(VEH_ID, "VEH_ID")
           const driver = await getDriver(CON_COD, "CON_COD")
