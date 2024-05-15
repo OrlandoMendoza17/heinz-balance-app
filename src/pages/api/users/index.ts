@@ -14,8 +14,7 @@ const usersHandler = async (request: NextApiRequest, response: NextApiResponse,)
 
     const queryString = `
       SELECT * FROM [HDTA025].[dbo].[H025_S_USU]
-      ${email ? `WHERE USU_MAI = '${email}'` : ""
-      }
+      ${email ? `WHERE USU_MAI = '${email}'` : ""}
     `
 
     // const sequelize = await getSequelize()

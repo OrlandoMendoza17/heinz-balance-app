@@ -1,6 +1,6 @@
 import useAuth from '@/hooks/useAuth'
 import AuthService from '@/services/auth'
-import { getRol } from '@/services/user'
+import { getRols } from '@/services/user'
 import { eraseCookie } from '@/utils/cookies'
 import { useMsal } from '@azure/msal-react'
 import Link from 'next/link'
@@ -23,8 +23,9 @@ const User = () => {
     (async () => {
       if(userRolID){
         try {
-          const rol = await getRol(userRolID)
-          setRol(rol)
+          const rol = (await getRols(userRolID)) as S_ROL
+          debugger
+          setRol(rol.ROL_DES)
         } catch (error) {
           console.log('error', error)        
         }

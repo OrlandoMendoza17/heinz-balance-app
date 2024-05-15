@@ -13,13 +13,13 @@ const rolsHandler = async (request: NextApiRequest, response: NextApiResponse,) 
 
     const queryString = `
       SELECT * FROM [HDTA025].[dbo].[H025_S_ROL]
-      WHERE ROL_COD = '${userRolID}'
+      ${userRolID ? `WHERE ROL_COD = '${userRolID}'` : ""}
     `
-
+    
     // const sequelize = await getSequelize()
     const [data] = await sequelize.query(queryString) as [S_ROL[], unknown]
 
-    response.status(200).json(data[0]);
+    response.status(200).json(data);
 
   } catch (error) {
     console.log(error)

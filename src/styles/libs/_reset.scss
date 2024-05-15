@@ -46,6 +46,7 @@ table {
 
   th {
     @apply bg-secondary text-white;
+    text-align: inherit;
   }
   
   tbody {

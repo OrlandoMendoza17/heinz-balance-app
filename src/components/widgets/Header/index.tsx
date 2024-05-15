@@ -127,7 +127,6 @@ const Header = ({ refreshEntries = async () => { } }: Props) => {
             router.pathname !== "/romana" &&
             <SearchButton handleDropBtn={[showDropBtn, setShowDropBtn]} />
           }
-
         </ul>
 
         <User />
