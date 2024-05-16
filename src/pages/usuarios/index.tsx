@@ -10,7 +10,6 @@ import { useRouter } from 'next/router';
 import { getRols, getUsers } from '@/services/user';
 import TableUsers from '@/components/pages/TableUsers';
 import defaultUser from '@/utils/defaultValues/User';
-import VehiclesExit from '@/components/pages/VehiculesExit';
 import UsersModal, { ModalStatus } from './UsersModal';
 import Button from '@/components/widgets/Button';
 
