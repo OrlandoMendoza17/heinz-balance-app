@@ -7,11 +7,9 @@ type NewExitParams = NewExitParamsBodyProps
 /**
  * Crea una nueva salida en el sistema.
  * @param {NewExitParams} body - Parámetros para crear una nueva salida.
- * @returns {Promise<any>} - Promesa que se resuelve con los datos de la nueva salida creada.
  */
 export const createNewExit = async (body: NewExitParams) => {
-  const { data } = await axios.post(`${base_url}/api/exits/newExit`, body)
-  return data;
+  await axios.post(`${base_url}/api/exits/newExit`, body)
 }
 /**
  * Obtiene una lista de salidas según los parámetros proporcionados.

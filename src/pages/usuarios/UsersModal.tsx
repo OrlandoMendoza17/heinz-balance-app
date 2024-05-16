@@ -189,7 +189,7 @@ const UsersModal = ({ rols, user, showModal, modalStatus, setModal, setUsers }: 
         handleAlert.open(({
           type: "danger",
           title: "Error ❌",
-          message: "Ha habido un error procesando la salida del vehículo, intentelo de nuevo",
+          message: "Ha habido un error procesando el usuario",
         }))
       }
   }

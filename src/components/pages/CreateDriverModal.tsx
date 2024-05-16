@@ -19,7 +19,7 @@ const CreateDriverModal = ({ showDriverModal, setDriverModal }: Props) => {
   const [loading, setLoading] = useState<boolean>(false)
 
   const [alert, handleAlert] = useNotification()
-
+  
   const [newDriver, setNewDriver] = useState<NewDriverDto>({
     name: "",
     cedula: "",
