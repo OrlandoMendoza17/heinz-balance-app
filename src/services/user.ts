@@ -1,6 +1,7 @@
 import axios from "axios"
 import base_url from "."
 import { UpdateUserBody } from "@/pages/api/users/update"
+import { SearchUserBy } from "@/pages/api/users"
 
 /**
  * Obtiene una lista de usuarios desde la API, opcionalmente filtrada por correo electrónico.
@@ -8,14 +9,18 @@ import { UpdateUserBody } from "@/pages/api/users/update"
  * @param {string} [email=""] - Correo electrónico del usuario a buscar (opcional).
  * @returns {Promise<User | User[]>} - Promesa que se resuelve con un usuario o una lista de usuarios.
  */
-export const getUsers = async (email: string = "") => {
+export const getUsers = async (searchBy: SearchUserBy) => {
   // Realiza una petición POST a la API para obtener la lista de usuarios
-  // con el correo electrónico proporcionado como parámetro (si se proporciona).
-  const { data } = await axios.post<User[]>(`${base_url}/api/users`, { email })
+  // con diferentes parametros de búsqueda
+  const { data } = await axios.post<User[]>(`${base_url}/api/users`, searchBy)
   // Si se proporcionó un correo electrónico, devuelve el primer usuario que coincide
   // (o undefined si no se encontró ningún usuario con ese correo electrónico).
-  // Si no se proporcionó un correo electrónico, devuelve la lista completa de usuarios.
-  return email ? data[0] : data
+  // Si no se proporcionaron datos devuelve la lista completa de usuarios.
+  return data;
+}
+
+export const createUser = async (user: User) => {
+  await axios.post(`${base_url}/api/users/create`, { user })
 }
 
 /**
@@ -27,6 +32,11 @@ export const getUsers = async (email: string = "") => {
 export const updateUser = async (body: UpdateUserBody) => {
   // Realiza una petición POST a la API para actualizar el usuario
   await axios.post(`${base_url}/api/users/update`, body)
+}
+
+export const deleteUser = async (email: S_USU["USU_MAI"]) => {
+  // Realiza una petición POST a la API para actualizar el usuario
+  await axios.post(`${base_url}/api/users/delete`, { email })
 }
 
 /**

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { MouseEventHandler, useEffect, useState } from 'react'
 import Header from '@/components/widgets/Header'
 import NoEntries from '@/components/widgets/NoEntries';
 import NotificationModal from '@/components/widgets/NotificationModal';
@@ -11,7 +11,8 @@ import { getRols, getUsers } from '@/services/user';
 import TableUsers from '@/components/pages/TableUsers';
 import defaultUser from '@/utils/defaultValues/User';
 import VehiclesExit from '@/components/pages/VehiculesExit';
-import UsersModal from './UsersModal';
+import UsersModal, { ModalStatus } from './UsersModal';
+import Button from '@/components/widgets/Button';
 
 const { ADMIN } = ROLS
 
@@ -27,6 +28,7 @@ const Romana = () => {
   const [loading, setLoading] = useState<boolean>(false)
   const [alert, handleAlert] = useNotification()
 
+  const [modalStatus, setModalStatus] = useState<ModalStatus>("CREATE")
   const [selectedUser, setSelectedUser] = useState<User>(defaultUser)
 
   const [rols, setRols] = useState<S_ROL[]>([])
@@ -54,7 +56,7 @@ const Romana = () => {
     try {
       setLoading(true)
 
-      const users = await getUsers() as User[]
+      const users = await getUsers({})
       setUsers(users)
 
       setLoading(false)
@@ -70,6 +72,12 @@ const Romana = () => {
     }
   }
 
+  const handleCreate: MouseEventHandler<HTMLButtonElement> = () => {
+    setModal(true)
+    setModalStatus("CREATE")
+    setSelectedUser(defaultUser)
+  }
+
   return (
     renderPage &&
     <>
@@ -82,8 +90,14 @@ const Romana = () => {
             </div>
             :
             <section>
-              <div className="flex items-center h-[50px] gap-5">
+              <div className="flex items-center justify-between h-[50px] gap-5">
                 <h1>Usuarios ({users.length})</h1>
+                <Button
+                  onClick={handleCreate}
+                  className="bg-secondary font-semibold"
+                >
+                  Crear Usuario
+                </Button>
               </div>
               <table className="Entries self-start">
                 <thead>
@@ -94,7 +108,8 @@ const Romana = () => {
                     <th>Cedula</th>
                     <th>Rol</th>
                     <th>AccountName</th>
-                    <th>Status</th>
+                    <th className="text-center">Status</th>
+                    <th>Acción</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -103,9 +118,12 @@ const Romana = () => {
                       <TableUsers
                         key={i}
                         rols={rols}
-                        setModal={setModal}
-                        setSelectedUser={setSelectedUser}
                         user={user}
+                        setModal={setModal}
+                        setUsers={setUsers}
+                        handleAlert={handleAlert}
+                        setModalStatus={setModalStatus}
+                        setSelectedUser={setSelectedUser}
                       />
                     )
                   }
@@ -122,7 +140,7 @@ const Romana = () => {
         }
         {
           showModal &&
-          <UsersModal {...{ showModal, setModal, setUsers, user: selectedUser, rols }} />
+          <UsersModal {...{ showModal, setModal, setUsers, modalStatus, user: selectedUser, rols }} />
         }
         <NotificationModal alertProps={[alert, handleAlert]} />
       </main>

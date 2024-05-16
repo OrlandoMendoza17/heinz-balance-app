@@ -37,7 +37,7 @@ const Home = () => {
       localStorage.clear()
       document.cookie = ""
 
-    }else{
+    } else {
       credentials.user
       redirectUser(credentials.user)
     }
@@ -53,40 +53,48 @@ const Home = () => {
     setLoading(true)
 
     try {
-      
       // Busca el rol en la base de datos local
-      const foundUser = await getUsers(email) as User
-      
-      const data = await instance.loginPopup({
-        scopes: ["user.read"],
-        prompt: "create",
-        loginHint: email,
-      })
+      const foundUser = (await getUsers({ email }))[0]
 
-      console.log(data)
+      if (foundUser) {
+        const data = await instance.loginPopup({
+          scopes: ["user.read"],
+          prompt: "create",
+          loginHint: email,
+        })
 
-      const user: User = {
-        ...foundUser,
-        nombre: data.account.name || "",
+        console.log(data)
+
+        const user: User = {
+          ...foundUser,
+          nombre: data.account.name || "",
+        }
+
+        const credentials = await auth.login(user)
+        setCookie("login", credentials, 10)
+
+        handleStatus.open(({
+          type: "success",
+          title: "Inicio de Sesión",
+          message: `Has iniciado sesión exitosamente"`,
+        }))
+
+        redirectUser(credentials.user)
+
+      }else{
+        handleStatus.open(({
+          type: "danger",
+          title: "Inicio de Sesión inválido❗",
+          message: `No se encontró registrado el usuario "${email}"`
+        }))
       }
-
-      const credentials = await auth.login(user)
-      setCookie("login", credentials, 10)
-
-      handleStatus.open(({
-        type: "success",
-        title: "Inicio de Sesión",
-        message: `Has iniciado sesión exitosamente"`,
-      }))
-
-      redirectUser(credentials.user)
       
       setLoading(false)
 
     } catch (error: unknown) {
       setLoading(false)
       console.log(error)
-        
+
       if (error instanceof AxiosError && error.response?.status) {
 
         handleStatus.open(({
@@ -94,7 +102,7 @@ const Home = () => {
           title: "Inicio de Sesión inválido❗",
           message: error.response.data.message,
         }))
-        
+
       } else {
 
         handleStatus.open(({
@@ -110,7 +118,7 @@ const Home = () => {
     const { value } = currentTarget
     setEmail(value.trim())
   }
-  
+
   const redirectUser = (user: User) => {
     if (user.rol === ADMIN || user.rol === SUPERVISOR_BALANZA || user.rol === BALANZA) {
 

@@ -43,7 +43,7 @@ const Header = ({ refreshEntries = async () => { } }: Props) => {
       }
     },
     {
-      title: "Re// debuggergar entradas en planta",
+      title: "Recargar entradas en planta",
       Icon: RiRefreshLine,
       handleClick: refreshEntries,
     },
@@ -53,7 +53,7 @@ const Header = ({ refreshEntries = async () => { } }: Props) => {
     //   handleClick: () => { }
     // },
     // {
-    //   title: "Bus// debugger",
+    //   title: "Buscar",
     //   Icon: BiSearchAlt,
     //   handleClick: () => { }
     // },

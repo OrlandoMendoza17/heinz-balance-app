@@ -34,7 +34,6 @@ const base_url = process.env.NEXT_PUBLIC_AAD_REDIRECT_ID
  * @param {NextApiRequest} NextApiRequest - La solicitud entrante.
  * @param {NextApiResponse} NextApiResponse - La respuesta saliente.
  */
-
 const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,) => {
   try {
     //Inicializa un arreglo vacío para almacenar las salidas.
@@ -43,11 +42,11 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
     const { dateFrom, dateTo, plate, cedula, entryNumber }: GetExitsBodyProps = request.body
     //Función para obtener las salidas según los parámetros de la solicitud.
 
-/**
- * Función para obtener las salidas según los parámetros de la solicitud.
- * 
- * @returns {Promise<(P_ENT & P_SAL)[]>} - Arreglo de objetos que representan las salidas.
- */
+    /**
+     * Función para obtener las salidas según los parámetros de la solicitud.
+     * 
+     * @returns {Promise<(P_ENT & P_SAL)[]>} - Arreglo de objetos que representan las salidas.
+     */
     const getExits = async () => {
       //Inicializa variables para almacenar el vehículo y el conductor.
       let vehicule: Vehicule | undefined
@@ -78,12 +77,12 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
         FROM H025_P_ENT AS ent
         INNER JOIN H025_P_SAL AS sal ON ent.ENT_NUM = sal.ENT_NUM
         ${options.reduce((accumulator, field, index) => {
-        if (field) {
-          return `${accumulator} ${!accumulator.includes("WHERE") ? `WHERE ${field}` : ` AND ${field}`}`
-        } else {
-          return accumulator
-        }
-      }, "")}
+          if (field) {
+            return `${accumulator} ${!accumulator.includes("WHERE") ? `WHERE ${field}` : ` AND ${field}`}`
+          } else {
+            return accumulator
+          }
+        }, "")}
         ORDER BY SAL_FEC DESC;
       `
       //Ejecuta la consulta y devuelve el resultado.
@@ -91,12 +90,12 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
       return exits
     }
 
-/**
- * Función para obtener las entradas relacionadas con las salidas.
- * 
- * @param {string[]} entryNumbers - Arreglo de números de entrada relacionados con las salidas.
- * @returns {Promise<P_ENT[]>} - Arreglo de objetos que representan las entradas relacionadas con las salidas.
- */
+    /**
+     * Función para obtener las entradas relacionadas con las salidas.
+     * 
+     * @param {string[]} entryNumbers - Arreglo de números de entrada relacionados con las salidas.
+     * @returns {Promise<P_ENT[]>} - Arreglo de objetos que representan las entradas relacionadas con las salidas.
+     */
     const getEntriesByExits = async (entryNumbers: string[]) => {
       //Construye la consulta para obtener las entradas relacionadas con las salidas.
 
@@ -174,6 +173,7 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
           console.error(error)
         }
       }
+
     }
 
     // Me ordena las salidas de la más reciente a la más antigua.

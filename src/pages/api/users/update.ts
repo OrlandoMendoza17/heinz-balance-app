@@ -14,7 +14,7 @@ const testHandler = async (request: NextApiRequest, response: NextApiResponse,) 
 
     const { email, userInfo }: UpdateUserBody = request.body
 
-    const user: S_USU = {
+    const DB_USER: S_USU = {
       USU_NOM: userInfo.nombre,
       USU_MAI: userInfo.email,
       USU_FIC: userInfo.ficha,
@@ -25,7 +25,7 @@ const testHandler = async (request: NextApiRequest, response: NextApiResponse,) 
       USU_CLA: null,
     }
     
-    const values = getUPDATEValues(user)
+    const values = getUPDATEValues(DB_USER)
 
     const queryString = `
       UPDATE H025_S_USU

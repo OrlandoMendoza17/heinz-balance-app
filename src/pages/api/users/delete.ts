@@ -5,30 +5,17 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import { getInsertAttributes } from "@/utils/api/insert";
 
 type BodyProps = {
-  user: User,
+  email: S_USU["USU_MAI"],
 }
 
-const createUserHandler = async (request: NextApiRequest, response: NextApiResponse,) => {
+const deleteUserHandler = async (request: NextApiRequest, response: NextApiResponse,) => {
   try {
 
-    const { user }: BodyProps = request.body
-    
-    const DB_USER: S_USU = {
-      USU_NOM: user.nombre,
-      USU_MAI: user.email,
-      USU_FIC: user.ficha,
-      USU_CED: user.cedula,
-      ROL_COD: user.rol,
-      USU_LOG: user.accountName,
-      USU_STA: user.status,
-      USU_CLA: null,
-    }
-    
-    const [keys, values] = getInsertAttributes(DB_USER)
+    const { email }: BodyProps = request.body
     
     const queryString = `
-      INSERT H025_S_USU\n${keys} 
-      VALUES ${values}
+      DELETE FROM [H025_S_USU]
+      WHERE USU_MAI = '${email}'
     `
     
     await sequelize.query(queryString) as [unknown[], unknown]
@@ -45,4 +32,4 @@ const createUserHandler = async (request: NextApiRequest, response: NextApiRespo
 
 }
 
-export default createUserHandler;
+export default deleteUserHandler;
