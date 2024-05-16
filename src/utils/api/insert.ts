@@ -56,6 +56,5 @@ export const getInsertAttributes = (object: object) => {
   // Obtiene los valores a insertar.
   const values = getInsertValues(object)
   //Devuelve un arreglo que contiene los nombres de las columnas y los valores a insertar.
-
   return [keys, values]
 }

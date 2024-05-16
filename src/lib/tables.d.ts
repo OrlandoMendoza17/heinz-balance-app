@@ -288,13 +288,25 @@ type S_ROL_MOD = {
   ROL_DES: string;
 }
 // Tabla de usuarios 
+/**
+ * Tipo que representa un usuario del sistema.
+ * 
+ * @property {string} USU_LOG - Nombre de usuario para iniciar sesión.
+ * @property {null | string} USU_CLA - Clave de usuario.
+ * @property {null | number  } USU_FIC - Ficha del trabajador.
+ * @property {null | string} USU_CED - Cédula del usuario (algunos tienen su ficha repetida).
+ * @property {null | string} USU_NOM - Nombre del usuario.
+ * @property {null | boolean} USU_STA - Estado del usuario (siempre es true, indica que el usuario está activo).
+ * @property {null | string} ROL_COD - Código del rol del usuario (llave foránea).
+ * @property {null | string} USU_MAI - Correo electrónico del usuario.
+ */
 type S_USU = {
   USU_LOG: string;         // Nombre de usuario para iniciar sesion 
   USU_CLA: null | string;  // Clave de usuario 
-  USU_FIC: number | null;  // Ficha del trabajador 
+  USU_FIC: null | number ;  // Ficha del trabajador 
   USU_CED: null | string;  // Cedula aunque algunos tienen su ficha repetida 
   USU_NOM: null | string;  // Nombre del usuario 
-  USU_STA: boolean | null; // Siempre es uno -> status de usuario activo
+  USU_STA: null | boolean; // Siempre es uno -> status de usuario activo
   ROL_COD: null | string;  // Llave foranea del codigo del rol 
   USU_MAI: null | string;  // Correo del usuario 
 }

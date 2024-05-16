@@ -9,11 +9,28 @@ export type UpdateUserBody = {
   userInfo: User,
 }
 
+/**
+ * Manejador de actualización de usuario.
+ * 
+ * @param {NextApiRequest} request - Request de Next.js.
+ * @param {NextApiResponse} response - Response de Next.js.
+ * 
+ * @returns {Promise<void>} Promesa que se resuelve cuando se completa la actualización del usuario.
+ */
 const testHandler = async (request: NextApiRequest, response: NextApiResponse,) => {
+   /**
+   * Intenta actualizar el usuario con la información proporcionada.
+   */
   try {
-
+    /**
+     * Obtiene la información del usuario del cuerpo de la solicitud.
+     * 
+     * @type {UpdateUserBody}
+     */
     const { email, userInfo }: UpdateUserBody = request.body
-
+    /**
+     * Crea un objeto que representa el usuario a actualizar.
+     */
     const DB_USER: S_USU = {
       USU_NOM: userInfo.nombre,
       USU_MAI: userInfo.email,
@@ -25,8 +42,14 @@ const testHandler = async (request: NextApiRequest, response: NextApiResponse,) 
       USU_CLA: null,
     }
     
+     /**
+     * Obtiene los valores a actualizar del objeto de usuario.
+     */
     const values = getUPDATEValues(DB_USER)
 
+    /**
+     * Construye la consulta de actualización del usuario.
+     */
     const queryString = `
       UPDATE H025_S_USU
       SET	
@@ -36,13 +59,23 @@ const testHandler = async (request: NextApiRequest, response: NextApiResponse,) 
     `
     
     // console.log(queryString)
+    /**
+    * Ejecuta la consulta de actualización del usuario.
+    */
     await sequelize.query(queryString) as [unknown[], unknown]
 
+
+    /**
+     * Devuelve una respuesta exitosa con un mensaje de éxito.
+     */
     response.status(200).json({
       message: "Succesfully updated"
     });
 
   } catch (error) {
+    /**
+     * Devuelve una respuesta de error con un código de estado 500.
+     */
     console.log(error)
     response.status(500).json({
       error,
