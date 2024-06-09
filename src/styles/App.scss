@@ -3,11 +3,13 @@
 @import "./pages/index";
 @import "./pages/romana";
 @import "./pages/distribucion";
+@import "./pages/auditoria";
 
 // Components - Pages
 @import "../components/pages/styles/VehiculeExitDetails";
 @import "../components/pages/styles/VehiculeEntranceSearch";
 @import "../components/pages/styles/TransportVehicule";
+@import "../components/pages/auditoria/styles/TableDifferences";
 
 // Components - Widgets
 @import "../components/widgets/styles/Modal";

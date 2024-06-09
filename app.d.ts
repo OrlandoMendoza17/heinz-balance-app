@@ -71,6 +71,7 @@ type Exit = {
   aditionalWeight: P_ENT_DI["ENT_DI_PAD"],
   userAccountName: P_ENT["USU_LOG"],
   aboutToLeave: boolean,
+  entryDifference?: EntryDif[],
 }
 
 /**

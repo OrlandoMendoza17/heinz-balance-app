@@ -25,7 +25,8 @@
     "react-dom": "18.2.0",
     "react-icons": "5.0.1",
     "sequelize": "6.32.1",
-    "tedious": "16.1.0"
+    "tedious": "16.1.0",
+    "xlsx": "0.18.5"
   },
   "devDependencies": {
     "@azure/keyvault-secrets": "4.7.0",

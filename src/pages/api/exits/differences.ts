@@ -6,16 +6,16 @@ import sequelize from "@/lib/mssql";
 import { getEntryDifferences } from "@/services/entries";
 
 
-type BodyProps = {
+export type ExitDifferences_BodyProps = {
   dateFrom: string;
   dateTo: string;
   entryNumbers: string[];
 }
 
-const testHandler = async (request: NextApiRequest, response: NextApiResponse,) => {
+const exitDifferencesHandler = async (request: NextApiRequest, response: NextApiResponse,) => {
   try {
 
-    const body: BodyProps = request.body
+    const body: ExitDifferences_BodyProps = request.body
 
     const exitDifs = await getEntryDifferences(body)
 
@@ -33,15 +33,15 @@ const testHandler = async (request: NextApiRequest, response: NextApiResponse,) 
 
     let exits = await getExits(searchParams)
 
-    const data = exits.map((exit) => { 
-      const entryDifference = exitDifs.find((difference) => exit.entryNumber === difference.entryNumber)
+    exits = exits.map((exit) => { 
+      const entryDifference = exitDifs.filter((difference) => exit.entryNumber === difference.entryNumber)
       return {
         ...exit,
         entryDifference,
       }
     })
 
-    response.status(200).json(data);
+    response.status(200).json(exits);
 
   } catch (error) {
     console.log(error)
@@ -53,4 +53,4 @@ const testHandler = async (request: NextApiRequest, response: NextApiResponse,) 
 
 }
 
-export default testHandler;
+export default exitDifferencesHandler;

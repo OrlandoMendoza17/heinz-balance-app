@@ -2,10 +2,8 @@
 // import getSequelize from "@/lib/mssql";
 import sequelize from "@/lib/mssql";
 import type { NextApiRequest, NextApiResponse } from "next";
-import { format } from 'date-fns';
 import getDestinationEntryQuery from "@/utils/api/aboutToLeave";
 import { ORIGIN_BY_DESTINATION } from "@/lib/enums";
-import axios from "axios";
 import { splitString } from "@/utils/splitString";
 import { getDriver, getVehicule } from "@/services/transportInfo";
 
@@ -16,14 +14,14 @@ import { getDriver, getVehicule } from "@/services/transportInfo";
  * @property {string} dateTo - Fecha de fin para filtrar las salidas.
  * @property {T_CON["CON_CED"]} cedula - Número de cédula del conductor.
  * @property {T_VEH["VEH_PLA"]} plate - Placa del vehículo.
- * @property {P_ENT["ENT_NUM"]} entryNumber - Número de entrada relacionada con la salida.
+ * @property {P_ENT["ENT_NUM"]} entryNumbers - Número de entrada relacionada con la salida.
  */
 export type GetExitsBodyProps = {
   dateFrom: string;
   dateTo: string;
   cedula: T_CON["CON_CED"],
   plate: T_VEH["VEH_PLA"],
-  entryNumber: P_ENT["ENT_NUM"],
+  entryNumbers: P_ENT["ENT_NUM"][],
 }
 
 const base_url = process.env.NEXT_PUBLIC_AAD_REDIRECT_ID
@@ -36,12 +34,14 @@ const base_url = process.env.NEXT_PUBLIC_AAD_REDIRECT_ID
  */
 const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,) => {
   try {
+    
     //Inicializa un arreglo vacío para almacenar las salidas.
     let exits: Exit[] = []
+    
     //Obtiene los parámetros de la solicitud desde el cuerpo de la solicitud.
-    const { dateFrom, dateTo, plate, cedula, entryNumber }: GetExitsBodyProps = request.body
+    const { dateFrom, dateTo, plate, cedula, entryNumbers }: GetExitsBodyProps = request.body
+    
     //Función para obtener las salidas según los parámetros de la solicitud.
-
     /**
      * Función para obtener las salidas según los parámetros de la solicitud.
      * 
@@ -60,17 +60,18 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
       if (cedula) {
         driver = await getDriver(cedula, "CON_CED")
       }
+      
       //Construye un arreglo de opciones para la consulta.
       // Se coloca todas las opciones en un array para que todas sean opcionales, luego se coloca el WHERE y el AND
       const options = [
-        dateFrom && `'${dateFrom}' <= SAL_FEC`,
-        dateTo && `SAL_FEC <= '${dateTo}'`,
-        entryNumber && `ent.ENT_NUM = '${entryNumber}'`,
+        dateFrom ? `'${dateFrom}' <= SAL_FEC` : "",
+        dateTo ? `SAL_FEC <= '${dateTo}'` : "",
+        entryNumbers.length ? `ent.ENT_NUM IN (${entryNumbers.map(value => `'${value}'`)})` : "",
         vehicule ? `VEH_ID = '${vehicule.id}'` : "",
         driver ? `CON_COD = '${driver.code}'` : "",
       ];
 
-      //Construye la consulta para obtener las salidas según los parámetros de la solicitud.
+      // Construye la consulta para obtener las salidas según los parámetros de la solicitud.
       // Buscando las salidas por las fechas
       const exitsQuery = `
         SELECT *
@@ -122,13 +123,11 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
 
       for (const { ENT_NUM, CON_COD, VEH_ID, DES_COD, OPE_COD, ENT_FEC, ENT_PES_TAR, USU_LOG, ENT_FLW, ENT_FLW_ACC } of entries) {
         try {
+          
           // Procesar cada entrada encontrada
+          // Función que devuelve una consulta SQL para buscar el destino de la entrada
           const destinationQuery = getDestinationEntryQuery(DES_COD, ENT_NUM)
           const [data] = await sequelize.query(destinationQuery) as [any[], unknown]
-
-          // getDestinationEntryQuery es una función que devuelve una consulta SQL para buscar el destino de la entrada
-          // sequelize.query ejecuta la consulta SQL y devuelve un arreglo de resultados
-          // data es un arreglo de objetos que contiene el destino de la entrada
 
           const entry = data.find((entry) => entry.ENT_NUM === ENT_NUM)
           const exit = dbExits.find((exit) => exit.ENT_NUM === ENT_NUM)
@@ -141,7 +140,6 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
           // getDriver y getVehicule son funciones que buscan el driver y el vehículo asociados a la entrada
           const driver = await getDriver(CON_COD, "CON_COD")
           const vehicule = await getVehicule(VEH_ID, "VEH_ID")
-
 
           //Crear el objeto de salida con inormacion detallada
           exits.push({

@@ -19,7 +19,7 @@ type JDERelation = {
   VSSTFN: number, // Driver ID
   VSVEHI: string  // Vehicule Plate
 }
-
+  
 /**
  * Manejador de solicitudes para obtener la relación entre un vehículo y un conductor.
  * 

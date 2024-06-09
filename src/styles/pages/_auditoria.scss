@@ -1,0 +1,12 @@
+.Audit{
+  
+  .Filter{
+    @apply grid grid-cols-5 gap-4;
+    label, span, input{
+      @apply text-xs
+    }
+  }
+  table{
+    overflow: auto;
+  }
+}
