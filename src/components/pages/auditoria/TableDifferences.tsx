@@ -52,8 +52,8 @@ const TableDifferences = ({ setSelectedExit, exit }: Props) => {
           </Button>
           <ul className="differences-window">
             {
-              entryDifferences.map((entryDifference) =>
-                <DifferenceItem {...{ exit, entryDifference }} />
+              entryDifferences.map((entryDifference, i) =>
+                <DifferenceItem key={i} {...{ exit, entryDifference }} />
               )
             }
             <li className="font-bold" onClick={() => generateExcel([exit])}>Descargar</li>
