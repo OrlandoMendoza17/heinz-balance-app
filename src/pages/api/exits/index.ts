@@ -39,7 +39,10 @@ const exitsHandler = async (request: NextApiRequest, response: NextApiResponse,)
     let exits: Exit[] = []
     
     //Obtiene los parámetros de la solicitud desde el cuerpo de la solicitud.
-    const { dateFrom, dateTo, plate, cedula, entryNumbers }: GetExitsBodyProps = request.body
+    let { entryNumbers }: GetExitsBodyProps = request.body
+    const { dateFrom, dateTo, plate, cedula }: GetExitsBodyProps = request.body
+    
+    entryNumbers = entryNumbers.filter(item => Boolean(item))
     
     //Función para obtener las salidas según los parámetros de la solicitud.
     /**
