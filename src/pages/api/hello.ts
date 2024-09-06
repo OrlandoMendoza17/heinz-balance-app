@@ -1,47 +1,22 @@
+// EndPoint de prueba
+
+
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 // import getSequelize from "@/lib/mssql";
-import type { NextApiRequest, NextApiResponse } from "next";
-import { getExits } from "@/services/exits";
+
 import sequelize from "@/lib/mssql";
-import { getEntryDifferences } from "@/services/entries";
-
-
-type BodyProps = {
-  dateFrom: string;
-  dateTo: string;
-  entryNumbers: string[];
-}
+import type { NextApiRequest, NextApiResponse } from "next";
 
 const testHandler = async (request: NextApiRequest, response: NextApiResponse,) => {
   try {
 
-    const body: BodyProps = request.body
+    const query1 = `
+      select * from openquery(HVEOW001,'select * from proddta.f0116 where ALAN8 in   (''27927394'',''1014665'')')
+    `
 
-    const exitDifs = await getEntryDifferences(body)
+    const [data] = await sequelize.query(query1) as [object[], unknown]
 
-    const entryNumbers = exitDifs.map(({ entryNumber }) => entryNumber)
-
-    console.log('entryNumbers', entryNumbers)
-
-    const searchParams = {
-      dateFrom: '',
-      dateTo: '',
-      cedula: '',
-      plate: '',
-      entryNumbers
-    }
-
-    let exits = await getExits(searchParams)
-
-    const data = exits.map((exit) => { 
-      const entryDifference = exitDifs.find((difference) => exit.entryNumber === difference.entryNumber)
-      return {
-        ...exit,
-        entryDifference,
-      }
-    })
-
-    response.status(200).json(data);
+    response.status(200).json(Object.entries(data[0]).length);
 
   } catch (error) {
     console.log(error)

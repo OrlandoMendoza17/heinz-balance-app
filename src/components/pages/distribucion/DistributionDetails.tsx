@@ -8,6 +8,7 @@ import useAuth from '@/hooks/useAuth'
 import useNotification, { HandleNotification } from '@/hooks/useNotification'
 import { ACTION, ROLS } from '@/lib/enums'
 import { getChargePlan } from '@/services/chargePlan'
+import { sendEmail } from '@/services/correo'
 import { EntriesType, getEntry, getEntryDifferences, updateDistEntry, updateEntry } from '@/services/entries'
 import { getMaterials } from '@/services/materials'
 import distributionEntry from '@/utils/defaultValues/distributionEntry'
@@ -57,7 +58,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
     (async () => {
       setSelectedEntry(entry)
       try {
-        
+        debugger
         const params = {
           entryNumbers: [entry.entryNumber]
         }
@@ -106,11 +107,12 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
         ENT_DI_NDE: chargePlan,                                             // ✅ Nota de despacho   (Plan de carga) | SIEMPRE
         ENT_DI_PAL: palletsQuatity ? palletChargePlan : null,               // ✅ Control de paletas (Plan de carga) |         - Si hay cantidad de paletas, se debe mandar, sino es null
         ENT_DI_OBS: distDetails || null,                                    // ✅ Observaciones (Este)
-        ENT_DI_REV: false,                                                  // 1 | 0 (Aparentemente siempre es 0)
+        ENT_DI_REV: false,                                                  // ✅ Revisión (Fue devuelto a Despacho por difencia de peso)
       }
 
-      const { ENT_NUM, ...rest } = await getEntry(entryNumber)
-
+      const entryDB = await getEntry(entryNumber)
+      const { ENT_NUM, ...rest } = entryDB
+      
       if (BOTH_ENABLED_EDIT && !exitTicketEnabled) {
         const chargePlanInfo = await getChargePlan(chargePlan as string)
 
@@ -165,6 +167,10 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
         }
 
         await updateEntry(entryNumber, udpatedEntry)
+        
+        // if(returned){
+        //   sendEmail(entry, entryDif as EntryDif)
+        // }
       }
 
       console.log('distEntry', distEntry)

@@ -204,7 +204,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
     let validWeight = false;
     let invalidWeightMessage = "";
 
-    // El vehículo sale con más peso que con el que entró
+    // El vehículo sale con MENOS peso que con el que entró
     if (action === CARGA) {
       if (grossWeight >= truckWeight) {
 
@@ -405,7 +405,7 @@ const VehiclesExit = ({ showModal, setModal, setExits, exit }: Props) => {
         const entryDif: Omit<P_ENT_DIF, "ENT_DIF_NUM"> = {
           ENT_NUM,                          // Numero de la entrada 
           ENT_DIF_FEC: difDate,             // Fecha en la que ocurre la diferencia 
-          ENT_PES_TAR: truckWeight,         // Tara- peso de entrada 
+          ENT_PES_TAR: truckWeight,         // Tara - Peso de entrada 
           ENT_DI_PNC: distEntry.ENT_DI_PNC, // Peso del plan de carga
           ENT_DI_PAD: distEntry.ENT_DI_PAD, // Peso adicional 
           ENT_DI_PPA: distEntry.ENT_DI_PPA, // Peso de las paletas 

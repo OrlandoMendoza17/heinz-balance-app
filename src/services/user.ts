@@ -10,12 +10,7 @@ import { SearchUserBy } from "@/pages/api/users"
  * @returns {Promise<User | User[]>} - Promesa que se resuelve con un usuario o una lista de usuarios.
  */
 export const getUsers = async (searchBy: SearchUserBy) => {
-  // Realiza una petición POST a la API para obtener la lista de usuarios
-  // con diferentes parametros de búsqueda
   const { data } = await axios.post<User[]>(`${base_url}/api/users`, searchBy)
-  // Si se proporcionó un correo electrónico, devuelve el primer usuario que coincide
-  // (o undefined si no se encontró ningún usuario con ese correo electrónico).
-  // Si no se proporcionaron datos devuelve la lista completa de usuarios.
   return data;
 }
 

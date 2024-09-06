@@ -109,6 +109,25 @@ type P_SAL = {
   SAL_OBS: string | null;     // Observaciones - nota de texto
 }
 
+type BalanceReport = {
+  ENT_NUM: P_ENT["ENT_NUM"];
+  ENT_DIF_NUM: P_ENT_DIF["ENT_DIF_NUM"];
+  CON_NOM: T_CON["CON_NOM"];
+  CON_CED: T_CON["CON_CED"];
+  VEH_PLA: T_VEH["VEH_PLA"];
+  ENT_DI_PLA: P_ENT_DI["ENT_DI_PLA"];
+  ENT_DI_DES: P_ENT_DI["ENT_DI_DES"];
+  ENT_DI_PNC: P_ENT_DI["ENT_DI_PNC"];
+  ENT_PES_TAR: P_ENT["ENT_PES_TAR"];
+  SAL_PES_BRU: P_SAL["SAL_PES_BRU"];
+  ENT_DI_PAD: P_ENT_DI["ENT_DI_PAD"];
+  DIF_PES: P_ENT_DIF["DIF_PES"];
+  ENT_DI_CPA: P_ENT_DI["ENT_DI_CPA"] | string;
+  ENT_DI_PPA: P_ENT_DI["ENT_DI_PPA"];
+  ENT_DI_OBS: P_ENT_DI["ENT_DI_OBS"];
+  ENT_DIF_FEC: P_ENT_DIF["ENT_DIF_FEC"];
+}
+
 // H025_T_CON -> Conductores
 type T_CON = {
   CON_COD: string; // Código de conductor

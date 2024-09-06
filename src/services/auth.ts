@@ -47,37 +47,37 @@ export type Set2FactorAuth = {
  */
 class AuthService {
 
-   /**
-   * Método que realiza la autenticación de un usuario mediante credenciales.
-   * 
-   * @param {User} body - Información del usuario que se va a autenticar.
-   * @returns {Promise<AuthCredentials>} Promesa que se resuelve con las credenciales de autenticación si el usuario es válido.
-   */
+  /**
+  * Método que realiza la autenticación de un usuario mediante credenciales.
+  * 
+  * @param {User} body - Información del usuario que se va a autenticar.
+  * @returns {Promise<AuthCredentials>} Promesa que se resuelve con las credenciales de autenticación si el usuario es válido.
+  */
   login = async (body: User) => {
-    
-  // Se utiliza la biblioteca Axios para realizar una solicitud HTTP POST a la API de autenticación.
-  // La solicitud se envía a la ruta `/api/auth/login` con la información del usuario en el cuerpo de la solicitud.
-    
+
+    // Se utiliza la biblioteca Axios para realizar una solicitud HTTP POST a la API de autenticación.
+    // La solicitud se envía a la ruta `/api/auth/login` con la información del usuario en el cuerpo de la solicitud.
+
     const { data } = await axios.post<AuthCredentials>(`${base_url}/api/auth/login`, body)
-  //  Se devuelve la respuesta de la API que contiene las credenciales de autenticación.
+    //  Se devuelve la respuesta de la API que contiene las credenciales de autenticación.
     return data;
   }
-/**
- * Método que obtiene un código QR de autenticación para un usuario específico.
- * 
- * @param {string} email - Dirección de correo electrónico del usuario que se va a autenticar.
- * @param {string} token - Token de autenticación que se utiliza para autorizar la solicitud.
- * @returns {Promise<AuthQRCodeResponse>} Promesa que se resuelve con la respuesta de la API que contiene el código QR de autenticación.
- */
+  /**
+   * Método que obtiene un código QR de autenticación para un usuario específico.
+   * 
+   * @param {string} email - Dirección de correo electrónico del usuario que se va a autenticar.
+   * @param {string} token - Token de autenticación que se utiliza para autorizar la solicitud.
+   * @returns {Promise<AuthQRCodeResponse>} Promesa que se resuelve con la respuesta de la API que contiene el código QR de autenticación.
+   */
   getAuthQRCode = async (email: string, token: string) => {
     //Se crea una configuración de autorización utilizando el token proporcionado
     const config = authorizationConfig(token)
-    
-  
-  //Se utiliza la biblioteca Axios para realizar una solicitud HTTP POST a la API de autenticación.
-  //La solicitud se envía a la ruta `/api/auth/qrcode` con la dirección de correo electrónico del usuario en el cuerpo de la solicitud.
-  //La configuración de autorización se pasa como tercer parámetro para autorizar la solicitud.
-   
+
+
+    //Se utiliza la biblioteca Axios para realizar una solicitud HTTP POST a la API de autenticación.
+    //La solicitud se envía a la ruta `/api/auth/qrcode` con la dirección de correo electrónico del usuario en el cuerpo de la solicitud.
+    //La configuración de autorización se pasa como tercer parámetro para autorizar la solicitud.
+
     const { data } = await axios.post<AuthQRCodeResponse>(`${base_url}/api/auth/qrcode`, { email }, config)
     //Se devuelve la respuesta de la API que contiene el código QR de autenticación.
     return data;
@@ -91,10 +91,10 @@ class AuthService {
   verifyAuthOTP = async (body: VerifyAuthOTP) => {
     //Punto de interrupción para depurar el código.
     debugger
-     
-   //Se utiliza la biblioteca Axios para realizar una solicitud HTTP POST a la API de autenticación.
-   //La solicitud se envía a la ruta `/api/auth/verifyAuthOTP` con la información de verificación en el cuerpo de la solicitud.
-  
+
+    //Se utiliza la biblioteca Axios para realizar una solicitud HTTP POST a la API de autenticación.
+    //La solicitud se envía a la ruta `/api/auth/verifyAuthOTP` con la información de verificación en el cuerpo de la solicitud.
+
     const { data } = await axios.post<{ verified: boolean }>(`${base_url}/api/auth/verifyAuthOTP`, body)
     //Se devuelve el valor booleano que indica si la autenticación es válida o no.
     return data.verified;
