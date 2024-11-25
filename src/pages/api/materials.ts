@@ -2,8 +2,6 @@
 import sequelize from "@/lib/mssql";
 import { NextApiRequest, NextApiResponse } from "next";
 
-
-
 /**
  * La función `modelsHandler` recupera datos de una tabla de base de datos y los envía como una respuesta JSON,
  * Manejo de cualquier error que ocurra.
@@ -22,10 +20,10 @@ const modelsHandler = async (request: NextApiRequest, response: NextApiResponse)
     const queryString = `SELECT * FROM [HDTA025].[dbo].[H025_T_MAT]`
     
     // const sequelize = await getSequelize()
-    //Ejecucion de la consulta 
+    // Ejecucion de la consulta 
     const [data] = await sequelize.query(queryString) as [T_MAT[], unknown]
 
-    //Devolver los resultados de la consulta en la respuesta
+    // Devolver los resultados de la consulta en la respuesta
     response.json(data)
 
   } catch (error) {

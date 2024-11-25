@@ -46,6 +46,7 @@ const newExitHandler = async (request: NextApiRequest, response: NextApiResponse
     `
     //Ejecuta la consulta de inserción.
     await sequelize.query(queryString1)
+    
     //Si updateEntryByDestination es verdadero, actualiza la entrada correspondiente en la tabla de destino.
     if (updateEntryByDestination) {
 

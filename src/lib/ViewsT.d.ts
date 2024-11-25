@@ -7,10 +7,7 @@ type VW_CON = {
 }
 
 // Vistas de auditorias 
-
-
-
- type VW_DI_AU = {
+type VW_DI_AU = {
     codigoEntrada:                    string;
     usuario:                          Usuario;
     fechaEntrada:                     Date;
@@ -103,7 +100,7 @@ export type VW_DIF_LAST = {
     usuLog:    UsuLog;
 }
 
- type VW_ENT = {
+type VW_ENT = {
     codigo:       string;
     transporte:   string;
     placa:        string;

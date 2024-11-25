@@ -8,7 +8,8 @@ import useAuth from '@/hooks/useAuth'
 import useNotification, { HandleNotification } from '@/hooks/useNotification'
 import { ACTION, ROLS } from '@/lib/enums'
 import { getChargePlan } from '@/services/chargePlan'
-import { EntriesType, getEntry, getEntryDifference, updateDistEntry, updateEntry } from '@/services/entries'
+import { sendEmail } from '@/services/correo'
+import { EntriesType, getEntry, getEntryDifferences, updateDistEntry, updateEntry } from '@/services/entries'
 import { getMaterials } from '@/services/materials'
 import distributionEntry from '@/utils/defaultValues/distributionEntry'
 import { getCuteFullDate, getDateTime } from '@/utils/parseDate'
@@ -57,8 +58,14 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
     (async () => {
       setSelectedEntry(entry)
       try {
-        const entryDif = await getEntryDifference(entry.entryNumber)
+        debugger
+        const params = {
+          entryNumbers: [entry.entryNumber]
+        }
+        
+        const entryDif = (await getEntryDifferences(params))[0]
         setEntryDif(entryDif)
+        
       } catch (error) {
         console.log('error', error)
       }
@@ -100,11 +107,12 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
         ENT_DI_NDE: chargePlan,                                             // ✅ Nota de despacho   (Plan de carga) | SIEMPRE
         ENT_DI_PAL: palletsQuatity ? palletChargePlan : null,               // ✅ Control de paletas (Plan de carga) |         - Si hay cantidad de paletas, se debe mandar, sino es null
         ENT_DI_OBS: distDetails || null,                                    // ✅ Observaciones (Este)
-        ENT_DI_REV: false,                                                  // 1 | 0 (Aparentemente siempre es 0)
+        ENT_DI_REV: false,                                                  // ✅ Revisión (Fue devuelto a Despacho por difencia de peso)
       }
 
-      const { ENT_NUM, ...rest } = await getEntry(entryNumber)
-
+      const entryDB = await getEntry(entryNumber)
+      const { ENT_NUM, ...rest } = entryDB
+      
       if (BOTH_ENABLED_EDIT && !exitTicketEnabled) {
         const chargePlanInfo = await getChargePlan(chargePlan as string)
 
@@ -118,7 +126,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
 
         distEntry.ENT_DI_PNC = (
           (entry.calculatedNetWeight === null) ? chargePlanInfo.weight :
-            (entry.chargePlan === chargePlan) ? 
+            (entry.chargePlan === chargePlan) ?
               calculatedNetWeight : chargePlanInfo.weight
         )
 
@@ -129,7 +137,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
       }
 
       if (INITIAL_ENABLED_EDIT && exitTicketEnabled) {
-        
+
         const udpatedEntry: UpdateP_ENT = {
           ...rest,
           ENT_FLW: 2, // La asignación de este valor indica que lo manda a "por salir"
@@ -159,6 +167,10 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
         }
 
         await updateEntry(entryNumber, udpatedEntry)
+        
+        // if(returned){
+        //   sendEmail(entry, entryDif as EntryDif)
+        // }
       }
 
       console.log('distEntry', distEntry)
@@ -169,7 +181,7 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
       )
 
       const area = exitTicketEnabled ? DEPARTMENT_AREAS.aboutToLeave : DEPARTMENT_AREAS[ENTRIES_TYPE]
-      
+
       handleAlert.open(({
         type: "success",
         title: "Actualización de entrada",
@@ -339,16 +351,16 @@ const DistributionDetails = ({ showModal, setModal, entry, ENTRIES_TYPE, editEnt
             </li>
 
             {
-              INITIAL_ENABLED_EDIT && 
-              (user.rol === ADMIN || user.rol === DESPACHO) ?
-              <li className="col-start-3 pr-10 cursor-pointer content-center">
-                <label htmlFor="exit-ticket" className="flex items-center gap-4">
-                  <input id="exit-ticket" name="exit-ticket" type="checkbox" checked={exitTicketEnabled} onChange={handleChange} />
-                  <span className="font-bold">Emitir Ticket de Salida</span>
-                </label>
-              </li>
-              :
-              <li></li>
+              INITIAL_ENABLED_EDIT &&
+                (user.rol === ADMIN || user.rol === DESPACHO) ?
+                <li className="col-start-3 pr-10 cursor-pointer content-center">
+                  <label htmlFor="exit-ticket" className="flex items-center gap-4">
+                    <input id="exit-ticket" name="exit-ticket" type="checkbox" checked={exitTicketEnabled} onChange={handleChange} />
+                    <span className="font-bold">Emitir Ticket de Salida</span>
+                  </label>
+                </li>
+                :
+                <li></li>
             }
 
             <li className="bg-sky-100 p-2">

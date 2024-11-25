@@ -1,6 +1,7 @@
 import axios from "axios"
 import { NewEntry } from "@/utils/getTableValues"
 import base_url from "."
+import { EntryDifs_BodyProps } from "@/pages/api/entries/entryDif"
 
 /**
  * Parámetros para crear una nueva entrada.
@@ -36,7 +37,7 @@ export const getEntry = async (entryNumber: P_ENT["ENT_NUM"]) => {
  */
 export const createNewEntryDifference = async (entryDif: Omit<P_ENT_DIF, "ENT_DIF_NUM">) => {
   // Realiza una petición POST a la API para crear la diferencia de entrada
-  const { data } = await axios.post(`${base_url}/api/entries/entryDif`, { entryDif })
+  const { data } = await axios.post(`${base_url}/api/entries/createEntryDif`, { entryDif })
   // Devuelve los datos de la diferencia de entrada creada
   return data;
 }
@@ -47,9 +48,9 @@ export const createNewEntryDifference = async (entryDif: Omit<P_ENT_DIF, "ENT_DI
  * @param {P_ENT_DI["ENT_NUM"]} entryNumber - Número de entrada para buscar la diferencia de entrada.
  * @returns {Promise<EntryDif>} - Promesa que se resuelve con la diferencia de entrada encontrada.
  */
-export const getEntryDifference = async (entryNumber: P_ENT_DI["ENT_NUM"]) => {
+export const getEntryDifferences = async (body: EntryDifs_BodyProps) => {
   // Realiza una petición GET a la API para obtener la diferencia de entrada
-  const { data } = await axios.get<EntryDif>(`${base_url}/api/entries/entryDif`, { params: { entryNumber } })
+  const { data } = await axios.post<EntryDif[]>(`${base_url}/api/entries/entryDif`, body)
   // Devuelve la diferencia de entrada encontrada
   return data;
 }

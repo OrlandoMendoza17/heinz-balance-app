@@ -100,6 +100,7 @@ const driversHandler = async (request: NextApiRequest, response: NextApiResponse
         console.log("Buscando en JDE...")
         console.log('JDE vehicules', vehicules)
       }
+      
       // Si se encontró el vehículo, buscamos la información del transportista asociado
       if (vehicules.length) {
 

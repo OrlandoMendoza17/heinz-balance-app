@@ -17,7 +17,7 @@ import { ROLS } from "@/lib/enums";
 
 const auth = new AuthService()
 
-const { ADMIN, SUPERVISOR_BALANZA, BALANZA, VIGILANCIA, FACTURACION, DESPACHO } = ROLS
+const { ADMIN, SUPERVISOR_BALANZA, BALANZA, VIGILANCIA, FACTURACION, DESPACHO, AUDITORIA } = ROLS
 
 const Home = () => {
 
@@ -131,7 +131,11 @@ const Home = () => {
     } else if (user.rol === FACTURACION || user.rol === DESPACHO) {
 
       router.push("/distribucion/entradas")
-
+      
+    } else if (user.rol === AUDITORIA) {
+      
+      router.push("/auditoria")
+      
     }
   }
 

@@ -60,10 +60,12 @@ const testHandler = async (request: NextApiRequest, response: NextApiResponse,) 
     if (data1.length && data2.length) {
 
 
-/* El fragmento de código `const chargePlanInfo: ChargePlanInfo = {... }` está creando un objeto llamado
-`chargePlanInfo` de tipo `ChargePlanInfo`. Extrae datos específicos de los resultados de
-consultas de bases de datos (`data1` y `data2`) y las asigna a propiedades del objeto `chargePlanInfo`:
-*/
+      /* 
+        El fragmento de código `const chargePlanInfo: ChargePlanInfo = {... }` está creando un objeto llamado
+        `chargePlanInfo` de tipo `ChargePlanInfo`. Extrae datos específicos de los resultados de
+        consultas de bases de datos (`data1` y `data2`) y las asigna a propiedades del objeto `chargePlanInfo`:
+      */
+     
       const chargePlanInfo: ChargePlanInfo = {
         number: data1[0].LLLDNM,
         weight: parseFloat((data1[0].LLSCWT / 10000).toFixed(2)),

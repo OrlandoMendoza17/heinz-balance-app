@@ -1,0 +1,50 @@
+.TableDifferences{
+  
+  .display-row{
+    @apply text-center;
+    position: relative;
+    display: inline-flex;
+    justify-content: center;
+    
+    &::after{
+      position: absolute;
+      display: none;
+      content: " ";
+      // background-color: red;
+      width: 10px;
+      top: 0;
+      bottom: 0;
+      left: 100%;
+    }
+    
+    .differences-window{
+      display: none;
+    }
+    
+    &:hover {
+      &::after{
+        display: block;
+      }
+      .differences-window {
+        @apply rounded-lg overflow-hidden block shadow-2xl border border-slate-500;
+        z-index: 4;
+        
+        width: max-content;
+        position: absolute;
+        top: 0;
+        left: calc(100% + 1rem);
+        
+        li{
+          @apply p-4 bg-slate-300 text-left;
+          
+          &:last-of-type{
+            @apply bg-teal-500 hover:bg-teal-600 hover:text-white
+          }
+        }
+        span {
+          font-size: 16px;
+        }
+      }
+    }
+  }
+}

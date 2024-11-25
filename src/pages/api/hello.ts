@@ -8,34 +8,17 @@ import sequelize from "@/lib/mssql";
 import type { NextApiRequest, NextApiResponse } from "next";
 
 const testHandler = async (request: NextApiRequest, response: NextApiResponse,) => {
-  const transaction = await sequelize.transaction()
   try {
 
     const query1 = `
-      UPDATE [HDTA025].[dbo].[H025_S_USU]
-      SET	
-        ROL_COD = '03'
-      WHERE 
-        USU_MAI = 'orlando.mendoza@kraftheinz.com'
+      select * from openquery(HVEOW001,'select * from proddta.f0116 where ALAN8 in   (''27927394'',''1014665'')')
     `
 
-    const query2 = `
-      UPDATE [HDTA025].[dbo].[H025_S_USU]
-      SET	
-        ROL_COD = '05'
-      WHERE 
-        USU_MA = 'alexander.rojas@kraftheinz.com'
-    `
-    
-    await sequelize.query(query1) as [unknown[], unknown]
-    await sequelize.query(query2) as [unknown[], unknown]
+    const [data] = await sequelize.query(query1) as [object[], unknown]
 
-    await transaction.commit()
-    
-    response.status(200).json({});
+    response.status(200).json(Object.entries(data[0]).length);
 
   } catch (error) {
-    await transaction.rollback();
     console.log(error)
     response.status(500).json({
       error,

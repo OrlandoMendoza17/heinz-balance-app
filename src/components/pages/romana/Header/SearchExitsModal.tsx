@@ -10,20 +10,13 @@ import Spinner from '../../../widgets/Spinner'
 import { GetExitsBodyProps } from '@/pages/api/exits'
 import useNotification from '@/hooks/useNotification'
 import NotificationModal from '@/components/widgets/NotificationModal'
+import initialSearchValue from '@/utils/defaultValues/SearchValue'
 
 type Props = {
   handleModal: [
     boolean,
     Dispatch<SetStateAction<boolean>>,
   ]
-}
-
-const initialSearchValue = {
-  dateFrom: "",
-  dateTo: "",
-  cedula: "",
-  plate: "",
-  entryNumber: "",
 }
 
 const SearchExitsModal = ({ handleModal }: Props) => {
@@ -33,7 +26,7 @@ const SearchExitsModal = ({ handleModal }: Props) => {
 
   const [alert, handleAlert] = useNotification()
 
-  const [searchBy, setSearchBy] = useState<GetExitsBodyProps>(initialSearchValue)
+  const [searchBy, setSearchBy] = useState(initialSearchValue)
 
   const [exits, setExits] = useState<Exit[]>([])
 
@@ -47,7 +40,7 @@ const SearchExitsModal = ({ handleModal }: Props) => {
         setExits([])
 
         const SECONDS = 10
-        const { dateFrom, dateTo } = searchBy
+        const { dateFrom, dateTo, entryNumber } = searchBy
 
         const timeID = setTimeout(() => {
           handleAlert.open(({
@@ -59,6 +52,7 @@ const SearchExitsModal = ({ handleModal }: Props) => {
 
         const body = {
           ...searchBy,
+          entryNumbers: [entryNumber],
           dateFrom: dateFrom ? getDateTime(new Date(dateFrom).toISOString()) : "",
           dateTo: dateTo ? getDateTime(new Date(dateTo).toISOString()) : "",
         }
