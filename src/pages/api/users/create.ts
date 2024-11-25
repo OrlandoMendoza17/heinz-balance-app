@@ -36,7 +36,6 @@ const createUserHandler = async (request: NextApiRequest, response: NextApiRespo
       USU_CLA: null,
     }
 
-    
     /**
      * Obtiene los atributos necesarios para construir la consulta SQL de inserción.
     */
